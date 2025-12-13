@@ -397,7 +397,7 @@
     /* --- Modals (EQ & Info) --- */
     .modal {
       position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.9);
-      width: 90%; max-width: 500px; background: rgba(255,255,255,0.95);
+      width: 90%; max-width: 500px; background: rgba(230,230,230,0.95);
       backdrop-filter: blur(10px); padding: 20px; border-radius: 12px;
       box-shadow: 0 10px 30px rgba(0,0,0,0.5); z-index: 100; opacity: 0; pointer-events: none;
       transition: all 0.2s ease-out; color: #333; border: 1px solid #999;
@@ -629,6 +629,20 @@
                 artist: t.artist || 'Motan Player',
                 album: t.album || ''
             });
+            // Update position state for proper progress bar
+            updatePositionState();
+        }
+    }
+
+    function updatePositionState() {
+        if ('mediaSession' in navigator && 'setPositionState' in navigator.mediaSession) {
+            if(els.audio.duration && !isNaN(els.audio.duration) && isFinite(els.audio.duration)) {
+                navigator.mediaSession.setPositionState({
+                    duration: els.audio.duration,
+                    playbackRate: els.audio.playbackRate,
+                    position: els.audio.currentTime
+                });
+            }
         }
     }
 
@@ -667,7 +681,10 @@
     els.wakeLockBtn.onclick = toggleWakeLock;
 
     // --- Speed Control Fix ---
-    els.speedSelect.onchange = () => { els.audio.playbackRate = parseFloat(els.speedSelect.value); };
+    els.speedSelect.onchange = () => { 
+        els.audio.playbackRate = parseFloat(els.speedSelect.value);
+        updatePositionState(); 
+    };
 
     // --- DB & Playlist ---
     const request = indexedDB.open('motanDB_v2', 1);
@@ -753,7 +770,7 @@
       loadCurrentPlaylistTracks();
     };
     window.createPlaylist = () => {
-      const name = prompt("プレイリスト名:");
+      const name = prompt("プレイリスト名を入力");m
       if(name) {
         const id = 'pl_' + Date.now();
         playlists.push({ id, name, tracks: [] });
@@ -763,7 +780,7 @@
     };
     window.deletePlaylist = (id, e) => {
       if(e) e.stopPropagation();
-      if(confirm("プレイリストを削除しますか？")) {
+      if(confirm("このプレイリストを削除しますか？")) {
         playlists = playlists.filter(p => p.id !== id);
         if(currentPlaylistId === id) currentPlaylistId = 'default';
         savePlaylistsMeta();
@@ -774,14 +791,14 @@
       if(e) e.stopPropagation();
       const p = playlists.find(pl => pl.id === id);
       if(p) {
-        const newName = prompt("新しい名前:", p.name);
+        const newName = prompt("新しい名前を入力", p.name);
         if(newName) { p.name = newName; savePlaylistsMeta(); }
       }
     };
     window.openMobilePlaylistMenu = () => {
         const p = playlists.find(pl => pl.id === currentPlaylistId);
         if(!p) return;
-        const choice = prompt(`プレイリスト: ${p.name}\n1: 名前変更\n2: プレイリスト削除\n3: 新規作成`, "");
+        const choice = prompt(`選択中のプレイリスト：${p.name}\n1：名前変更\n2：プレイリスト削除\n3：新規作成`, "");
         if(choice === "1") renamePlaylist(p.id);
         else if(choice === "2") {
             if(p.id === 'default') alert("メインプレイリストは削除できません");
@@ -815,7 +832,7 @@
       });
     }
     function removeTrack(id) {
-        if(!confirm("削除しますか？")) return;
+        if(!confirm("この曲を削除しますか？")) return;
         const pl = playlists.find(p => p.id === currentPlaylistId);
         if(pl) {
             pl.tracks = pl.tracks.filter(tid => tid !== id);
@@ -845,7 +862,7 @@
          jsmediatags.read(t.blob, {
              onSuccess: (tag) => {
                  if(tag.tags.title || tag.tags.artist) {
-                     t.title = tag.tags.title; t.artist = tag.tags.artist; t.album = tag.tags.album;
+                     t.title = tag.tags.title; t.artist = tag.tags.artist; t.album = tag.tags.album; t.year = tag.tags.year; t.genre = tag.tags.genre;
                      const li = els.trackListEl.children[i];
                      if(li) li.querySelector('.track-name').textContent = formatTrackName(t);
                      if(t.id === currentTrackId) updateMediaSessionMetadata(t);
@@ -918,6 +935,13 @@
             nextTrack();
         }
     };
+    
+    // Position Update on Play/Pause/Seek/Rate
+    els.audio.onplay = updatePositionState;
+    els.audio.onpause = updatePositionState;
+    els.audio.onseeked = updatePositionState;
+    els.audio.onratechange = updatePositionState;
+    els.audio.onloadedmetadata = updatePositionState;
 
     function nextTrack() {
         if(!currentTrackList.length) return;
@@ -961,14 +985,12 @@
         inp.oninput = (e) => { if(audioInit) eqFilters[i].gain.value = e.target.value; };
     });
 
-    // Presets
     const presets = {
       flat: [0,0,0,0,0,0,0,0,0,0],
       pop: [3,2,0,-1,-2,-2,-1,0,2,3],
       rock: [4,3,1,-1,-2,-1,1,3,4,4],
       classic: [4,3,2,2,-1,-1,0,2,3,3]
     };
-    
     window.setEqPreset = (name) => {
       let vals = [];
       if(presets[name]) vals = presets[name];
@@ -982,7 +1004,7 @@
       });
     };
     window.saveEqPreset = () => {
-       const choice = prompt("保存先を選んでください (1 or 2):", "1");
+       const choice = prompt("保存先 (1 or 2):", "1");
        if(choice === "1" || choice === "2") {
           const vals = Array.from(ranges).map(r => parseInt(r.value));
           localStorage.setItem('motanEq_custom' + choice, JSON.stringify(vals));
@@ -998,7 +1020,6 @@
         if(!currentTrackList[currentIndex]) return;
         const t = currentTrackList[currentIndex];
         infoContent.innerHTML = '<p>Loading...</p>';
-        
         jsmediatags.read(t.blob, {
             onSuccess: (tag) => {
                 const tags = tag.tags;
@@ -1011,17 +1032,11 @@
                     <p><span class="info-label">Genre:</span> ${tags.genre || '-'}</p>
                 `;
             },
-            onError: (error) => {
-                infoContent.innerHTML = `
-                    <p><span class="info-label">File:</span> ${t.name}</p>
-                    <p>メタデータの読み込みに失敗しました。</p>
-                `;
-            }
+            onError: () => { infoContent.innerHTML = `<p>Error loading metadata</p>`; }
         });
     };
     document.getElementById('closeInfoBtn').onclick = () => { infoModal.classList.remove('open'); infoModal.setAttribute('aria-hidden', 'true'); };
 
-    // --- Visualizer & Progress ---
     els.audio.ontimeupdate = () => {
         if(!els.audio.duration) return;
         const pct = (els.audio.currentTime / els.audio.duration) * 100;
