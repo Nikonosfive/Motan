@@ -96,6 +96,7 @@
     * { box-sizing: border-box; font-family: "Roboto", sans-serif; -webkit-tap-highlight-color: transparent; }
     
     body {
+      user-select: none;
       margin: 0; padding: 0;
       width: 100vw; height: 100vh;
       overflow: hidden;
@@ -151,7 +152,7 @@
 
     .add-playlist-btn { background: transparent; border: none; cursor: pointer; color: var(--text-main); font-size: 20px; }
     
-    .playlist-list { list-style: none; padding: 0; margin: 0; overflow-y: auto; flex: 1; }
+    .playlist-list { list-style: none; padding: 0; margin: 0; overflow-y: hidden; flex: 1; }
     .playlist-item {
       padding: 8px 10px;
       height: 2rem;
