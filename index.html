@@ -526,7 +526,7 @@
       <div class="playlist-container">
         <ul id="trackList"></ul>
       </div>
-      <div class="credit">Motan Player by Kasairo (Ver.2.4 Final)</div>
+      <div class="credit">Motan Player by Kasairo (Ver.2.5)</div>
     </main>
 
     <div id="eqModal" class="modal" aria-hidden="true">
@@ -770,7 +770,7 @@
       loadCurrentPlaylistTracks();
     };
     window.createPlaylist = () => {
-      const name = prompt("プレイリスト名を入力");m
+      const name = prompt("プレイリスト名を入力");
       if(name) {
         const id = 'pl_' + Date.now();
         playlists.push({ id, name, tracks: [] });
@@ -780,7 +780,7 @@
     };
     window.deletePlaylist = (id, e) => {
       if(e) e.stopPropagation();
-      if(confirm("このプレイリストを削除しますか？")) {
+      if(confirm("プレイリストを削除しますか？")) {
         playlists = playlists.filter(p => p.id !== id);
         if(currentPlaylistId === id) currentPlaylistId = 'default';
         savePlaylistsMeta();
@@ -798,7 +798,7 @@
     window.openMobilePlaylistMenu = () => {
         const p = playlists.find(pl => pl.id === currentPlaylistId);
         if(!p) return;
-        const choice = prompt(`選択中のプレイリスト：${p.name}\n1：名前変更\n2：プレイリスト削除\n3：新規作成`, "");
+        const choice = prompt(`プレイリスト名：${p.name}\n1：名前変更\n2：プレイリスト削除\n3：新規作成`, "");
         if(choice === "1") renamePlaylist(p.id);
         else if(choice === "2") {
             if(p.id === 'default') alert("メインプレイリストは削除できません");
@@ -832,7 +832,7 @@
       });
     }
     function removeTrack(id) {
-        if(!confirm("この曲を削除しますか？")) return;
+        if(!confirm("削除しますか？")) return;
         const pl = playlists.find(p => p.id === currentPlaylistId);
         if(pl) {
             pl.tracks = pl.tracks.filter(tid => tid !== id);
