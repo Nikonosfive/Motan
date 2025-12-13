@@ -9,17 +9,17 @@
   <meta name="application-name" content="Motan">
   <meta name="theme-color" content="#333">
   <meta name="description" content="Motan Player - Offline Web Music Player">
-  <link rel="manifest" href="manifest.json">
   
+  <link rel="manifest" href="manifest.json">
   <link rel="apple-touch-icon" href="img/icon-192.png">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Orbitron:wght@500&display=swap" rel="stylesheet">
 
   <style>
-    /* --- CSS Variables --- */
     :root {
       /* Base Colors */
       --bg-body: #dddddd;
@@ -152,7 +152,7 @@
 
     .add-playlist-btn { background: transparent; border: none; cursor: pointer; color: var(--text-main); font-size: 20px; }
     
-    .playlist-list { list-style: none; padding: 0; margin: 0; overflow-y: hidden; flex: 1; }
+    .playlist-list { list-style: none; padding: 0; margin: 0; overflow-y: auto; flex: 1; }
     .playlist-item {
       padding: 8px 10px;
       height: 2rem;
@@ -187,6 +187,7 @@
     .mobile-tabs::-webkit-scrollbar { height: 0px; }
     
     .tab-item {
+      overflow: hidden;
       height: 2rem;
       line-height: 2rem;
       vertical-align: middle;
@@ -393,33 +394,32 @@
       color: #ff4444;
     }
 
-    /* --- Custom Equalizer Design (2010s Fader) --- */
-    #eqModal {
+    /* --- Modals (EQ & Info) --- */
+    .modal {
       position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.9);
       width: 90%; max-width: 500px; background: rgba(255,255,255,0.95);
       backdrop-filter: blur(10px); padding: 20px; border-radius: 12px;
       box-shadow: 0 10px 30px rgba(0,0,0,0.5); z-index: 100; opacity: 0; pointer-events: none;
       transition: all 0.2s ease-out; color: #333; border: 1px solid #999;
     }
-    [data-theme="dark"] #eqModal { background: rgba(30,30,30,0.95); color: #ddd; border-color: #444; }
-    #eqModal.open { opacity: 1; pointer-events: auto; transform: translate(-50%, -50%) scale(1); }
-    .eq-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-    .eq-header h3 { margin: 0; font-family: 'Orbitron'; font-size: 16px; }
+    [data-theme="dark"] .modal { background: rgba(30,30,30,0.95); color: #ddd; border-color: #444; }
+    .modal.open { opacity: 1; pointer-events: auto; transform: translate(-50%, -50%) scale(1); }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+    .modal-header h3 { margin: 0; font-family: 'Orbitron'; font-size: 16px; }
     .close-btn { background: none; border: none; font-size: 24px; cursor: pointer; color: inherit; padding: 0; box-shadow: none; }
-    .eq-sliders { display: flex; justify-content: space-between; height: 160px; overflow-x: auto; padding-bottom: 10px; }
     
+    /* EQ Specific */
+    .eq-sliders { display: flex; justify-content: space-between; height: 160px; overflow-x: auto; padding-bottom: 10px; }
     .eq-band {
       display: flex; flex-direction: column; align-items: center; min-width: 30px; margin: 0 2px;
       height: 140px; justify-content: center;
     }
-
     .eq-range {
       -webkit-appearance: none; appearance: none;
       background: transparent; cursor: pointer;
       width: 120px; height: 20px;
       transform: rotate(-90deg); transform-origin: center; margin: 50px -45px;
     }
-    /* Track */
     .eq-range::-webkit-slider-runnable-track {
       width: 100%; height: 6px; border-radius: 3px; background: #222;
       border: 1px solid #444; box-shadow: inset 0 1px 3px rgba(0,0,0,0.8);
@@ -428,7 +428,6 @@
       width: 100%; height: 6px; border-radius: 3px; background: #222;
       border: 1px solid #444; box-shadow: inset 0 1px 3px rgba(0,0,0,0.8);
     }
-    /* Thumb */
     .eq-range::-webkit-slider-thumb {
       -webkit-appearance: none; height: 14px; width: 24px; margin-top: -5px;
       border-radius: 2px; background: linear-gradient(to bottom, #f0f0f0 0%, #dcdcdc 50%, #bcbcbc 51%, #e0e0e0 100%);
@@ -439,8 +438,12 @@
       background: linear-gradient(to bottom, #f0f0f0 0%, #dcdcdc 50%, #bcbcbc 51%, #e0e0e0 100%);
       border: 1px solid #666; box-shadow: 0 2px 4px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.5);
     }
-
     .eq-label { font-size: 8px; margin-top: 10px; color: var(--text-sub); text-shadow: 0 1px 0 rgba(255,255,255,0.1); }
+    .eq-presets { display: flex; justify-content: center; gap: 5px; margin-bottom: 10px; flex-wrap: wrap; }
+    
+    /* Info Modal Specific */
+    .info-content p { margin: 5px 0; font-size: 13px; line-height: 1.5; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 5px; }
+    .info-label { font-weight: bold; color: var(--highlight); width: 80px; display: inline-block; }
     
     .credit { text-align: center; padding: 5px; font-size: 9px; color: var(--text-sub); text-shadow: 0 1px 0 var(--border-highlight); }
   </style>
@@ -464,6 +467,7 @@
       <symbol id="icon-edit" viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></symbol>
       <symbol id="icon-settings" viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L3.16 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.04.24.24.41.48.41h3.84c.24 0 .43-.17.47-.41l.36-2.54c.59-.24 1.13-.57 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></symbol>
       <symbol id="icon-sun" viewBox="0 0 24 24"><path d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zM2 13h2c.55 0 1-.45 1-1s-.45-1-1-1H2c-.55 0-1 .45-1 1s.45 1 1 1zm18 0h2c.55 0 1-.45 1-1s-.45-1-1-1h-2c-.55 0-1 .45-1 1s.45 1 1 1zM11 2v2c0 .55.45 1 1 1s1-.45 1-1V2c0-.55-.45-1-1-1s-1 .45-1 1zm0 18v2c0 .55.45 1 1 1s1-.45 1-1v-2c0-.55-.45-1-1-1s-1 .45-1 1zM5.99 4.58c-.39-.39-1.03-.39-1.41 0-.39.39-.39 1.03 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0s.39-1.03 0-1.41L5.99 4.58zm12.37 12.37c-.39-.39-1.03-.39-1.41 0-.39.39-.39 1.03 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0 .39-.39.39-1.03 0-1.41l-1.06-1.06zm1.06-10.96c.39-.39.39-1.03 0-1.41-.39-.39-1.03-.39-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06zM7.05 18.36c.39-.39.39-1.03 0-1.41-.39-.39-1.03-.39-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06z"/></symbol>
+      <symbol id="icon-info" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></symbol>
     </defs>
   </svg>
 
@@ -506,6 +510,7 @@
           <button id="loopBtn" class="sub-btn"><svg><use href="#icon-loop"></use></svg> <span id="loopText">Off</span></button>
           <button id="shuffleBtn" class="sub-btn"><svg><use href="#icon-shuffle"></use></svg> <span id="shuffleText">Off</span></button>
           <button id="eqBtn" class="sub-btn"><svg><use href="#icon-eq"></use></svg> EQ</button>
+          <button id="infoBtn" class="sub-btn"><svg><use href="#icon-info"></use></svg> Info</button>
           <button id="wakeLockBtn" class="sub-btn"><svg><use href="#icon-sun"></use></svg> ☀️</button>
           <select id="speedSelect"><option value="1">x1.0</option><option value="1.25">x1.25</option><option value="1.5">x1.5</option><option value="2">x2.0</option><option value="0.5">x0.5</option></select>
         </div>
@@ -521,11 +526,20 @@
       <div class="playlist-container">
         <ul id="trackList"></ul>
       </div>
-      <div class="credit">Motan Player by Kasairo (Ver.2.3 Night Owl)</div>
+      <div class="credit">Motan Player by Kasairo (Ver.2.4 Final)</div>
     </main>
 
-    <div id="eqModal" aria-hidden="true">
-      <div class="eq-header"><h3>EQUALIZER</h3><button class="close-btn" id="closeEqBtn">×</button></div>
+    <div id="eqModal" class="modal" aria-hidden="true">
+      <div class="modal-header"><h3>EQUALIZER</h3><button class="close-btn" id="closeEqBtn">×</button></div>
+      <div class="eq-presets">
+        <button class="sub-btn" onclick="setEqPreset('flat')">Flat</button>
+        <button class="sub-btn" onclick="setEqPreset('pop')">Pop</button>
+        <button class="sub-btn" onclick="setEqPreset('rock')">Rock</button>
+        <button class="sub-btn" onclick="setEqPreset('classic')">Classic</button>
+        <button class="sub-btn" onclick="setEqPreset('custom1')">User1</button>
+        <button class="sub-btn" onclick="setEqPreset('custom2')">User2</button>
+        <button class="sub-btn" onclick="saveEqPreset()" style="color:var(--highlight)">Save</button>
+      </div>
       <div class="eq-sliders">
         <div class="eq-band"><input type="range" min="-12" max="12" value="0" class="eq-range"><span class="eq-label">31</span></div>
         <div class="eq-band"><input type="range" min="-12" max="12" value="0" class="eq-range"><span class="eq-label">62</span></div>
@@ -538,7 +552,13 @@
         <div class="eq-band"><input type="range" min="-12" max="12" value="0" class="eq-range"><span class="eq-label">8k</span></div>
         <div class="eq-band"><input type="range" min="-12" max="12" value="0" class="eq-range"><span class="eq-label">16k</span></div>
       </div>
-      <div style="text-align: center; margin-top: 10px;"><button id="resetEqBtn" class="sub-btn">Reset</button></div>
+    </div>
+
+    <div id="infoModal" class="modal" aria-hidden="true">
+        <div class="modal-header"><h3>TRACK INFO</h3><button class="close-btn" id="closeInfoBtn">×</button></div>
+        <div class="info-content" id="infoContent">
+            <p>No Information</p>
+        </div>
     </div>
     
     <audio id="audioPlayer" crossorigin="anonymous"></audio>
@@ -557,6 +577,7 @@
       playBtn: document.getElementById('playPauseBtn'),
       loopBtn: document.getElementById('loopBtn'),
       shuffleBtn: document.getElementById('shuffleBtn'),
+      speedSelect: document.getElementById('speedSelect'),
       progress: document.getElementById('progress'),
       filled: document.getElementById('progressFilled'),
       currTime: document.getElementById('currentTime'),
@@ -577,15 +598,26 @@
       localStorage.setItem('motanTheme', next);
     };
 
-    // --- Media Session Setup (External Controls) ---
+    // --- Media Session Setup (iPad/Bg Stability & Long Press Seek) ---
     function setupMediaSession() {
         if ('mediaSession' in navigator) {
-            navigator.mediaSession.setActionHandler('play', () => els.playBtn.click());
-            navigator.mediaSession.setActionHandler('pause', () => els.playBtn.click());
-            navigator.mediaSession.setActionHandler('previoustrack', () => document.getElementById('prevBtn').click());
-            navigator.mediaSession.setActionHandler('nexttrack', () => document.getElementById('nextBtn').click());
-            navigator.mediaSession.setActionHandler('seekbackward', () => els.audio.currentTime -= 5);
-            navigator.mediaSession.setActionHandler('seekforward', () => els.audio.currentTime += 5);
+            const ms = navigator.mediaSession;
+            ms.setActionHandler('play', () => els.playBtn.click());
+            ms.setActionHandler('pause', () => els.playBtn.click());
+            ms.setActionHandler('previoustrack', () => document.getElementById('prevBtn').click());
+            ms.setActionHandler('nexttrack', () => document.getElementById('nextBtn').click());
+            ms.setActionHandler('seekbackward', (details) => {
+                const skipTime = details.seekOffset || 5;
+                els.audio.currentTime = Math.max(els.audio.currentTime - skipTime, 0);
+            });
+            ms.setActionHandler('seekforward', (details) => {
+                const skipTime = details.seekOffset || 5;
+                els.audio.currentTime = Math.min(els.audio.currentTime + skipTime, els.audio.duration);
+            });
+            ms.setActionHandler('seekto', (details) => {
+                 if (details.fastSeek && 'fastSeek' in els.audio) els.audio.fastSeek(details.seekTime);
+                 else els.audio.currentTime = details.seekTime;
+            });
         }
     }
     setupMediaSession();
@@ -595,36 +627,47 @@
             navigator.mediaSession.metadata = new MediaMetadata({
                 title: t.title || t.name,
                 artist: t.artist || 'Motan Player',
-                // artwork: [{ src: 'icon.png', sizes: '96x96', type: 'image/png' }] // Optional if you have icons
+                album: t.album || ''
             });
         }
     }
 
-    // --- Wake Lock API (Keep Awake) ---
+    // --- Audio Context & Visibility (Interruption Fix) ---
+    let audioCtx, analyserNode, eqFilters = [], audioInit = false;
+    const eqFreqs = [31, 62, 125, 250, 500, 1000, 2000, 4000, 8000, 16000];
+
+    document.addEventListener('visibilitychange', () => {
+        // iPad Safari Fix: Stop canvas when hidden to prevent crash, keep audio
+        if (document.hidden) {
+            cancelAnimationFrame(drawVisId);
+        } else {
+            if(isPlaying) drawVis();
+            // Try resume context if suspended
+            if(audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+            if(wakeLock) toggleWakeLock(); 
+        }
+    });
+
+    // --- Wake Lock ---
     async function toggleWakeLock() {
-        if (!('wakeLock' in navigator)) { alert('このブラウザはKeep Awake非対応です'); return; }
+        if (!('wakeLock' in navigator)) { alert('非対応ブラウザです'); return; }
         if (wakeLock) {
-            await wakeLock.release();
-            wakeLock = null;
+            await wakeLock.release(); wakeLock = null;
             els.wakeLockBtn.style.color = 'inherit';
         } else {
             try {
                 wakeLock = await navigator.wakeLock.request('screen');
                 els.wakeLockBtn.style.color = 'var(--highlight)';
                 wakeLock.addEventListener('release', () => {
-                    if(wakeLock !== null) { // Released by system, try re-acquire if visible
-                         wakeLock = null; els.wakeLockBtn.style.color = 'inherit';
-                    }
+                    if(wakeLock !== null) { wakeLock = null; els.wakeLockBtn.style.color = 'inherit'; }
                 });
             } catch (err) { console.log(err); }
         }
     }
     els.wakeLockBtn.onclick = toggleWakeLock;
-    document.addEventListener('visibilitychange', async () => {
-        if (wakeLock !== null && document.visibilityState === 'visible') {
-            await toggleWakeLock(); await toggleWakeLock(); // Re-toggle to ensure active
-        }
-    });
+
+    // --- Speed Control Fix ---
+    els.speedSelect.onchange = () => { els.audio.playbackRate = parseFloat(els.speedSelect.value); };
 
     // --- DB & Playlist ---
     const request = indexedDB.open('motanDB_v2', 1);
@@ -710,7 +753,7 @@
       loadCurrentPlaylistTracks();
     };
     window.createPlaylist = () => {
-      const name = prompt("プレイリスト名を入力");
+      const name = prompt("プレイリスト名:");
       if(name) {
         const id = 'pl_' + Date.now();
         playlists.push({ id, name, tracks: [] });
@@ -720,7 +763,7 @@
     };
     window.deletePlaylist = (id, e) => {
       if(e) e.stopPropagation();
-      if(confirm("このプレイリストを削除しますか？")) {
+      if(confirm("プレイリストを削除しますか？")) {
         playlists = playlists.filter(p => p.id !== id);
         if(currentPlaylistId === id) currentPlaylistId = 'default';
         savePlaylistsMeta();
@@ -731,15 +774,14 @@
       if(e) e.stopPropagation();
       const p = playlists.find(pl => pl.id === id);
       if(p) {
-        const newName = prompt("新しい名前を入力", p.name);
+        const newName = prompt("新しい名前:", p.name);
         if(newName) { p.name = newName; savePlaylistsMeta(); }
       }
     };
-
     window.openMobilePlaylistMenu = () => {
         const p = playlists.find(pl => pl.id === currentPlaylistId);
         if(!p) return;
-        const choice = prompt(`選択中のプレイリスト：${p.name}\n1：名前変更\n2：プレイリスト削除\n3：新規作成\n番号を入力して操作する機能を選択してください。`, "");
+        const choice = prompt(`プレイリスト: ${p.name}\n1: 名前変更\n2: プレイリスト削除\n3: 新規作成`, "");
         if(choice === "1") renamePlaylist(p.id);
         else if(choice === "2") {
             if(p.id === 'default') alert("メインプレイリストは削除できません");
@@ -803,7 +845,7 @@
          jsmediatags.read(t.blob, {
              onSuccess: (tag) => {
                  if(tag.tags.title || tag.tags.artist) {
-                     t.title = tag.tags.title; t.artist = tag.tags.artist;
+                     t.title = tag.tags.title; t.artist = tag.tags.artist; t.album = tag.tags.album;
                      const li = els.trackListEl.children[i];
                      if(li) li.querySelector('.track-name').textContent = formatTrackName(t);
                      if(t.id === currentTrackId) updateMediaSessionMetadata(t);
@@ -812,9 +854,6 @@
          });
       });
     }
-
-    let audioCtx, analyserNode, eqFilters = [], audioInit = false;
-    const eqFreqs = [31, 62, 125, 250, 500, 1000, 2000, 4000, 8000, 16000];
 
     function initAudio() {
         if(audioInit) return;
@@ -843,7 +882,7 @@
         const t = currentTrackList[currentIndex];
         currentTrackId = t.id;
         els.audio.src = URL.createObjectURL(t.blob);
-        els.audio.playbackRate = document.getElementById('speedSelect').value;
+        els.audio.playbackRate = parseFloat(els.speedSelect.value);
         els.audio.play();
         isPlaying = true;
         updateUI();
@@ -874,8 +913,7 @@
 
     els.audio.onended = () => {
         if(loopMode === 1) {
-            els.audio.currentTime = 0;
-            els.audio.play();
+            els.audio.currentTime = 0; els.audio.play();
         } else {
             nextTrack();
         }
@@ -913,16 +951,77 @@
         els.shuffleBtn.style.color = shuffle ? 'var(--highlight)' : 'inherit';
     };
 
+    // --- EQ Logic ---
     const eqModal = document.getElementById('eqModal');
     document.getElementById('eqBtn').onclick = () => { eqModal.classList.add('open'); eqModal.setAttribute('aria-hidden', 'false'); };
     document.getElementById('closeEqBtn').onclick = () => { eqModal.classList.remove('open'); eqModal.setAttribute('aria-hidden', 'true'); };
-    document.querySelectorAll('.eq-range').forEach((inp, i) => {
+    
+    const ranges = document.querySelectorAll('.eq-range');
+    ranges.forEach((inp, i) => {
         inp.oninput = (e) => { if(audioInit) eqFilters[i].gain.value = e.target.value; };
     });
-    document.getElementById('resetEqBtn').onclick = () => {
-        document.querySelectorAll('.eq-range').forEach((inp, i) => { inp.value = 0; if(audioInit) eqFilters[i].gain.value = 0; });
+
+    // Presets
+    const presets = {
+      flat: [0,0,0,0,0,0,0,0,0,0],
+      pop: [3,2,0,-1,-2,-2,-1,0,2,3],
+      rock: [4,3,1,-1,-2,-1,1,3,4,4],
+      classic: [4,3,2,2,-1,-1,0,2,3,3]
+    };
+    
+    window.setEqPreset = (name) => {
+      let vals = [];
+      if(presets[name]) vals = presets[name];
+      else if(name.startsWith('custom')) {
+        const saved = localStorage.getItem('motanEq_' + name);
+        vals = saved ? JSON.parse(saved) : presets.flat;
+      }
+      ranges.forEach((inp, i) => {
+        inp.value = vals[i] || 0;
+        if(audioInit) eqFilters[i].gain.value = vals[i] || 0;
+      });
+    };
+    window.saveEqPreset = () => {
+       const choice = prompt("保存先を選んでください (1 or 2):", "1");
+       if(choice === "1" || choice === "2") {
+          const vals = Array.from(ranges).map(r => parseInt(r.value));
+          localStorage.setItem('motanEq_custom' + choice, JSON.stringify(vals));
+          alert("User" + choice + " に保存しました");
+       }
     };
 
+    // --- Info Modal Logic ---
+    const infoModal = document.getElementById('infoModal');
+    const infoContent = document.getElementById('infoContent');
+    document.getElementById('infoBtn').onclick = () => {
+        infoModal.classList.add('open'); infoModal.setAttribute('aria-hidden', 'false');
+        if(!currentTrackList[currentIndex]) return;
+        const t = currentTrackList[currentIndex];
+        infoContent.innerHTML = '<p>Loading...</p>';
+        
+        jsmediatags.read(t.blob, {
+            onSuccess: (tag) => {
+                const tags = tag.tags;
+                infoContent.innerHTML = `
+                    <p><span class="info-label">File:</span> ${t.name}</p>
+                    <p><span class="info-label">Title:</span> ${tags.title || 'Unknown'}</p>
+                    <p><span class="info-label">Artist:</span> ${tags.artist || 'Unknown'}</p>
+                    <p><span class="info-label">Album:</span> ${tags.album || 'Unknown'}</p>
+                    <p><span class="info-label">Year:</span> ${tags.year || '-'}</p>
+                    <p><span class="info-label">Genre:</span> ${tags.genre || '-'}</p>
+                `;
+            },
+            onError: (error) => {
+                infoContent.innerHTML = `
+                    <p><span class="info-label">File:</span> ${t.name}</p>
+                    <p>メタデータの読み込みに失敗しました。</p>
+                `;
+            }
+        });
+    };
+    document.getElementById('closeInfoBtn').onclick = () => { infoModal.classList.remove('open'); infoModal.setAttribute('aria-hidden', 'true'); };
+
+    // --- Visualizer & Progress ---
     els.audio.ontimeupdate = () => {
         if(!els.audio.duration) return;
         const pct = (els.audio.currentTime / els.audio.duration) * 100;
@@ -943,9 +1042,10 @@
     };
     els.progress.onclick = seek; els.progress.ontouchmove = seek;
 
+    let drawVisId;
     function drawVis() {
-        if(!audioInit) return;
-        requestAnimationFrame(drawVis);
+        if(!audioInit || document.hidden) return; // Stop if hidden (iPad fix)
+        drawVisId = requestAnimationFrame(drawVis);
         const cvs = document.getElementById('visualizer');
         const ctx = cvs.getContext('2d');
         cvs.width = cvs.clientWidth; cvs.height = cvs.clientHeight;
@@ -965,16 +1065,5 @@
         }
     }
   </script>
-  <script>
-// --- Service Worker Registration for PWA ---
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js')
-          .then(reg => console.log('SW registered:', reg))
-          .catch(err => console.log('SW registration failed:', err));
-      });
-    }
-  </script>
-</body>
 </body>
 </html>
