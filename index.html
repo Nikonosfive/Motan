@@ -376,12 +376,13 @@
     .time-display {
       display: flex;
       justify-content: space-between;
-      color: #888;
+      color: #aaa;
       font-size: 10px;
       margin-bottom: 4px;
       font-family: 'Orbitron', sans-serif;
       z-index: 2;
       position: relative;
+      text-shadow: 0 0 5px #444;
     }
 
     #progress {
@@ -600,6 +601,7 @@
       transform: translate(-50%, -50%) scale(0.9);
       width: 90%;
       max-width: 500px;
+      max-height: 90vh;
       background: rgba(230, 230, 230, 0.95);
       backdrop-filter: blur(10px);
       padding: 20px;
@@ -611,6 +613,7 @@
       transition: all 0.2s ease-out;
       color: #333;
       border: 1px solid #999;
+      overflow-y: scroll;
     }
 
     [data-theme="dark"] .modal {
@@ -912,7 +915,7 @@
       <div class="playlist-container">
         <ul id="trackList"></ul>
       </div>
-      <div class="credit">Motan Player by Kasairo (Ver.3.0)</div>
+      <div class="credit">Motan Player by Kasairo</div>
     </main>
 
     <div id="eqModal" class="modal" aria-hidden="true">
@@ -968,10 +971,34 @@
         <p><span class="info-label">Fullscreen:</span>
           <button id="modalFullscreenBtn" class="sub-btn">Toggle</button>
         </p>
+        <p><span class="info-label">Version:</span>
+          <a>3.00(2025.12.21)</a>
+        </p>
+        <p>
+          <span class="info-label">Update:</span>
+          <button id="updateCacheBtn" class="sub-btn">Update</button>
+        </p>
+      </div>
+    </div>
+    <!-- Mobile Playlist Modal (replace prompt) -->
+    <div id="mobilePlModal" class="modal" aria-hidden="true">
+      <div class="modal-header">
+        <h3>PLAYLISTS</h3>
+        <button class="close-btn" onclick="closeMobilePlModal()">×</button>
+      </div>
+      <div class="info-content" style="text-align:left;">
+        <p><span class="info-label">Selected:</span> <span class="mobile-pl-name">---</span></p>
+        <p style="margin-top:12px;">
+          <center>
+            <button class="sub-btn" onclick="_mobilePlRename()">Rename</button>
+            <button class="sub-btn" onclick="_mobilePlDelete()">Delete</button>
+            <button class="sub-btn" onclick="_mobilePlCreate()">New Playlist</button>
+          </center>
+        </p>
       </div>
     </div>
 
-    <audio id="audioPlayer" crossorigin="anonymous"></audio>
+    <audio id="audioPlayer" crossorigin="anonymous" playsinline webkit-playsinline></audio>
   </div>
 
   <script>
@@ -1054,6 +1081,42 @@
         updatePositionState();
       }
     }
+    // iOS / mobile audio unlock helper — best-effort, safe
+    (function() {
+      let unlocked = false;
+
+      function unlockAudio() {
+        if (unlocked) return;
+        unlocked = true;
+        // resume AudioContext if present
+        try {
+          if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume().catch(() => {});
+        } catch (e) {}
+        // try a quick play/pause to signal user gesture (no audible effect)
+        try {
+          const p = els.audio.play();
+          if (p && p.then) {
+            p.then(_ => {
+              els.audio.pause();
+              els.audio.currentTime = 0;
+            }).catch(() => {});
+          }
+        } catch (e) {}
+        // remove listeners
+        document.removeEventListener('touchstart', unlockAudio, {
+          passive: true
+        });
+        document.removeEventListener('pointerdown', unlockAudio, {
+          passive: true
+        });
+      }
+      document.addEventListener('touchstart', unlockAudio, {
+        passive: true
+      });
+      document.addEventListener('pointerdown', unlockAudio, {
+        passive: true
+      });
+    })();
 
     function updatePositionState() {
       if ('mediaSession' in navigator && 'setPositionState' in navigator.mediaSession) {
@@ -1271,13 +1334,43 @@
     window.openMobilePlaylistMenu = () => {
       const p = playlists.find(pl => pl.id === currentPlaylistId);
       if (!p) return;
-      const choice = prompt(`プレイリスト名：${p.name}\n1：名前変更\n2：プレイリスト削除\n3：新規作成`, "");
-      if (choice === "1") renamePlaylist(p.id);
-      else if (choice === "2") {
-        if (p.id === 'default') alert("メインプレイリストは削除できません");
-        else deletePlaylist(p.id);
-      } else if (choice === "3") createPlaylist();
+      const modal = document.getElementById('mobilePlModal');
+      if (!modal) return;
+      modal.querySelector('.mobile-pl-name').textContent = p.name || '';
+      modal.dataset.plid = p.id;
+      modal.classList.add('open');
+      modal.setAttribute('aria-hidden', 'false');
     };
+    // handlers for modal buttons
+    window._mobilePlRename = () => {
+      const modal = document.getElementById('mobilePlModal');
+      const id = modal && modal.dataset.plid;
+      if (id) renamePlaylist(id);
+      closeMobilePlModal();
+    };
+    window._mobilePlDelete = () => {
+      const modal = document.getElementById('mobilePlModal');
+      const id = modal && modal.dataset.plid;
+      if (id) {
+        const p = playlists.find(pl => pl.id === id);
+        if (p && p.id === 'default') {
+          alert('メインプレイリストは削除できません');
+        } else deletePlaylist(id);
+      }
+      closeMobilePlModal();
+    };
+    window._mobilePlCreate = () => {
+      createPlaylist();
+      closeMobilePlModal();
+    };
+
+    function closeMobilePlModal() {
+      const modal = document.getElementById('mobilePlModal');
+      if (!modal) return;
+      modal.classList.remove('open');
+      modal.setAttribute('aria-hidden', 'true');
+      modal.dataset.plid = '';
+    }
 
     function formatTrackName(t) {
       return (t.title || t.name) + (t.artist ? ` - ${t.artist}` : '');
@@ -1726,6 +1819,61 @@
           .catch(err => console.log('SW registration failed:', err));
       });
     }
+  </script>
+  <script>
+    async function forceUpdateIndexAndReload() {
+      try {
+        if ('serviceWorker' in navigator) {
+          const reg = await navigator.serviceWorker.getRegistration();
+          if (reg) {
+            // try to update SW script (fetch new sw.js)
+            try {
+              await reg.update();
+            } catch (e) {
+              console.warn('SW update failed', e);
+            }
+            // fetch index.html with cache: 'reload' to force revalidation
+            try {
+              await fetch(location.pathname, {
+                cache: 'reload',
+                credentials: 'same-origin'
+              });
+            } catch (e) {
+              /* ignore */ }
+            // try to message waiting/active worker to skip waiting / refresh caches (best-effort)
+            if (reg.waiting) {
+              try {
+                reg.waiting.postMessage({
+                  type: 'SKIP_WAITING'
+                });
+              } catch (e) {}
+            }
+            if (reg.active) {
+              try {
+                reg.active.postMessage({
+                  type: 'REFRESH_INDEX'
+                });
+              } catch (e) {}
+            }
+          }
+        }
+      } catch (err) {
+        console.warn('forceUpdateIndexAndReload error', err);
+      } finally {
+        // reload page (hard reload attempt)
+        try {
+          location.reload();
+        } catch (e) {
+          location.href = location.href;
+        }
+      }
+    }
+    // wire the button (inside settings module or after DOM ready)
+    const updateBtn = document.getElementById('updateCacheBtn');
+    if (updateBtn) updateBtn.onclick = () => {
+      if (!confirm('The service worker cache will be updated and the page will be reloaded. Do you want to proceed?')) return;
+      forceUpdateIndexAndReload();
+    };
   </script>
 </body>
 
