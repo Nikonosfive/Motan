@@ -236,7 +236,7 @@
     .mobile-tabs-container {
       display: none;
       flex: 0 0 auto;
-      background: var(--bg-sidebar);
+      background: var(--bg-player);
       border-bottom: 1px solid var(--border-color);
       align-items: center;
       padding: 5px;
@@ -271,10 +271,11 @@
     }
 
     .tab-item.active {
-      background: var(--tab-active-bg);
+      background: var(--list-item-bg);
       color: var(--tab-active-text);
       font-weight: bold;
       border-color: transparent;
+      border: 1px solid var(--tab-border);
     }
 
     .mobile-pl-menu-btn {
@@ -819,6 +820,16 @@
       <symbol id="icon-fullscreen" viewBox="0 0 24 24">
         <path d="M7 14H5v4h4v-2H7v-2zm10-8h-4v2h2v2h2V6zM5 6h4V4H5v4zm14 12h-4v2h4v-4z" />
       </symbol>
+      <symbol id="plus-button" viewBox="1px 1px 1px 1px">
+  <path 
+    d="M12 5V19M5 12H19" 
+    fill="none" 
+    stroke="currentColor" 
+    stroke-width="2" 
+    stroke-linecap="round" 
+    stroke-linejoin="round"
+  />
+</symbol>
     </defs>
   </svg>
 
@@ -1288,7 +1299,9 @@
           </li>`;
         htmlTabs += `<div class="tab-item ${activeClass}" onclick="switchPlaylist('${p.id}')">${p.name}</div>`;
       });
-      htmlTabs += `<div class="tab-item" style="font-weight:bold" onclick="createPlaylist()">+</div>`;
+      htmlTabs += `<div class="tab-item" onclick="createPlaylist()" style=""><svg style="width: 24px; transform: translateY(2%) ;
+  -webkit- transform: translateY(-2%) ;"><use href="#plus-button" ></use>
+            </svg></div>`;
       els.sidebarList.innerHTML = htmlSide;
       els.mobileTabs.innerHTML = htmlTabs;
     }
