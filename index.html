@@ -821,15 +821,8 @@
         <path d="M7 14H5v4h4v-2H7v-2zm10-8h-4v2h2v2h2V6zM5 6h4V4H5v4zm14 12h-4v2h4v-4z" />
       </symbol>
       <symbol id="plus-button" viewBox="1px 1px 1px 1px">
-  <path 
-    d="M12 5V19M5 12H19" 
-    fill="none" 
-    stroke="currentColor" 
-    stroke-width="2" 
-    stroke-linecap="round" 
-    stroke-linejoin="round"
-  />
-</symbol>
+        <path d="M12 5V19M5 12H19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+      </symbol>
     </defs>
   </svg>
 
@@ -1082,11 +1075,19 @@
           artist: t.artist || 'Motan Player',
           album: t.album || ''
         };
-        if (t.artwork) meta.artwork = [{
-          src: t.artwork,
-          sizes: '512x512',
-          type: t.artworkType || 'image/jpeg'
-        }];
+        if (t.artwork) {
+          meta.artwork = [{
+            src: t.artwork,
+            sizes: '512x512',
+            type: t.artworkType || 'image/jpeg'
+          }];
+        } else {
+          meta.artwork = [{
+            src: generateFallbackArtwork(meta.title, meta.artist),
+            sizes: '512x512',
+            type: 'image/png'
+          }];
+        }
         navigator.mediaSession.metadata = new MediaMetadata(meta);
         // Update position state for proper progress bar
         updatePositionState();
@@ -1823,6 +1824,29 @@
         x += w + 1;
       }
     }
+
+    function generateFallbackArtwork(title, artist) {
+      const size = 512;
+      const c = document.createElement('canvas');
+      c.width = c.height = size;
+      const ctx = c.getContext('2d');
+      // 背景（無難・暗め）
+      const g = ctx.createLinearGradient(0, 0, size, size);
+      g.addColorStop(0, '#333');
+      g.addColorStop(1, '#111');
+      ctx.fillStyle = g;
+      ctx.fillRect(0, 0, size, size);
+      // テキスト
+      ctx.fillStyle = '#ccc';
+      ctx.font = 'bold 32px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(title || 'Unknown Track', size / 2, size / 2 - 16);
+      ctx.font = '20px sans-serif';
+      ctx.fillStyle = '#888';
+      ctx.fillText(artist || 'Motan Player', size / 2, size / 2 + 24);
+      return c.toDataURL('image/png');
+    }
   </script>
   <script>
     if ('serviceWorker' in navigator) {
@@ -1852,7 +1876,8 @@
                 credentials: 'same-origin'
               });
             } catch (e) {
-              /* ignore */ }
+              /* ignore */
+            }
             // try to message waiting/active worker to skip waiting / refresh caches (best-effort)
             if (reg.waiting) {
               try {
