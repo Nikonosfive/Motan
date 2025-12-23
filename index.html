@@ -177,6 +177,7 @@
       cursor: pointer;
       color: var(--text-main);
       font-size: 20px;
+      height: 1.5rem;
     }
 
     /* Artwork stack: minimal, shown only when track has artwork */
@@ -270,11 +271,17 @@
       cursor: pointer;
     }
 
+    .tab-item:hover {
+      background: var(--list-item-bg);
+      color: var(--tab-active-text);
+      font-weight: regular;
+      border: 1px solid var(--tab-border);
+    }
+
     .tab-item.active {
       background: var(--list-item-bg);
       color: var(--tab-active-text);
       font-weight: bold;
-      border-color: transparent;
       border: 1px solid var(--tab-border);
     }
 
@@ -831,6 +838,11 @@
       <div class="sidebar-header">
         <span class="sidebar-title">PLAYLISTS</span>
         <button class="add-playlist-btn" onclick="createPlaylist()">+</button>
+        <button class="add-playlist-btn" onclick="openMobilePlaylistMenu()" title="プレイリスト管理">
+          <svg>
+            <use href="#icon-settings"></use>
+          </svg>
+        </button>
       </div>
 
       <!-- Artwork stack (desktop only). Will be shown when current track has artwork -->
@@ -976,7 +988,7 @@
           <button id="modalFullscreenBtn" class="sub-btn">Toggle</button>
         </p>
         <p><span class="info-label">Version:</span>
-          <a>3.01(2025.12.21)</a>
+          <a>4.00(2025.12.23)</a>
         </p>
         <p>
           <span class="info-label">Update:</span>
@@ -992,13 +1004,32 @@
       </div>
       <div class="info-content" style="text-align:left;">
         <p><span class="info-label">Selected:</span> <span class="mobile-pl-name">---</span></p>
-        <p style="margin-top:12px;">
+        <p style="margin-top:12px; border: 0px solid;">
           <center>
+            <button class="sub-btn" onclick="sortPlaylistModal()">SORT</button>
+            <button class="sub-btn" onclick="sortListsModal()">LISTS</button>
+
             <button class="sub-btn" onclick="_mobilePlRename()">Rename</button>
-            <button class="sub-btn" onclick="_mobilePlDelete()">Delete</button>
-            <button class="sub-btn" onclick="_mobilePlCreate()">New Playlist</button>
+            <button class="sub-btn" onclick="clearCurrentPlaylist()" style="color:#ff4444">Clear</button>
+            <button class="sub-btn" onclick="_mobilePlDelete()" style="color:#ff4444">Delete</button>
+            <!-- <button class="sub-btn" onclick="_mobilePlCreate()">Create</button> -->
           </center>
         </p>
+      </div>
+    </div>
+    <!-- COLOR Modal -->
+    <div id="colorModal" class="modal" aria-hidden="true">
+      <div class="modal-header">
+        <h3>COLOR</h3>
+        <button class="close-btn" onclick="closeColorModal()">×</button>
+      </div>
+      <div style="padding:8px">
+        <div style="display:flex;gap:8px;margin-top:8px">
+          <button class="sub-btn" onclick="applyColorMode('auto')">Auto</button>
+          <button class="sub-btn" onclick="applyColorMode('dark')">Dark</button>
+          <button class="sub-btn" onclick="applyColorMode('light')">Light</button>
+        </div>
+        <p style="font-size:12px;color:var(--text-sub);margin-top:12px">Auto uses system preference.</p>
       </div>
     </div>
 
@@ -1038,12 +1069,43 @@
     const artworkStackEl = document.getElementById('artworkStack');
     const screenAreaEl = document.getElementById('screenArea');
     if (localStorage.getItem('motanTheme') === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+    // Color modal wiring
     document.getElementById('themeBtn').onclick = () => {
-      const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-      const next = isDark ? 'light' : 'dark';
-      document.documentElement.setAttribute('data-theme', next);
-      localStorage.setItem('motanTheme', next);
+      document.getElementById('colorModal').classList.add('open');
+      document.getElementById('colorModal').setAttribute('aria-hidden', 'false');
     };
+
+    function closeColorModal() {
+      const m = document.getElementById('colorModal');
+      if (!m) return;
+      m.classList.remove('open');
+      m.setAttribute('aria-hidden', 'true');
+    }
+    // Apply color mode: 'auto'|'dark'|'light'
+    function applyColorMode(mode) {
+      try {
+        localStorage.setItem('motanColorMode', mode);
+      } catch (e) {}
+      if (mode === 'dark') {
+        document.documentElement.setAttribute('data-theme', 'dark');
+      } else if (mode === 'light') {
+        document.documentElement.removeAttribute('data-theme');
+        document.documentElement.setAttribute('data-theme', 'light');
+      } else { // auto: use prefers-color-scheme
+        document.documentElement.removeAttribute('data-theme');
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+          document.documentElement.setAttribute('data-theme', 'dark');
+        } else {
+          document.documentElement.removeAttribute('data-theme');
+        }
+      }
+      closeColorModal();
+    }
+    // restore color mode on load
+    (function() {
+      const mode = localStorage.getItem('motanColorMode') || 'auto';
+      applyColorMode(mode);
+    })();
     // --- Media Session Setup (iPad/Bg Stability & Long Press Seek) ---
     function setupMediaSession() {
       if ('mediaSession' in navigator) {
@@ -1167,6 +1229,7 @@
     // --- Audio Context & Visibility (Interruption Fix) ---
     let audioCtx, analyserNode, eqFilters = [],
       audioInit = false;
+    let masterGain = null;
     const eqFreqs = [31, 62, 125, 250, 500, 1000, 2000, 4000, 8000, 16000];
     document.addEventListener('visibilitychange', () => {
       // iPad Safari Fix: Stop canvas when hidden to prevent crash, keep audio
@@ -1228,6 +1291,13 @@
         tracks: []
       }];
       if (!saved) savePlaylistsMeta();
+      const lastPL = localStorage.getItem('motan_lastPlaylist');
+      if (lastPL && playlists.find(p => p.id === lastPL)) {
+        currentPlaylistId = lastPL;
+      } else {
+        // preserve existing currentPlaylistId if set; otherwise default
+        currentPlaylistId = currentPlaylistId || (playlists[0] && playlists[0].id) || 'default';
+      }
       renderSidebar();
       loadCurrentPlaylistTracks();
     }
@@ -1309,6 +1379,10 @@
     window.switchPlaylist = (id) => {
       if (currentPlaylistId === id) return;
       currentPlaylistId = id;
+      // remember last-opened playlist
+      try {
+        localStorage.setItem('motan_lastPlaylist', id);
+      } catch (e) {}
       renderSidebar();
       loadCurrentPlaylistTracks();
     };
@@ -1501,7 +1575,17 @@
       const ACTX = window.AudioContext || window.webkitAudioContext;
       audioCtx = new ACTX();
       const src = audioCtx.createMediaElementSource(els.audio);
-      let prev = src;
+      // create master gain to control volume reliably (esp. iOS)
+      masterGain = audioCtx.createGain();
+      // default volume from stored setting (or 1)
+      const savedVol = parseFloat(localStorage.getItem('motan_volume') || '1');
+      try {
+        masterGain.gain.value = isNaN(savedVol) ? 1 : savedVol;
+      } catch (e) {
+        masterGain.gain.value = 1;
+      }
+      src.connect(masterGain);
+      let prev = masterGain;
       eqFilters = eqFreqs.map(f => {
         const filt = audioCtx.createBiquadFilter();
         filt.type = 'peaking';
@@ -1703,6 +1787,21 @@
         sVolVal.textContent = Math.round(v * 100) + '%';
         localStorage.setItem('motan_volume', v);
       };
+      if (sVol) {
+        sVol.oninput = (e) => {
+          const v = parseFloat(e.target.value);
+          sVolVal.textContent = Math.round(v * 100) + '%';
+          try {
+            // if audio context is initialized, set masterGain
+            if (masterGain && audioCtx) masterGain.gain.value = v;
+            // fallback for environments without WebAudio (or before init)
+            els.audio.volume = v;
+            localStorage.setItem('motan_volume', String(v));
+          } catch (err) {
+            els.audio.volume = v;
+          }
+        };
+      }
       if (modalFS) modalFS.onclick = toggleFullscreen;
       if (fsBtn) fsBtn.onclick = toggleFullscreen;
 
@@ -1837,16 +1936,65 @@
       ctx.fillStyle = g;
       ctx.fillRect(0, 0, size, size);
       // テキスト
-      ctx.fillStyle = '#ccc';
+      ctx.fillStyle = '#777';
       ctx.font = 'bold 32px sans-serif';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       ctx.fillText(title || 'Unknown Track', size / 2, size / 2 - 16);
       ctx.font = '20px sans-serif';
-      ctx.fillStyle = '#888';
+      ctx.fillStyle = '#444';
       ctx.fillText(artist || 'Motan Player', size / 2, size / 2 + 24);
       return c.toDataURL('image/png');
     }
+    window.clearCurrentPlaylist = () => {
+      const modal = document.getElementById('mobilePlModal');
+      const id = modal && modal.dataset.plid;
+      if (!id) return;
+      if (!confirm("選択中のプレイリストの全トラックを削除してよろしいですか？")) return;
+      const p = playlists.find(pl => pl.id === id);
+      if (!p) return;
+      p.tracks = [];
+      savePlaylistsMeta(); // re-render sidebar
+      if (currentPlaylistId === id) loadCurrentPlaylistTracks();
+      alert('選択中のプレイリストが初期化されました。');
+      closeMobilePlModal();
+    };
+    window.sortPlaylistModal = async () => {
+      const modal = document.getElementById('mobilePlModal');
+      const plid = modal && modal.dataset.plid;
+      if (!plid) return;
+      // 1) Confirm in English
+      if (!confirm('並べ替えを実行してもよろしいですか？')) return;
+      // 2) Ask whether to use metadata (title) or not
+      const useMeta = confirm('並べ替えにメタデータを使用しますか？');
+      // Need the current track list; ensure it's loaded
+      if (plid !== currentPlaylistId) {
+        // switch to that playlist temporarily to read tracks
+        currentPlaylistId = plid;
+        renderSidebar();
+        await new Promise(res => {
+          setTimeout(res, 50);
+        }); // tiny yield
+        loadCurrentPlaylistTracks();
+      }
+      // Build key list based on either metadata or filename
+      const pl = playlists.find(p => p.id === plid);
+      if (!pl) return;
+      // Map currentTrackList (which was populated by loadCurrentPlaylistTracks)
+      // to objects with sorting key.
+      const map = currentTrackList.map(t => ({
+        id: t.id,
+        key: (useMeta ? ((t.title && t.title.trim()) || t.name) : t.name) || ''
+      }));
+      // Sort with localeCompare (Japanese aware)
+      map.sort((a, b) => a.key.localeCompare(b.key, 'ja'));
+      // Rebuild playlist order by id
+      pl.tracks = map.map(x => x.id);
+      savePlaylistsMeta();
+      loadCurrentPlaylistTracks();
+      alert('並べ替えが完了しました。' + (useMeta ? '（メタデータによる）' : ' （ファイル名による）'));
+      closeMobilePlModal();
+    };
   </script>
   <script>
     if ('serviceWorker' in navigator) {
@@ -1857,6 +2005,7 @@
       });
     }
   </script>
+  <!-- これはサービスワーカー。スパゲッティ部分ではない-->
   <script>
     async function forceUpdateIndexAndReload() {
       try {
@@ -1878,7 +2027,6 @@
             } catch (e) {
               /* ignore */
             }
-            // try to message waiting/active worker to skip waiting / refresh caches (best-effort)
             if (reg.waiting) {
               try {
                 reg.waiting.postMessage({
@@ -1911,6 +2059,115 @@
     if (updateBtn) updateBtn.onclick = () => {
       if (!confirm('The service worker cache will be updated and the page will be reloaded. Do you want to proceed?')) return;
       forceUpdateIndexAndReload();
+    };
+  </script>
+  <!-- 以下、スパゲッティ -->
+  <script>
+    function openPlaylistsOrderModal() {
+      let modal = document.getElementById('playlistsOrderModal');
+      if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'playlistsOrderModal';
+        modal.className = 'modal';
+        modal.setAttribute('aria-hidden', 'true');
+        modal.style.zIndex = 1200;
+        modal.innerHTML = `
+      <div class="modal-header">
+        <h3>REORDER PLAYLISTS</h3>
+        <button class="close-btn" onclick="closePlaylistsOrderModal()">×</button>
+      </div>
+      <div style="padding:10px">
+        <div style="max-height:340px;overflow:auto;border:1px solid var(--border-color);padding:8px;border-radius:8px;background:transparent">
+          <table style="width:100%;border-collapse:collapse"><tbody id="playlistsOrderTable"></tbody></table>
+        </div>
+        <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:10px">
+          <button class="sub-btn" onclick="applyPlaylistsOrder()">Apply</button>
+          <button class="sub-btn" onclick="closePlaylistsOrderModal()">Cancel</button>
+        </div>
+      </div>
+    `;
+        document.body.appendChild(modal);
+      }
+      // populate table
+      const tbody = document.getElementById('playlistsOrderTable');
+      tbody.innerHTML = '';
+      playlists.forEach((p, idx) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+      <td style="padding:8px;vertical-align:middle">${idx+1}. <a style="margin-left:8px font-family: "Roboto", sans-serif;">${escapeHtml(p.name)}</a></td>
+      <td style="width:110px;padding:8px">
+        <input type="number" class="pl-order-input" data-id="${p.id}" value="${idx+1}" style="width:100%;padding:8px;border-radius:6px;border:1px solid var(--border-color);background:var(--bg-body); color: var(--text-main);">
+      </td>
+    `;
+        tbody.appendChild(tr);
+      });
+      modal.classList.add('open');
+      modal.setAttribute('aria-hidden', 'false');
+    }
+
+    function closePlaylistsOrderModal() {
+      const m = document.getElementById('playlistsOrderModal');
+      if (!m) return;
+      m.classList.remove('open');
+      m.setAttribute('aria-hidden', 'true');
+    }
+    /* Read numbers and reorder playlists array safely */
+    function applyPlaylistsOrder() {
+      const inputs = Array.from(document.querySelectorAll('.pl-order-input'));
+      if (!inputs.length) return closePlaylistsOrderModal();
+      // Build array of {id, num}. Empty or invalid => Infinity (push to end)
+      const arr = inputs.map(i => ({
+        id: i.dataset.id,
+        num: (i.value === '' ? Infinity : (parseInt(i.value, 10) || Infinity))
+      }));
+      // stable sort by number
+      arr.sort((a, b) => {
+        if (a.num === b.num) return 0;
+        if (a.num === Infinity) return 1;
+        if (b.num === Infinity) return -1;
+        return a.num - b.num;
+      });
+      const newOrderIds = arr.map(x => x.id);
+      // rebuild playlists array in that order, append any missing (safety)
+      const newList = [];
+      newOrderIds.forEach(id => {
+        const p = playlists.find(pl => pl.id === id);
+        if (p) newList.push(p);
+      });
+      playlists.forEach(p => {
+        if (!newList.find(n => n.id === p.id)) newList.push(p);
+      });
+      playlists = newList;
+      try {
+        localStorage.setItem('motanPlaylists', JSON.stringify(playlists));
+      } catch (e) {}
+      // re-render and keep last-opened playlist if possible
+      renderSidebar();
+      // if currentPlaylistId no longer exists, fallback to first
+      if (!playlists.find(p => p.id === currentPlaylistId)) {
+        currentPlaylistId = playlists[0] ? playlists[0].id : 'default';
+        try {
+          localStorage.setItem('motan_lastPlaylist', currentPlaylistId);
+        } catch (e) {}
+      }
+      loadCurrentPlaylistTracks();
+      closePlaylistsOrderModal();
+      alert('Playlists reordered');
+    }
+
+    function escapeHtml(s) {
+      return String(s).replace(/[&<>"']/g, function(m) {
+        return {
+          '&': '&amp;',
+          '<': '&lt;',
+          '>': '&gt;',
+          '"': '&quot;',
+          "'": '&#39;'
+        } [m];
+      });
+    }
+    window.sortListsModal = function() {
+      openPlaylistsOrderModal();
     };
   </script>
 </body>
