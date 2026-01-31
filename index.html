@@ -988,7 +988,7 @@
           <button id="modalFullscreenBtn" class="sub-btn">Toggle</button>
         </p>
         <p><span class="info-label">Version:</span>
-          <a>4.00(2025.12.23)</a>
+          <a>4.01(2026.1.31)</a>
         </p>
         <p>
           <span class="info-label">Update:</span>
@@ -1741,75 +1741,104 @@
     };
     // --- Settings Modal Logic ---
     // inserted: handles speed, volume and fullscreen
-    (function() {
-      const sModal = document.getElementById('settingsModal');
-      const sBtn = document.getElementById('settingsBtn');
-      const closeS = document.getElementById('closeSettingsBtn');
-      const sSpeed = document.getElementById('settingSpeed');
-      const sVol = document.getElementById('settingVolume');
-      const sSpeedVal = document.getElementById('settingSpeedVal');
-      const sVolVal = document.getElementById('settingVolumeVal');
-      const modalFS = document.getElementById('modalFullscreenBtn');
-      const fsBtn = document.getElementById('fullscreenBtn');
-      // initialize values from localStorage
+   // ==========================================
+    // 修正版: 設定（音量・再生速度）のロジック
+    // ==========================================
+    
+    // 設定モーダル関連の要素取得
+    const sModal = document.getElementById('settingsModal');
+    const sBtn = document.getElementById('settingsBtn');
+    const closeS = document.getElementById('closeSettingsBtn');
+
+    // スライダーと数値表示の要素取得
+    const sSpeed = document.getElementById('settingSpeed');
+    const sSpeedVal = document.getElementById('settingSpeedVal');
+    const sVol = document.getElementById('settingVolume');
+    const sVolVal = document.getElementById('settingVolumeVal');
+
+    // ▼ 初期化関数（ページ読み込み時に実行）
+    function initSettingsUI() {
+      // 1. 保存された値をロード（なければデフォルト値）
       const savedSpeed = parseFloat(localStorage.getItem('motan_speed') || '1');
       const savedVol = parseFloat(localStorage.getItem('motan_volume') || '1');
+
+      // 2. UI（スライダー位置・テキスト）への反映
       if (sSpeed) {
         sSpeed.value = savedSpeed;
-        sSpeedVal.textContent = savedSpeed.toFixed(2) + 'x';
+        if (sSpeedVal) sSpeedVal.textContent = savedSpeed.toFixed(2) + 'x';
       }
       if (sVol) {
         sVol.value = savedVol;
-        sVolVal.textContent = Math.round(savedVol * 100) + '%';
+        if (sVolVal) sVolVal.textContent = Math.round(savedVol * 100) + '%';
       }
+
+      // 3. 実際のオーディオ・ゲインへの反映
       if (els && els.audio) {
         els.audio.volume = savedVol;
         els.audio.playbackRate = savedSpeed;
       }
-      if (sBtn) sBtn.onclick = () => {
-        sModal.classList.add('open');
-        sModal.setAttribute('aria-hidden', 'false');
-      };
-      if (closeS) closeS.onclick = () => {
-        sModal.classList.remove('open');
-        sModal.setAttribute('aria-hidden', 'true');
-      };
-      if (sSpeed) sSpeed.oninput = (e) => {
-        const v = parseFloat(e.target.value);
-        if (els && els.audio) els.audio.playbackRate = v;
-        sSpeedVal.textContent = v.toFixed(2) + 'x';
-        updatePositionState();
-        localStorage.setItem('motan_speed', v);
-      };
-      if (sVol) sVol.oninput = (e) => {
-        const v = parseFloat(e.target.value);
-        if (els && els.audio) els.audio.volume = v;
-        sVolVal.textContent = Math.round(v * 100) + '%';
-        localStorage.setItem('motan_volume', v);
-      };
-      if (sVol) {
-        sVol.oninput = (e) => {
-          const v = parseFloat(e.target.value);
-          sVolVal.textContent = Math.round(v * 100) + '%';
-          try {
-            // if audio context is initialized, set masterGain
-            if (masterGain && audioCtx) masterGain.gain.value = v;
-            // fallback for environments without WebAudio (or before init)
-            els.audio.volume = v;
-            localStorage.setItem('motan_volume', String(v));
-          } catch (err) {
-            els.audio.volume = v;
-          }
-        };
+      // Web Audio API (masterGain) が有効な場合の音量同期
+      if (typeof masterGain !== 'undefined' && masterGain) {
+        try { masterGain.gain.value = savedVol; } catch (e) {}
       }
-      if (modalFS) modalFS.onclick = toggleFullscreen;
-      if (fsBtn) fsBtn.onclick = toggleFullscreen;
+    }
 
-      function toggleFullscreen() {
-        if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(() => {});
-        else document.exitFullscreen();
+    // ▼ イベントリスナー設定
+    
+    // モーダルの開閉
+    if (sBtn) sBtn.onclick = () => {
+      sModal.classList.add('open');
+      sModal.setAttribute('aria-hidden', 'false');
+    };
+    if (closeS) closeS.onclick = () => {
+      sModal.classList.remove('open');
+      sModal.setAttribute('aria-hidden', 'true');
+    };
+
+    // 再生速度の変更（スライダー操作時）
+    if (sSpeed) sSpeed.oninput = (e) => {
+      const v = parseFloat(e.target.value);
+      if (els && els.audio) els.audio.playbackRate = v;
+      if (sSpeedVal) sSpeedVal.textContent = v.toFixed(2) + 'x';
+      localStorage.setItem('motan_speed', v);
+    };
+
+    // 音量の変更（スライダー操作時）
+    if (sVol) sVol.oninput = (e) => {
+      const v = parseFloat(e.target.value);
+      // Audio要素の音量更新
+      if (els && els.audio) els.audio.volume = v;
+      // MasterGainの音量更新（iOS/WebAudio用）
+      if (typeof masterGain !== 'undefined' && masterGain) {
+        try { masterGain.gain.value = v; } catch (e) {}
       }
-    })();
+      
+      if (sVolVal) sVolVal.textContent = Math.round(v * 100) + '%';
+      localStorage.setItem('motan_volume', v);
+    };
+
+    // ▼ 重要: 曲が変わった際（読み込み時）に速度が1.0に戻るのを防ぐ修正
+    if (els && els.audio) {
+      // 'durationchange' はメタデータ読み込み後、曲の長さが決まったタイミングで発火
+      els.audio.addEventListener('durationchange', () => {
+        const savedSpeed = parseFloat(localStorage.getItem('motan_speed') || '1');
+        // 現在の速度が保存された速度と異なる場合のみ再適用
+        if (Math.abs(els.audio.playbackRate - savedSpeed) > 0.01) {
+          els.audio.playbackRate = savedSpeed;
+        }
+      });
+      
+      // 念のため再生開始時にもチェック
+      els.audio.addEventListener('play', () => {
+        const savedSpeed = parseFloat(localStorage.getItem('motan_speed') || '1');
+        if (Math.abs(els.audio.playbackRate - savedSpeed) > 0.01) {
+           els.audio.playbackRate = savedSpeed;
+        }
+      });
+    }
+
+    // 初期化の実行
+    initSettingsUI();
     // --- Info Modal Logic (extended) ---
     const infoModal = document.getElementById('infoModal');
     const infoContent = document.getElementById('infoContent');
