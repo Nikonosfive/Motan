@@ -21,7 +21,6 @@
 
   <style>
     :root {
-      /* Base Colors */
       --bg-body: #dddddd;
       --bg-sidebar: #e8e8e8;
       --bg-player: #f2f2f2;
@@ -35,16 +34,12 @@
       li:last-child {
         border-bottom: none;
       }
-
-      /* Buttons */
       --btn-bg: linear-gradient(to bottom, #ffffff 0%, #e6e6e6 100%);
       --btn-active: linear-gradient(to bottom, #cccccc 0%, #e6e6e6 100%);
       --btn-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-      /* Play Button */
       --play-btn-bg: linear-gradient(to bottom, #ffffff 0%, #f0f0f0 50%, #e0e0e0 51%, #f5f5f5 100%);
       --play-btn-border: #999;
       --play-btn-text: #333;
-      /* Playlist Items (Light Mode: User Original) */
       --list-bg: #dddddd;
       --list-item-bg: linear-gradient(#f4f4f9, #eeeeee);
       --list-item-hover: linear-gradient(#ffffff, #f4f4f9);
@@ -108,7 +103,6 @@
       transition: background 0.3s, color 0.3s;
     }
 
-    /* --- Layout --- */
     .app-layout {
       display: flex;
       width: 100%;
@@ -180,7 +174,6 @@
       height: 1.5rem;
     }
 
-    /* Artwork stack: minimal, shown only when track has artwork */
     #artworkStack {
       display: none;
       margin-bottom: 10px;
@@ -464,7 +457,7 @@
     .toolbu {
       width: 44px;
       height: 44px;
-      border-radius: 50%;
+      border-radius: 100%;
     }
 
     .toolbu svg {
@@ -491,6 +484,7 @@
       border-radius: 12px;
       gap: 4px;
       font-weight: bold;
+      min-width: 3.2rem;
     }
 
     .sub-btn svg {
@@ -507,7 +501,6 @@
       font-size: 10px;
     }
 
-    /* Playlist (Light: Original / Dark: Modern) */
     .playlist-container {
       flex: 1 1 auto;
       overflow-y: auto;
@@ -523,12 +516,9 @@
 
     #trackList li {
       list-style: none;
-      /* Original Design Restoration */
       height: 1.6rem;
-      /* Slightly taller than 1.2rem for touch, but compact */
       line-height: 1.6rem;
       margin: 0 0.5rem 0.2rem 0.5rem;
-      /* Original Margins */
       padding: 0 0.35rem;
       padding-bottom: 0;
       margin-bottom: 0;
@@ -544,7 +534,10 @@
       user-select: none;
       box-shadow: none;
       gap: 5px;
-      /* Removed Glossy Shadow for Light Mode */
+    }
+
+    #trackList li:last-child {
+      border-bottom: 0;
     }
 
     #trackList li:hover {
@@ -557,7 +550,6 @@
       border-color: rgba(0, 0, 0, 0.1);
       box-shadow: var(--list-active-shadow);
       font-weight: normal;
-      /* Original was normal weight usually, but bold helps visibility */
     }
 
     #trackList li.playing .duration,
@@ -767,6 +759,57 @@
       color: var(--text-sub);
       text-shadow: 0 1px 0 var(--border-highlight);
     }
+
+    #playlistSummary {
+      padding: 8px 12px;
+      font-size: 0.85rem;
+      color: var(--text-sub);
+      text-align: right;
+      border-top: 0px solid var(--border-color);
+    }
+
+    .hamburger-btn {
+      width: 36px;
+      height: 36px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--tab-bg);
+      border-radius: 100%;
+      transition: transform 0.18s ease;
+    }
+
+    .header-controls {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      transition: opacity 0.18s ease, max-height 0.18s ease;
+    }
+
+    .header-controls.hidden {
+      opacity: 0;
+      pointer-events: none;
+      max-height: 0;
+      overflow: hidden;
+      transform: translateY(-6px);
+    }
+
+    .header-controls.showing {
+      opacity: 1;
+      pointer-events: auto;
+      max-height: 200px;
+    }
+
+    @media (max-width: 700px) {
+      .header-controls {
+        display: none;
+      }
+
+      /* デフォルトは非表示にするならここを有効化 */
+      .header-controls.showing {
+        display: flex;
+      }
+    }
   </style>
 </head>
 
@@ -822,7 +865,7 @@
         <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z" />
       </symbol>
       <symbol id="icon-cmd" viewBox="0 0 24 24">
-        <path d="M18 9c0-1.1-.9-2-2-2h-2V5c0-1.1-.9-2-2-2s-2 .9-2 2v2h-4V5c0-1.1-.9-2-2-2s-2 .9-2 2v2H2v2h2v4H2v2h2v2c0 1.1.9 2 2 2s2-.9 2-2v-2h4v2c0 1.1.9 2 2 2s2-.9 2-2v-2h2v-2h-2v-4h2zm-4 6h-4v-4h4v4z" />
+        <path d="M18 9c1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3v3h-6V6c0-1.66-1.34-3-3-3S3 4.34 3 6s1.34 3 3 3h3v6H6c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3v-3h6v3c0 1.66 1.34 3 3 3s3-1.34 3-3-1.34-3-3-3h-3V9h3z" />
       </symbol>
       <symbol id="icon-fullscreen" viewBox="0 0 24 24">
         <path d="M7 14H5v4h4v-2H7v-2zm10-8h-4v2h2v2h2V6zM5 6h4V4H5v4zm14 12h-4v2h4v-4z" />
@@ -844,8 +887,6 @@
           </svg>
         </button>
       </div>
-
-      <!-- Artwork stack (desktop only). Will be shown when current track has artwork -->
       <div id="artworkStack" aria-hidden="true"></div>
 
       <ul class="playlist-list" id="sidebarList"></ul>
@@ -853,14 +894,30 @@
 
     <main class="main-content">
       <div class="header-bar">
-        <button class="divbutton" id="themeBtn"><svg>
-            <use href="#icon-dark"></use>
-          </svg></button>
-        <div style="display: flex; align-items: center; gap: 10px;">
-          <label class="divbutton" for='fileInput'><svg>
-              <use href="#icon-folder"></use>
-            </svg></label>
-          <input type="file" id="fileInput" multiple accept="*" hidden>
+        <button id="hamburgerBtn" class="divbutton hamburger-btn" aria-expanded="false" aria-label="Menu">
+          <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+            <rect x="3" y="6" width="18" height="2" rx="1"></rect>
+            <rect x="3" y="11" width="18" height="2" rx="1"></rect>
+            <rect x="3" y="16" width="18" height="2" rx="1"></rect>
+          </svg>
+        </button>
+        <div id="headerControls" class="header-controls">
+          <button id="settingsBtn" class="divbutton" title="設定">
+            <svg>
+              <use href="#icon-cmd"></use>
+            </svg>
+          </button>
+          <button class="divbutton" id="themeBtn" title="ダークモード設定">
+            <svg>
+              <use href="#icon-dark"></use>
+            </svg>
+          </button>
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <label class="divbutton" for='fileInput'><svg>
+                <use href="#icon-folder"></use>
+              </svg></label>
+            <input type="file" id="fileInput" multiple accept="*" hidden>
+          </div>
         </div>
       </div>
 
@@ -912,9 +969,6 @@
           <button id="wakeLockBtn" class="sub-btn"><svg>
               <use href="#icon-sun"></use>
             </svg> ☀️</button>
-          <button id="settingsBtn" class="sub-btn">
-            <!--<svg><use href="#icon-cmd"></use></svg>-->⌘
-          </button>
           <!-- <button id="fullscreenBtn" class="sub-btn"><svg><use href="#icon-fullscreen"></use></svg></button> -->
         </div>
       </div>
@@ -930,7 +984,9 @@
 
       <div class="playlist-container">
         <ul id="trackList"></ul>
+        <div id="playlistSummary">0 tracks / 0:00</div>
       </div>
+
       <div class="credit">Motan Player by Kasairo</div>
     </main>
 
@@ -988,7 +1044,7 @@
           <button id="modalFullscreenBtn" class="sub-btn">Toggle</button>
         </p>
         <p><span class="info-label">Version:</span>
-          <a>4.01(2026.1.31)</a>
+          <a>β5.00(2026.2.08)</a>
         </p>
         <p>
           <span class="info-label">Update:</span>
@@ -1331,6 +1387,7 @@
         } else currentIndex = 0;
         renderTrackList();
         fetchMetadata();
+        updatePlaylistSummary();
       };
     }
     els.fileInput.addEventListener('change', () => {
@@ -1741,27 +1798,23 @@
     };
     // --- Settings Modal Logic ---
     // inserted: handles speed, volume and fullscreen
-   // ==========================================
+    // ==========================================
     // 修正版: 設定（音量・再生速度）のロジック
     // ==========================================
-    
     // 設定モーダル関連の要素取得
     const sModal = document.getElementById('settingsModal');
     const sBtn = document.getElementById('settingsBtn');
     const closeS = document.getElementById('closeSettingsBtn');
-
     // スライダーと数値表示の要素取得
     const sSpeed = document.getElementById('settingSpeed');
     const sSpeedVal = document.getElementById('settingSpeedVal');
     const sVol = document.getElementById('settingVolume');
     const sVolVal = document.getElementById('settingVolumeVal');
-
     // ▼ 初期化関数（ページ読み込み時に実行）
     function initSettingsUI() {
       // 1. 保存された値をロード（なければデフォルト値）
       const savedSpeed = parseFloat(localStorage.getItem('motan_speed') || '1');
       const savedVol = parseFloat(localStorage.getItem('motan_volume') || '1');
-
       // 2. UI（スライダー位置・テキスト）への反映
       if (sSpeed) {
         sSpeed.value = savedSpeed;
@@ -1771,7 +1824,6 @@
         sVol.value = savedVol;
         if (sVolVal) sVolVal.textContent = Math.round(savedVol * 100) + '%';
       }
-
       // 3. 実際のオーディオ・ゲインへの反映
       if (els && els.audio) {
         els.audio.volume = savedVol;
@@ -1779,12 +1831,12 @@
       }
       // Web Audio API (masterGain) が有効な場合の音量同期
       if (typeof masterGain !== 'undefined' && masterGain) {
-        try { masterGain.gain.value = savedVol; } catch (e) {}
+        try {
+          masterGain.gain.value = savedVol;
+        } catch (e) {}
       }
     }
-
     // ▼ イベントリスナー設定
-    
     // モーダルの開閉
     if (sBtn) sBtn.onclick = () => {
       sModal.classList.add('open');
@@ -1794,7 +1846,6 @@
       sModal.classList.remove('open');
       sModal.setAttribute('aria-hidden', 'true');
     };
-
     // 再生速度の変更（スライダー操作時）
     if (sSpeed) sSpeed.oninput = (e) => {
       const v = parseFloat(e.target.value);
@@ -1802,7 +1853,6 @@
       if (sSpeedVal) sSpeedVal.textContent = v.toFixed(2) + 'x';
       localStorage.setItem('motan_speed', v);
     };
-
     // 音量の変更（スライダー操作時）
     if (sVol) sVol.oninput = (e) => {
       const v = parseFloat(e.target.value);
@@ -1810,13 +1860,13 @@
       if (els && els.audio) els.audio.volume = v;
       // MasterGainの音量更新（iOS/WebAudio用）
       if (typeof masterGain !== 'undefined' && masterGain) {
-        try { masterGain.gain.value = v; } catch (e) {}
+        try {
+          masterGain.gain.value = v;
+        } catch (e) {}
       }
-      
       if (sVolVal) sVolVal.textContent = Math.round(v * 100) + '%';
       localStorage.setItem('motan_volume', v);
     };
-
     // ▼ 重要: 曲が変わった際（読み込み時）に速度が1.0に戻るのを防ぐ修正
     if (els && els.audio) {
       // 'durationchange' はメタデータ読み込み後、曲の長さが決まったタイミングで発火
@@ -1827,16 +1877,14 @@
           els.audio.playbackRate = savedSpeed;
         }
       });
-      
       // 念のため再生開始時にもチェック
       els.audio.addEventListener('play', () => {
         const savedSpeed = parseFloat(localStorage.getItem('motan_speed') || '1');
         if (Math.abs(els.audio.playbackRate - savedSpeed) > 0.01) {
-           els.audio.playbackRate = savedSpeed;
+          els.audio.playbackRate = savedSpeed;
         }
       });
     }
-
     // 初期化の実行
     initSettingsUI();
     // --- Info Modal Logic (extended) ---
@@ -2024,6 +2072,149 @@
       alert('並べ替えが完了しました。' + (useMeta ? '（メタデータによる）' : ' （ファイル名による）'));
       closeMobilePlModal();
     };
+    /* ---------- Playlist summary helpers ---------- */
+    // 秒数 -> "M:SS" 形式
+    function fmtTotalTime(sec) {
+      sec = Math.floor(sec) || 0;
+      const m = Math.floor(sec / 60);
+      const s = sec % 60;
+      return `${m}:${String(s).padStart(2,'0')}`;
+    }
+    // Blob から再生時間を取得（タイムアウトを設ける）
+    function getDurationFromBlob(blob, timeout = 6000) {
+      return new Promise((resolve) => {
+        let done = false;
+        const url = URL.createObjectURL(blob);
+        const a = new Audio();
+        a.preload = 'metadata';
+        a.src = url;
+
+        function clean(value) {
+          if (done) return;
+          done = true;
+          try {
+            URL.revokeObjectURL(url);
+          } catch (e) {}
+          resolve(value);
+        }
+        a.addEventListener('loadedmetadata', () => {
+          const d = isFinite(a.duration) ? a.duration : 0;
+          clean(d);
+        }, {
+          once: true
+        });
+        a.addEventListener('error', () => clean(0), {
+          once: true
+        });
+        // タイムアウト保険
+        setTimeout(() => clean(0), timeout);
+      });
+    }
+    // 現在表示中のプレイリストのトラック数 / 総時間 を更新
+    async function updatePlaylistSummary() {
+      const el = document.getElementById('playlistSummary');
+      if (!el) return;
+      const count = currentTrackList.length;
+      if (count === 0) {
+        el.textContent = '0 tracks / 0:00';
+        return;
+      }
+      // 先にトラック数だけ表示（duration 計算中の UX）
+      el.textContent = `${count} tracks / calculating...`;
+      try {
+        // 各トラック Blob から duration を非同期で取る
+        const durations = await Promise.all(
+          currentTrackList.map(t => getDurationFromBlob(t.blob).catch(() => 0))
+        );
+        const total = durations.reduce((a, b) => a + (isFinite(b) ? b : 0), 0);
+        el.textContent = `${count} tracks / ${fmtTotalTime(total)}`;
+      } catch (e) {
+        // 何かあれば fallback
+        el.textContent = `${count} tracks / 0:00`;
+      }
+    }
+    /* ---------- 改良版：Swipe (touch/pointer) to switch playlist, circular (single attachment) ---------- */
+    (function attachPlaylistSwipeSingle() {
+      // プレイリスト表示領域のどこでも反応させたい（ul/li 以外でも）
+      const swipeEl = document.querySelector('.playlist-container') || document.getElementById('trackList');
+      if (!swipeEl) return;
+      const THRESHOLD = 40; // スワイプ判定 px
+      const MIN_INTERVAL = 350; // 連続スワイプ防止 ms
+      let startX = 0,
+        startY = 0;
+      let isPointerActive = false;
+      let lastSwipeTime = 0;
+      let swipeHandled = false;
+
+      function pointerDownClient(eClientX, eClientY) {
+        startX = eClientX;
+        startY = eClientY;
+        swipeHandled = false;
+      }
+
+      function pointerUpClient(endX, endY) {
+        const now = Date.now();
+        if (now - lastSwipeTime < MIN_INTERVAL) return; // 連打防止
+        const dx = endX - startX;
+        const dy = endY - startY;
+        if (swipeHandled) return;
+        if (Math.abs(dx) < THRESHOLD) return;
+        // 垂直スクロール意図を優先（縦移動が大きければ無視）
+        if (Math.abs(dy) > Math.abs(dx)) return;
+        swipeHandled = true;
+        lastSwipeTime = now;
+        // 視覚的残存対策：切替前に trackList を即時クリアしておく
+        try {
+          if (els && els.trackListEl) els.trackListEl.innerHTML = '';
+          const summaryEl = document.getElementById('playlistSummary');
+          if (summaryEl) summaryEl.textContent = '... switching ...';
+        } catch (e) {}
+        const idx = playlists.findIndex(p => p.id === currentPlaylistId);
+        if (idx === -1 || playlists.length === 0) return;
+        // dx > 0 -> 右スワイプ（指を右へ） => 前のプレイリスト
+        const dir = dx > 0 ? -1 : 1;
+        const nextIdx = (idx + dir + playlists.length) % playlists.length;
+        const nextId = playlists[nextIdx].id;
+        // 呼び出し：既存の switchPlaylist が renderSidebar() と loadCurrentPlaylistTracks() を行う
+        try {
+          switchPlaylist(nextId);
+        } catch (err) {
+          console.error('switchPlaylist error', err);
+        }
+      }
+      // pointer events (推奨)
+      swipeEl.addEventListener('pointerdown', (e) => {
+        if (e.pointerType && e.pointerType !== 'touch' && e.pointerType !== 'pen') {
+          // マウスは無視（必要ならオンにする）
+          return;
+        }
+        isPointerActive = true;
+        pointerDownClient(e.clientX, e.clientY);
+      }, {
+        passive: true
+      });
+      swipeEl.addEventListener('pointerup', (e) => {
+        if (!isPointerActive) return;
+        isPointerActive = false;
+        if (e.pointerType && e.pointerType !== 'touch' && e.pointerType !== 'pen') return;
+        pointerUpClient(e.clientX, e.clientY);
+      }, {
+        passive: true
+      });
+      // touch fallback (いくつかの古い環境向け)
+      swipeEl.addEventListener('touchstart', (e) => {
+        const t = e.changedTouches[0];
+        pointerDownClient(t.clientX, t.clientY);
+      }, {
+        passive: true
+      });
+      swipeEl.addEventListener('touchend', (e) => {
+        const t = e.changedTouches[0];
+        pointerUpClient(t.clientX, t.clientY);
+      }, {
+        passive: true
+      });
+    })();
   </script>
   <script>
     if ('serviceWorker' in navigator) {
@@ -2033,6 +2224,76 @@
           .catch(err => console.log('SW registration failed:', err));
       });
     }
+    /* --------- ヘッダーハンバーガーのトグル処理 --------- */
+    (function headerHamburgerSetup() {
+      const hambBtn = document.getElementById('hamburgerBtn');
+      const headerControls = document.getElementById('headerControls');
+      if (!hambBtn || !headerControls) return;
+      // 初期状態：表示したいならコメントアウト
+      // headerControls.classList.add('hidden');
+      function openHeaderControls() {
+        headerControls.classList.remove('hidden');
+        headerControls.classList.add('showing');
+        hambBtn.setAttribute('aria-expanded', 'true');
+      }
+
+      function closeHeaderControls() {
+        headerControls.classList.add('hidden');
+        headerControls.classList.remove('showing');
+        hambBtn.setAttribute('aria-expanded', 'false');
+      }
+
+      function toggleHeaderControls(e) {
+        const isHidden = headerControls.classList.contains('hidden');
+        if (isHidden) openHeaderControls();
+        else closeHeaderControls();
+        // stop propagation so global document click handlers won't immediately close it
+        if (e && e.stopPropagation) e.stopPropagation();
+      }
+      hambBtn.addEventListener('click', toggleHeaderControls, {
+        passive: true
+      });
+      // クリック（または pointer）でメニュー外を押したら閉じる
+      document.addEventListener('pointerdown', (ev) => {
+        // 何も開いてなければスキップ
+        if (!headerControls.classList.contains('showing')) return;
+        // クリック元がメニューかボタン内なら何もしない
+        if (headerControls.contains(ev.target) || hambBtn.contains(ev.target)) return;
+        closeHeaderControls();
+      }, {
+        passive: true
+      });
+      // ヘッダー内の特定操作で閉じたい場合（例：ファイル選択後）
+      const fileInput = document.getElementById('fileInput');
+      if (fileInput) fileInput.addEventListener('change', () => {
+        // 自動で閉じるのは好み次第
+        closeHeaderControls();
+      });
+    })();
+    /* --------- モーダル外クリックで閉じる共通処理 --------- */
+    (function modalOutsideClickClose() {
+      // 汎用クローズ関数（既存の個別 closeXxxModal と併用可能）
+      function closeModal(el) {
+        if (!el) return;
+        el.classList.remove('open');
+        el.setAttribute('aria-hidden', 'true');
+        // 特別処理が必要なモーダルは個別関数を呼ぶ（必要なら追加）
+      }
+      // ドキュメントクリックで、開いているモーダルを閉じる
+      document.addEventListener('pointerdown', (e) => {
+        // すべての開いているモーダルを取得
+        const openModals = Array.from(document.querySelectorAll('.modal.open'));
+        if (!openModals.length) return;
+        openModals.forEach(modal => {
+          // クリックがモーダル内なら何もしない
+          if (modal.contains(e.target)) return;
+          // それ以外の場所をタップした → 閉じる
+          closeModal(modal);
+        });
+      }, {
+        passive: true
+      });
+    })();
   </script>
   <!-- これはサービスワーカー。スパゲッティ部分ではない-->
   <script>
