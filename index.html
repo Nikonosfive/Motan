@@ -894,7 +894,7 @@
 
     <main class="main-content">
       <div class="header-bar">
-        <button id="hamburgerBtn" class="divbutton hamburger-btn" aria-expanded="false" aria-label="Menu">
+        <button id="hamburgerBtn" class="divbutton hamburger-btn" aria-expanded="false" aria-label="Menu" title="操作メニュー">
           <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
             <rect x="3" y="6" width="18" height="2" rx="1"></rect>
             <rect x="3" y="11" width="18" height="2" rx="1"></rect>
@@ -913,7 +913,7 @@
             </svg>
           </button>
           <div style="display: flex; align-items: center; gap: 10px;">
-            <label class="divbutton" for='fileInput'><svg>
+            <label class="divbutton" for='fileInput' title="ファイル追加"><svg>
                 <use href="#icon-folder"></use>
               </svg></label>
             <input type="file" id="fileInput" multiple accept="*" hidden>
@@ -937,36 +937,36 @@
 
       <div class="controls-wrapper">
         <div class="controls-main">
-          <button class="toolbu" id="rewindBtn"><svg>
+          <button class="toolbu" id="rewindBtn" title="少し戻す"><svg>
               <use href="#icon-rewind"></use>
             </svg></button>
-          <button class="toolbu" id="prevBtn"><svg>
+          <button class="toolbu" id="prevBtn" title="前のトラック"><svg>
               <use href="#icon-prev"></use>
             </svg></button>
-          <button class="toolbu" id="playPauseBtn"><svg>
+          <button class="toolbu" id="playPauseBtn" title="再生・停止"><svg>
               <use href="#icon-play"></use>
             </svg></button>
-          <button class="toolbu" id="nextBtn"><svg>
+          <button class="toolbu" id="nextBtn" title="次のトラック"><svg>
               <use href="#icon-next"></use>
             </svg></button>
-          <button class="toolbu" id="forwardBtn"><svg>
+          <button class="toolbu" id="forwardBtn" title="少し進む"><svg>
               <use href="#icon-forward"></use>
             </svg></button>
         </div>
         <div class="controls-sub">
-          <button id="loopBtn" class="sub-btn"><svg>
+          <button id="loopBtn" class="sub-btn" title="ループ機能設定"><svg>
               <use href="#icon-loop"></use>
             </svg> <span id="loopText">Off</span></button>
-          <button id="shuffleBtn" class="sub-btn"><svg>
+          <button id="shuffleBtn" class="sub-btn" title="シャッフル再生設定"><svg>
               <use href="#icon-shuffle"></use>
             </svg> <span id="shuffleText">Off</span></button>
-          <button id="eqBtn" class="sub-btn"><svg>
+          <button id="eqBtn" class="sub-btn" title="イコライザー"><svg>
               <use href="#icon-eq"></use>
             </svg> EQ</button>
-          <button id="infoBtn" class="sub-btn"><svg>
+          <button id="infoBtn" class="sub-btn" title="メタデータ"><svg>
               <use href="#icon-info"></use>
             </svg> Info</button>
-          <button id="wakeLockBtn" class="sub-btn"><svg>
+          <button id="wakeLockBtn" class="sub-btn" title="Keep Awake"><svg>
               <use href="#icon-sun"></use>
             </svg> ☀️</button>
           <!-- <button id="fullscreenBtn" class="sub-btn"><svg><use href="#icon-fullscreen"></use></svg></button> -->
@@ -992,7 +992,7 @@
 
     <div id="eqModal" class="modal" aria-hidden="true">
       <div class="modal-header">
-        <h3>EQUALIZER</h3><button class="close-btn" id="closeEqBtn">×</button>
+        <h3>EQUALIZER</h3><button class="close-btn" id="closeEqBtn" title="閉じる">×</button>
       </div>
       <div class="eq-presets">
         <button class="sub-btn" onclick="setEqPreset('flat')">Flat</button>
