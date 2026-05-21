@@ -5,8 +5,8 @@ const ASSETS_TO_CACHE = [
   './manifest.json',
   './img/icon-192.png',
   './img/icon-512.png',
-  // 外部ライブラリもキャッシュしてオフライン対応させる
-  'https://cdnjs.cloudflare.com/ajax/libs/jsmediatags/3.9.5/jsmediatags.min.js'
+  'https://cdnjs.cloudflare.com/ajax/libs/jsmediatags/3.9.5/jsmediatags.min.js',
+  'https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js'
 ];
 
 // インストール時にキャッシュする
