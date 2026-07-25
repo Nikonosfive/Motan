@@ -1,41 +1,47 @@
-const CACHE_NAME = "v1";
-const RESOURCES_TO_CACHE = [
-  "/",
-  "/index.html",
-  "/manifest.json",
-  "/css/style.css",
+const CACHE_NAME = 'motan-player-v1';
+const ASSETS_TO_CACHE = [
+  './',
+  './index.html',
+  './manifest.json',
+  './img/icon-192.png',
+  './img/icon-512.png',
+  'https://cdnjs.cloudflare.com/ajax/libs/jsmediatags/3.9.5/jsmediatags.min.js',
+  'https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Orbitron:wght@500&display=swap',
+  'https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js'
 ];
 
-const addResourcesToCache = async (resources) => {
-  try {
-    const cache = await caches.open(CACHE_NAME);
-    await cache.addAll(resources);
-    console.log("Resources cached successfully:", resources);
-  } catch (error) {
-    console.error("Error caching resources:", error);
-  }
-};
-
-self.addEventListener("install", (event) => {
-  event.waitUntil(addResourcesToCache(RESOURCES_TO_CACHE));
-});
-
-self.addEventListener("activate", (event) => {
+// インストール時にキャッシュする
+self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.keys().then((cacheNames) => {
-      return Promise.all(
-        cacheNames
-          .filter((cacheName) => cacheName !== CACHE_NAME)
-          .map((cacheName) => caches.delete(cacheName))
-      );
-    })
+    caches.open(CACHE_NAME)
+      .then((cache) => {
+        return cache.addAll(ASSETS_TO_CACHE);
+      })
   );
 });
 
-self.addEventListener("fetch", (event) => {
+// リクエスト時にキャッシュがあればそれを返す（オフライン対応）
+self.addEventListener('fetch', (event) => {
   event.respondWith(
-    caches.match(event.request).then((cachedResponse) => {
-      return cachedResponse || fetch(event.request);
+    caches.match(event.request)
+      .then((response) => {
+        // キャッシュにあればそれを返す、なければネットワークへ
+        return response || fetch(event.request);
+      })
+  );
+});
+
+// 新しいバージョンになったら古いキャッシュを消す
+self.addEventListener('activate', (event) => {
+  event.waitUntil(
+    caches.keys().then((cacheNames) => {
+      return Promise.all(
+        cacheNames.map((cacheName) => {
+          if (cacheName !== CACHE_NAME) {
+            return caches.delete(cacheName);
+          }
+        })
+      );
     })
   );
 });
