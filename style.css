@@ -1,0 +1,244 @@
+* {
+  font-family: "Roboto", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+}
+
+.sayu {
+  padding: 0;
+  margin: 0;
+  display: flex;
+  justify-content: space-between;
+}
+
+.playlist-container {
+  height: calc(100vh - 12rem);
+  overflow: scroll;
+}
+
+body {
+  background-color: #dddddd;
+  padding: 0px;
+  margin: 0px;
+  text-overflow: ellipsis;
+}
+
+li {
+  list-style: none;
+  border-bottom: 1px solid #cccccc;
+  padding: 0.35rem;
+  height: 1.2rem;
+  width: calc(100vw - 1.7rem);
+  line-height: 1.2rem;
+  border-radius: 3px;
+  margin: 0;
+  margin-left: 0.5rem;
+  margin-right: 0.5rem;
+  z-index: 1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+  background: linear-gradient(#f4f4f9, #eeeeee);
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+li:hover {
+  background: linear-gradient(#ffffff, #f4f4f9);
+  color: #000000;
+  border-radius: 3px;
+}
+
+ul {
+  padding: 0;
+  z-index: 1;
+}
+
+.controls {
+  overflow-y: scroll;
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: nowrap;
+  position: relative;
+  margin: 0px;
+  padding: 0.5rem;
+  background-color: #dddddd;
+}
+
+.playlist {
+  overflow: scroll;
+  position: relative;
+  z-index: 1;
+  background-color: #dddddd;
+  width: 100vw;
+}
+
+.toolbu {
+  flex: 1;
+}
+
+button,
+select {
+  flex-wrap: wrap;
+  white-space: nowrap;
+  padding: 12px;
+  padding-bottom: 0px;
+  padding-top: 0px;
+  height: 3rem;
+  font-size: 1rem;
+  margin: 0px;
+  border: 0px;
+  border-right: 0.01rem solid #dddddd;
+  border-radius: 4px;
+  cursor: pointer;
+  background: linear-gradient(#eeeeee, #cccccc);
+}
+
+.credit {
+  padding: 0.5rem;
+  margin: 0px;
+  border: 0px;
+  border-radius: 5px;
+  cursor: pointer;
+  display: inline-block;
+  position: absolute;
+  bottom: 0.5rem;
+  right: 0.5rem;
+  z-index: 3;
+  font-size: 0.3rem;
+  height: auto;
+  color: #999999;
+  background: none;
+  text-align: center;
+  vertical-align: middle;
+}
+
+.divbutton {
+  padding: 0.5rem;
+  margin: 0px;
+  border: 0px;
+  border-radius: 5px;
+  cursor: pointer;
+  display: inline-block;
+  position: absolute;
+  bottom: 0.5rem;
+  left: 0.5rem;
+  z-index: 3;
+  font-size: 1rem;
+  height: auto;
+  background: linear-gradient(#33aeff, #007bff);
+  text-align: center;
+  vertical-align: middle;
+}
+
+.input {
+  display: none;
+}
+
+button:hover {
+  background: linear-gradient(#dddddd, #cccccc);
+}
+
+select:hover {
+  background: linear-gradient(#dddddd, #cccccc);
+}
+
+.divbutton:hover {
+  background: linear-gradient(#007bff, #0048cc);
+  color: white;
+}
+
+button.active {
+  background: linear-gradient(#33aeff, #007bff);
+  color: white;
+}
+
+#playlist {
+  margin: 0;
+}
+
+#playlist .playing {
+  background: linear-gradient(#33aeff, #007bff);
+  color: white;
+  border-radius: 5px;
+}
+
+#playlist .playing:hover {
+  background: linear-gradient(#33aeff, #006aff);
+}
+
+#playlist li {
+  cursor: grab;
+}
+
+#playlist li.dragging {
+  opacity: 0.5;
+}
+
+#delete-btn {
+  vertical-align: middle;
+  background: linear-gradient(#dddddd, #eeeeee);
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 0.6rem;
+  height: 1.5rem;
+  margin-right: 0.1rem;
+  align-items: center;
+  margin: 0.5rem;
+}
+
+#delete-btn:hover {
+  background: darkred;
+}
+
+.duration {
+  font-size: 0.9rem;
+  color: #333;
+  margin: 0.5rem;
+}
+
+.progress-container {
+  display: relative;
+  align-items: center;
+  margin: 0.5rem;
+}
+
+#progress {
+  height: 0.5rem;
+  background: #ccc;
+  margin: 0rem;
+  position: relative;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+#progressFilled {
+  background: linear-gradient(#33aeff, #007bff);
+  height: 100%;
+  width: 0%;
+  border-radius: 4px;
+}
+
+.time {
+  font-size: 0.9rem;
+  width: auto;
+  text-align: center;
+  display: flex;
+}
+
+#nowPlaying {
+  background: linear-gradient(#eeeeee, #cccccc);
+  width: calc(100vw - 2rem);
+  padding: 0.5rem;
+  margin: 0.5rem;
+  white-space: nowrap;
+  overflow: scroll;
+  border-radius: 5px;
+  height: 2rem;
+  line-height: 2rem;
+  font-size: 1rem;
+}
