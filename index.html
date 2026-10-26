@@ -21,6 +21,7 @@
     <link rel="apple-touch-icon" href="img/icon-192.png" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
     <meta
       name="apple-mobile-web-app-status-bar-style"
       content="black-translucent"
@@ -997,6 +998,44 @@
         #mainModal #eqModal .eq-sliders { justify-content:flex-start; }
         .main-modal-window { max-height:100%; }
       }
+      /* v7 resilient panel layout: content can wrap without colliding or clipping. */
+      .main-modal-window, .main-modal-layout, .main-modal-panels, .main-panel,
+      .main-panel * { min-width: 0; }
+      .main-modal-panels { overflow-x: hidden; overflow-y: auto; scrollbar-gutter: stable; }
+      .main-panel { overflow-wrap: anywhere; word-break: normal; }
+      .main-panel h4, .main-panel p, .main-panel label, .main-panel small,
+      .main-panel .panel-note { line-height: 1.55; }
+      .main-panel .info-content p { align-items: flex-start; gap: 7px 12px; padding: 9px 0; margin: 0; }
+      .main-panel .info-label { flex: 0 0 110px; width: auto; max-width: 100%; line-height: 1.5; }
+      .panel-section { padding: 0 0 20px; margin: 0 0 20px; }
+      .panel-section h4 { line-height: 1.45; overflow-wrap: anywhere; }
+      .panel-section p, .panel-note { max-width: 72ch; margin: 7px 0 12px; }
+      .panel-actions { gap: 9px; align-items: stretch; }
+      .panel-actions button, .panel-button { min-height: 40px; height: auto; max-width: 100%; padding: 10px 13px; line-height: 1.4; white-space: normal; overflow-wrap: anywhere; text-align: center; }
+      .main-panel input:not([type=range]), .main-panel select,
+      .main-panel textarea, .motan-dialog input, .motan-dialog select { max-width: 100%; }
+      .main-panel input[type=range] { max-width: 100%; }
+      .main-panel .info-content p > input[type=range] { flex: 1 1 160px; width: min(100%, 300px) !important; }
+      .main-panel .info-content p > span:not(.info-label) { flex: 0 1 auto; overflow-wrap: anywhere; }
+      .main-panel table { width: 100%; table-layout: fixed; }
+      .main-panel td, .main-panel th { overflow-wrap: anywhere; }
+      .track-context-menu { max-height: min(80vh, 440px); overflow-y: auto; overscroll-behavior: contain; }
+      .track-context-menu button { min-height: 40px; white-space: normal; line-height: 1.4; }
+      .track-list-empty { min-height: 48px; height: auto !important; padding: 13px 14px !important; line-height: 1.5 !important; white-space: normal; overflow-wrap: anywhere; }
+      @media (max-width: 700px) {
+        .main-modal-panels { padding: clamp(14px, 4vw, 20px); }
+        .main-modal-nav { scrollbar-width: thin; }
+        .main-nav-item { white-space: normal; line-height: 1.3; text-align: center; }
+        .main-panel .info-label { flex-basis: 100%; width: 100%; }
+        .main-panel .info-content p { gap: 6px; }
+        .panel-actions > button { flex: 1 1 145px; }
+        #mainModal #eqModal .eq-sliders { max-width: 100%; }
+      }
+      @media (max-width: 380px) {
+        .main-modal-header { gap: 8px; padding-inline: 12px; }
+        .main-modal-header h2 { font-size: 16px; }
+        .panel-actions > button { flex-basis: 100%; }
+      }
       @media (prefers-reduced-motion: reduce) { .main-modal *, .motan-toast { transition:none !important; animation:none !important; } }
 
     </style>
@@ -1366,8 +1405,8 @@
           </p>
           <p>
             <span class="info-label">Version:</span>
-            <a>β6.0.0(2026.10.26)</a>
-            <a style="display: none">β6.0.0(2026.10.26)</a>
+            <a>v7.0 (2026.10.26)</a>
+            <a style="display: none">β5.00(2026.2.08)</a>
           </p>
           <p>
             <span class="info-label">Update:</span>
@@ -1545,68 +1584,97 @@
         applyColorMode(mode);
       })();
       // --- Media Session Setup (iPad/Bg Stability & Long Press Seek) ---
+      function setMediaPlaybackState(state) {
+        try {
+          if ("mediaSession" in navigator && "playbackState" in navigator.mediaSession) {
+            navigator.mediaSession.playbackState = state;
+          }
+        } catch (error) { console.debug("Media Session playback state unavailable:", error); }
+      }
+      window.motanSetMediaPlaybackState = setMediaPlaybackState;
+
       function setupMediaSession() {
-        if ("mediaSession" in navigator) {
-          const ms = navigator.mediaSession;
-          ms.setActionHandler("play", () => { if (!isPlaying) els.playBtn.click(); });
-          ms.setActionHandler("pause", () => { if (isPlaying) els.playBtn.click(); });
-          ms.setActionHandler("previoustrack", () =>
-            document.getElementById("prevBtn").click()
-          );
-          ms.setActionHandler("nexttrack", () =>
-            document.getElementById("nextBtn").click()
-          );
-          ms.setActionHandler("seekbackward", (details) => {
-            const skipTime = details.seekOffset || 5;
-            els.audio.currentTime = Math.max(
-              els.audio.currentTime - skipTime,
-              0
-            );
-          });
-          ms.setActionHandler("seekforward", (details) => {
-            const skipTime = details.seekOffset || 5;
-            els.audio.currentTime = Math.min(
-              els.audio.currentTime + skipTime,
-              els.audio.duration
-            );
-          });
-          ms.setActionHandler("seekto", (details) => {
-            if (details.fastSeek && "fastSeek" in els.audio)
-              els.audio.fastSeek(details.seekTime);
-            else els.audio.currentTime = details.seekTime;
-          });
-        }
+        if (!("mediaSession" in navigator)) return;
+        const ms = navigator.mediaSession;
+        const register = (action, handler) => {
+          try { ms.setActionHandler(action, handler); }
+          catch (error) { console.debug(`Media action ${action} is not supported:`, error); }
+        };
+        const playFromMediaControl = async () => {
+          try {
+            if (audioCtx && audioCtx.state === "suspended") await audioCtx.resume().catch(() => {});
+            if (!els.audio.paused) return;
+            const currentStillExists = currentTrackList.some(t => String(t.id) === String(currentTrackId));
+            if (els.audio.src && currentStillExists && !els.audio.ended) {
+              await els.audio.play();
+            } else if (currentTrackList.length) {
+              const playFn = window.playCurrent || playCurrent;
+              await playFn();
+            }
+            setMediaPlaybackState("playing");
+          } catch (error) {
+            setMediaPlaybackState("paused");
+            console.warn("Media Session play action failed:", error);
+          }
+        };
+        register("play", playFromMediaControl);
+        register("pause", () => {
+          els.audio.pause();
+          setMediaPlaybackState("paused");
+        });
+        register("stop", () => {
+          els.audio.pause();
+          try { els.audio.currentTime = 0; } catch (_) {}
+          setMediaPlaybackState("paused");
+          updatePositionState();
+        });
+        register("previoustrack", () => { if (currentTrackList.length && els.prevBtn) els.prevBtn.click(); });
+        register("nexttrack", () => { if (els.nextBtn) els.nextBtn.click(); });
+        register("seekbackward", details => {
+          const offset = Number(details?.seekOffset) > 0 ? Number(details.seekOffset) : 10;
+          try { els.audio.currentTime = Math.max(0, Number(els.audio.currentTime || 0) - offset); } catch (_) {}
+          updatePositionState();
+        });
+        register("seekforward", details => {
+          const offset = Number(details?.seekOffset) > 0 ? Number(details.seekOffset) : 10;
+          const duration = Number(els.audio.duration);
+          try { els.audio.currentTime = Math.min(Number.isFinite(duration) ? duration : Number.MAX_SAFE_INTEGER, Number(els.audio.currentTime || 0) + offset); } catch (_) {}
+          updatePositionState();
+        });
+        register("seekto", details => {
+          const target = Number(details?.seekTime);
+          if (!Number.isFinite(target)) return;
+          const duration = Number(els.audio.duration);
+          const bounded = Math.max(0, Number.isFinite(duration) ? Math.min(duration, target) : target);
+          try {
+            if (details?.fastSeek && typeof els.audio.fastSeek === "function") els.audio.fastSeek(bounded);
+            else els.audio.currentTime = bounded;
+          } catch (error) { console.debug("Media seek action failed:", error); }
+          updatePositionState();
+        });
       }
       setupMediaSession();
 
       function updateMediaSessionMetadata(t) {
-        if ("mediaSession" in navigator) {
-          const meta = {
-            title: t.customName || t.title || t.name,
-            artist: t.artist || "Motan Player",
-            album: t.album || ""
-          };
-          if (t.artwork) {
-            meta.artwork = [
-              {
-                src: t.artwork,
-                sizes: "512x512",
-                type: t.artworkType || "image/jpeg"
-              }
-            ];
+        if (!("mediaSession" in navigator) || typeof MediaMetadata === "undefined") return;
+        try {
+          if (!t) {
+            navigator.mediaSession.metadata = null;
+            setMediaPlaybackState("none");
+            return;
+          }
+          const title = t.customName || t.title || t.name || "Untitled";
+          const artist = t.artist || "Motan Player";
+          const meta = { title, artist, album: t.album || "" };
+          if (typeof t.artwork === "string" && t.artwork.startsWith("data:image/")) {
+            meta.artwork = [{ src: t.artwork, sizes: "512x512", type: /^image\/(jpeg|png|webp|gif|avif)/i.exec(t.artworkType || "")?.[0] || t.artworkType || "image/jpeg" }];
           } else {
-            meta.artwork = [
-              {
-                src: generateFallbackArtwork(meta.title, meta.artist),
-                sizes: "512x512",
-                type: "image/png"
-              }
-            ];
+            meta.artwork = [{ src: generateFallbackArtwork(title, artist), sizes: "512x512", type: "image/png" }];
           }
           navigator.mediaSession.metadata = new MediaMetadata(meta);
-          // Update position state for proper progress bar
           updatePositionState();
-        }
+          setMediaPlaybackState(!els.audio.paused && !els.audio.ended ? "playing" : (currentTrackId != null ? "paused" : "none"));
+        } catch (error) { console.warn("Could not update Media Session metadata:", error); }
       }
       // iOS / mobile audio unlock helper — best-effort, safe
       (function () {
@@ -1647,42 +1715,42 @@
       })();
 
       function updatePositionState() {
-        if (
-          "mediaSession" in navigator &&
-          "setPositionState" in navigator.mediaSession
-        ) {
-          if (
-            els.audio.duration &&
-            !isNaN(els.audio.duration) &&
-            isFinite(els.audio.duration)
-          ) {
-            navigator.mediaSession.setPositionState({
-              duration: els.audio.duration,
-              playbackRate: els.audio.playbackRate,
-              position: els.audio.currentTime
-            });
-          }
+        if (!("mediaSession" in navigator) || typeof navigator.mediaSession.setPositionState !== "function") return;
+        const duration = Number(els.audio.duration);
+        const position = Number(els.audio.currentTime);
+        const playbackRate = Number(els.audio.playbackRate);
+        if (!Number.isFinite(duration) || duration <= 0 || !Number.isFinite(position) || position < 0) {
+          try { navigator.mediaSession.setPositionState({}); } catch (_) {}
+          return;
         }
+        try {
+          navigator.mediaSession.setPositionState({
+            duration,
+            playbackRate: Number.isFinite(playbackRate) && playbackRate > 0 ? playbackRate : 1,
+            position: Math.min(duration, position)
+          });
+        } catch (error) { /* Some browsers reject transient invalid states during source changes. */ }
       }
       // --- Artwork UI update (minimal changes) ---
       function updateArtworkUI(t) {
-        // mediaSession (notifications / lock screen)
         updateMediaSessionMetadata(t);
-        // screen background (controls background)
-        if (t && t.artwork) {
-          screenAreaEl.style.backgroundImage = `linear-gradient(rgba(0,0,0,0.45), rgba(0,0,0,0.45)), url(${t.artwork})`;
+        const art = t && typeof t.artwork === "string" && t.artwork.startsWith("data:image/") ? t.artwork : "";
+        if (art) {
+          // Embedded ID3 pictures are normalized to small image data URLs before reaching CSS.
+          screenAreaEl.style.backgroundImage = `linear-gradient(rgba(0,0,0,0.45), rgba(0,0,0,0.45)), url("${art}")`;
           screenAreaEl.style.backgroundSize = "cover";
           screenAreaEl.style.backgroundPosition = "center center";
-        } else {
-          screenAreaEl.style.backgroundImage = "";
-        }
-        // desktop artwork stack above playlists
-        if (t && t.artwork) {
-          artworkStackEl.innerHTML = `<img src="${t.artwork}" alt="Artwork">`;
+          const img = document.createElement("img");
+          img.src = art;
+          img.alt = "Album artwork";
+          img.loading = "lazy";
+          img.decoding = "async";
+          artworkStackEl.replaceChildren(img);
           artworkStackEl.style.display = "";
           artworkStackEl.setAttribute("aria-hidden", "false");
         } else {
-          artworkStackEl.innerHTML = "";
+          screenAreaEl.style.backgroundImage = "";
+          artworkStackEl.replaceChildren();
           artworkStackEl.style.display = "none";
           artworkStackEl.setAttribute("aria-hidden", "true");
         }
@@ -2158,45 +2226,139 @@
         });
       }
       // --- Extended metadata fetch (jsmediatags) ---
+      const metadataReadInFlight = new Set();
+      function ensureMediaTagParser() {
+        if (typeof window.jsmediatags !== "undefined") return Promise.resolve(true);
+        if (window.__motanTagParserLoadPromise) return window.__motanTagParserLoadPromise;
+        const sources = [
+          "https://cdn.jsdelivr.net/npm/jsmediatags@3.9.5/dist/jsmediatags.min.js",
+          "https://cdnjs.cloudflare.com/ajax/libs/jsmediatags/3.9.5/jsmediatags.min.js"
+        ];
+        window.__motanTagParserLoadPromise = new Promise(resolve => {
+          let settled = false;
+          let index = 0;
+          const finish = value => { if (!settled) { settled = true; resolve(value); } };
+          const trySource = () => {
+            if (typeof window.jsmediatags !== "undefined") return finish(true);
+            if (index >= sources.length) return finish(false);
+            const sourceIndex = index++;
+            const script = document.createElement("script");
+            script.src = sources[sourceIndex];
+            script.async = true;
+            let sourceFinished = false;
+            let timeoutId = setTimeout(() => {
+              if (sourceFinished) return;
+              sourceFinished = true;
+              script.remove();
+              trySource();
+            }, 6500);
+            script.onload = () => {
+              if (sourceFinished) return;
+              sourceFinished = true;
+              clearTimeout(timeoutId);
+              if (typeof window.jsmediatags !== "undefined") finish(true);
+              else { script.remove(); trySource(); }
+            };
+            script.onerror = () => {
+              if (sourceFinished) return;
+              sourceFinished = true;
+              clearTimeout(timeoutId);
+              script.remove();
+              trySource();
+            };
+            document.head.appendChild(script);
+          };
+          trySource();
+        }).then(loaded => {
+          if (!loaded) delete window.__motanTagParserLoadPromise;
+          return loaded;
+        });
+        return window.__motanTagParserLoadPromise;
+      }
       function fetchMetadata() {
-        const t = currentTrackList.find((x) => x.id === currentTrackId) || currentTrackList[currentIndex];
-        if (!t || t._metaRead || typeof jsmediatags === "undefined") return;
-        window.motanGetTrackRecord(t.id).then((record) => {
-          if (!record || !record.blob) return;
+        const t = currentTrackList.find((x) => String(x.id) === String(currentTrackId)) || currentTrackList[currentIndex];
+        if (!t) return;
+        if (typeof window.jsmediatags === "undefined") {
+          ensureMediaTagParser().then(loaded => { if (loaded) fetchMetadata(); });
+          return;
+        }
+        if (t._metaRead) return;
+        if (t._metadataRetryAfter && Date.now() < t._metadataRetryAfter) return;
+        const idKey = String(t.id);
+        if (metadataReadInFlight.has(idKey)) return;
+        metadataReadInFlight.add(idKey);
+        const finish = () => metadataReadInFlight.delete(idKey);
+        Promise.resolve(window.motanGetTrackRecord?.(t.id)).then((record) => {
+          if (!record || !record.blob) throw new Error("Track data is unavailable for metadata reading.");
           jsmediatags.read(record.blob, {
-            onSuccess: (tag) => {
-              const tags = tag.tags || {};
-              if (tags.title) t.title = tags.title;
-              if (tags.artist) t.artist = tags.artist;
-              if (tags.album) t.album = tags.album;
-              if (tags.year) t.year = tags.year;
-              if (tags.genre) t.genre = tags.genre;
-              if (tags.picture && tags.picture.data) {
-                const picture = tags.picture;
-                let binary = "";
-                for (let i = 0; i < picture.data.length; i++) binary += String.fromCharCode(picture.data[i]);
-                t.artwork = `data:${picture.format};base64,${btoa(binary)}`;
-                t.artworkType = picture.format;
-              }
-              t._metaRead = true;
-              saveTrackMeta(t);
-              const li = Array.from(els.trackListEl.children).find((el) => Number(el.dataset.id) === Number(t.id));
-              if (li) li.querySelector(".track-name").textContent = formatTrackName(t);
-              if (t.id === currentTrackId) {
-                els.nowPlaying.textContent = formatTrackName(t);
-                updateArtworkUI(t);
-              }
-              updatePlaylistSummary();
+            onSuccess: async (tag) => {
+              try {
+                const tags = tag?.tags || {};
+                if (tags.title) t.title = String(tags.title);
+                if (tags.artist) t.artist = String(tags.artist);
+                if (tags.album) t.album = String(tags.album);
+                if (tags.year) t.year = String(tags.year);
+                if (tags.genre) t.genre = String(tags.genre);
+                if (tags.picture?.data?.length) {
+                  try {
+                    const converted = typeof window.motanProcessArtworkData === "function"
+                      ? await window.motanProcessArtworkData(tags.picture)
+                      : null;
+                    if (converted?.dataUrl) {
+                      t.artwork = converted.dataUrl;
+                      t.artworkType = converted.type || "image/jpeg";
+                    } else if (tags.picture.data.length) {
+                      const bytes = Uint8Array.from(tags.picture.data);
+                      const mime = /^image\//i.test(tags.picture.format || "") ? tags.picture.format : "image/jpeg";
+                      let binary = "";
+                      // Chunk conversion avoids call-stack overflow on large embedded images.
+                      for (let i = 0; i < bytes.length; i += 0x8000) binary += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+                      t.artwork = `data:${mime};base64,${btoa(binary)}`;
+                      t.artworkType = mime;
+                    }
+                  } catch (artError) { console.warn("Album artwork extraction failed:", artError); }
+                }
+                t._metaRead = true;
+                delete t._metadataRetryAfter;
+                if (typeof window.motanSaveTrackMeta === "function") await window.motanSaveTrackMeta(t);
+                const matching = currentTrackList.find(x => String(x.id) === idKey);
+                if (matching && matching !== t) Object.assign(matching, t);
+                try { renderTrackList(); } catch (error) { console.warn("Could not refresh track labels after metadata read:", error); }
+                updatePlaylistSummary();
+                if (String(currentTrackId) === idKey) {
+                  els.nowPlaying.textContent = formatTrackName(t);
+                  updateArtworkUI(t);
+                  updateMediaSessionMetadata(t);
+                }
+              } catch (error) {
+                console.warn("Track metadata could not be persisted:", error);
+                t._metadataRetryAfter = Date.now() + 60_000;
+              } finally { finish(); }
             },
-            onError: () => { t._metaRead = true; saveTrackMeta(t); }
+            onError: (error) => {
+              // Retry later instead of permanently marking a transient parser failure as read.
+              t._metadataRetryAfter = Date.now() + 60_000;
+              console.debug("No readable embedded tags found for track:", t.name, error);
+              finish();
+            }
           });
-        }).catch(() => {});
+        }).catch((error) => {
+          t._metadataRetryAfter = Date.now() + 60_000;
+          console.debug("Metadata read deferred:", error);
+          finish();
+        });
       }
 
       function initAudio() {
         if (audioInit) return;
         const ACTX = window.AudioContext || window.webkitAudioContext;
-        audioCtx = new ACTX();
+        try { audioCtx = new ACTX({ latencyHint: "playback" }); }
+        catch (_) { audioCtx = new ACTX(); }
+        audioCtx.addEventListener?.("statechange", () => {
+          if (audioCtx && audioCtx.state === "suspended" && !els.audio.paused) {
+            window.motanRecoverAudioContext?.("audio-context-statechange");
+          }
+        });
         const src = audioCtx.createMediaElementSource(els.audio);
         // create master gain to control volume reliably (esp. iOS)
         masterGain = audioCtx.createGain();
@@ -3303,11 +3465,93 @@
     });
   }
   function saveTrackMeta(meta) {
-    if (!db || !meta || meta.id == null || !db.objectStoreNames.contains('tracksMeta')) return;
+    if (!db || !meta || meta.id == null || !db.objectStoreNames.contains('tracksMeta')) return Promise.resolve(false);
     const clean = { ...meta };
     delete clean.blob;
-    try { db.transaction('tracksMeta', 'readwrite').objectStore('tracksMeta').put(clean); } catch (_) {}
+    delete clean._metadataRetryAfter;
+    try {
+      const tx = db.transaction('tracksMeta', 'readwrite');
+      tx.objectStore('tracksMeta').put(clean);
+      return new Promise(resolve => {
+        tx.oncomplete = () => resolve(true);
+        tx.onerror = tx.onabort = () => resolve(false);
+      });
+    } catch (error) {
+      console.warn('Could not save track metadata:', error);
+      return Promise.resolve(false);
+    }
   }
+  // Public bridge for metadata parsing in the earlier classic script.
+  window.motanSaveTrackMeta = saveTrackMeta;
+
+  function pictureMime(format) {
+    const value = String(format || '').toLowerCase();
+    if (value.includes('png')) return 'image/png';
+    if (value.includes('webp')) return 'image/webp';
+    if (value.includes('gif')) return 'image/gif';
+    if (value.includes('avif')) return 'image/avif';
+    return 'image/jpeg';
+  }
+  function fileReaderDataUrl(blob) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result || ''));
+      reader.onerror = () => reject(reader.error || new Error('image-read-failed'));
+      reader.readAsDataURL(blob);
+    });
+  }
+  function canvasBlob(canvas, type, quality) {
+    return new Promise(resolve => {
+      try { canvas.toBlob(blob => resolve(blob || null), type, quality); }
+      catch (_) { resolve(null); }
+    });
+  }
+  async function processArtworkData(picture) {
+    const raw = picture?.data;
+    if (!raw || !raw.length) return null;
+    const bytes = raw instanceof Uint8Array ? raw : Uint8Array.from(raw);
+    const originalBlob = new Blob([bytes], { type: pictureMime(picture.format) });
+    let objectUrl = null;
+    try {
+      let image;
+      if (typeof createImageBitmap === 'function') {
+        try { image = await createImageBitmap(originalBlob); } catch (_) { image = null; }
+      }
+      if (!image) {
+        objectUrl = URL.createObjectURL(originalBlob);
+        image = await new Promise((resolve, reject) => {
+          const img = new Image();
+          img.onload = () => resolve(img);
+          img.onerror = () => reject(new Error('embedded-artwork-could-not-decode'));
+          img.src = objectUrl;
+        });
+      }
+      const width = Number(image.width || image.naturalWidth || 0);
+      const height = Number(image.height || image.naturalHeight || 0);
+      if (!width || !height) throw new Error('embedded-artwork-has-no-dimensions');
+      const scale = Math.min(1, 512 / Math.max(width, height));
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.max(1, Math.round(width * scale));
+      canvas.height = Math.max(1, Math.round(height * scale));
+      const context = canvas.getContext('2d', { alpha: false });
+      if (!context) throw new Error('artwork-canvas-unavailable');
+      context.fillStyle = '#111111';
+      context.fillRect(0, 0, canvas.width, canvas.height);
+      context.drawImage(image, 0, 0, canvas.width, canvas.height);
+      if (typeof image.close === 'function') image.close();
+      let compressed = await canvasBlob(canvas, 'image/webp', 0.82);
+      if (!compressed || compressed.type !== 'image/webp') compressed = await canvasBlob(canvas, 'image/jpeg', 0.82);
+      const finalBlob = compressed && compressed.size < originalBlob.size ? compressed : originalBlob;
+      return { dataUrl: await fileReaderDataUrl(finalBlob), type: finalBlob.type || originalBlob.type || 'image/jpeg', size: finalBlob.size };
+    } catch (error) {
+      // Keep metadata usable even when image decoding/compression is unsupported.
+      try { return { dataUrl: await fileReaderDataUrl(originalBlob), type: originalBlob.type, size: originalBlob.size }; }
+      catch (_) { throw error; }
+    } finally {
+      if (objectUrl) { try { URL.revokeObjectURL(objectUrl); } catch (_) {} }
+    }
+  }
+  window.motanProcessArtworkData = processArtworkData;
   async function prepareTrackWindow(index) {
     if (!db || !Array.isArray(currentTrackList) || !currentTrackList.length) return;
     const ids = new Set([index - 1, index, index + 1].filter(i => i >= 0 && i < currentTrackList.length).map(i => currentTrackList[i].id));
@@ -3748,10 +3992,11 @@
       if(currentAudioUrl){try{URL.revokeObjectURL(currentAudioUrl);}catch(_){} currentAudioUrl=null;}
       currentAudioUrl=URL.createObjectURL(record.blob); els.audio.src=currentAudioUrl;
       const savedSpeed=parseFloat(localStorage.getItem('motan_speed')||'1');els.audio.playbackRate=Number.isFinite(savedSpeed)?savedSpeed:1;
-      if(!audioInit) initAudio();
-      if(audioCtx&&audioCtx.state==='suspended') { try{await audioCtx.resume();}catch(_){} }
+      if(!audioInit) { try { initAudio(); } catch (audioError) { console.warn("Web Audio initialization failed; attempting native audio playback.", audioError); } }
+      if(audioCtx&&audioCtx.state==='suspended') { try{await audioCtx.resume();}catch(resumeError){console.debug("AudioContext resume deferred:",resumeError);} }
       await els.audio.play();
       isPlaying=true;
+      window.motanSetMediaPlaybackState?.("playing");
       localStorage.setItem('motan_lastTrackId',String(t.id));
       if(currentPlaylistId!=='__recent__'){localStorage.setItem('motan_lastPlaylist',String(currentPlaylistId));localStorage.setItem('motan_lastTrackIndex',String(currentIndex));}
       else {const owner=playlists.find(p=>(p.tracks||[]).some(id=>String(id)===String(t.id)));if(owner){localStorage.setItem('motan_lastPlaylist',String(owner.id));localStorage.setItem('motan_lastTrackIndex',String(owner.tracks.findIndex(id=>String(id)===String(t.id))));}}
@@ -3769,12 +4014,87 @@
     else {currentIndex++;if(currentIndex>=currentTrackList.length){if(loopMode===2)currentIndex=0;else{currentIndex--;isPlaying=false;els.audio.pause();updatePlayBtn();return;}}}
     playCurrent();
   };
-  function installPlaybackStateHandlers() {
-    els.audio.addEventListener('play',()=>{isPlaying=true;updatePlayBtn();if(currentTrackList[currentIndex])updateMediaSessionMetadata(currentTrackList[currentIndex]);updatePositionState();});
-    els.audio.addEventListener('pause',()=>{isPlaying=false;updatePlayBtn();updatePositionState();});
-    // Keep audio session metadata and state current while the page is backgrounded.
-    document.addEventListener('visibilitychange',()=>{if(!document.hidden&&audioCtx?.state==='suspended'&&isPlaying)audioCtx.resume().catch(()=>{});});
+  let lastContextResumeAttempt = 0;
+  async function resumeProcessingAudio(reason = 'lifecycle') {
+    if (!audioCtx || audioCtx.state !== 'suspended' || els.audio.paused || els.audio.ended) return;
+    const now = Date.now();
+    if (now - lastContextResumeAttempt < 1800) return;
+    lastContextResumeAttempt = now;
+    try {
+      await audioCtx.resume();
+      if (audioCtx.state === 'running' && !document.hidden && isPlaying) {
+        try { drawVis(); } catch (_) {}
+      }
+    } catch (error) {
+      // The browser/OS may deny background recovery. The next playback/lifecycle event retries.
+      console.debug(`Audio processing resume deferred (${reason}):`, error);
+    }
   }
+  window.motanRecoverAudioContext = resumeProcessingAudio;
+  function syncMediaSessionPlaybackState() {
+    if (!('mediaSession' in navigator)) return;
+    const state = !els.audio.paused && !els.audio.ended ? 'playing' : (currentTrackId != null ? 'paused' : 'none');
+    window.motanSetMediaPlaybackState?.(state);
+    const t = currentTrackList.find(item => String(item.id) === String(currentTrackId)) || currentTrackList[currentIndex];
+    if (t) updateMediaSessionMetadata(t);
+    updatePositionState();
+  }
+  function installPlaybackStateHandlers() {
+    els.audio.addEventListener('play', () => {
+      isPlaying = true;
+      updatePlayBtn();
+      syncMediaSessionPlaybackState();
+      resumeProcessingAudio('play');
+    });
+    els.audio.addEventListener('playing', () => {
+      isPlaying = true;
+      updatePlayBtn();
+      syncMediaSessionPlaybackState();
+    });
+    els.audio.addEventListener('pause', () => {
+      isPlaying = false;
+      updatePlayBtn();
+      syncMediaSessionPlaybackState();
+    });
+    els.audio.addEventListener('ended', () => {
+      isPlaying = false;
+      syncMediaSessionPlaybackState();
+    });
+    ['loadedmetadata', 'durationchange', 'seeked', 'ratechange'].forEach(type => {
+      els.audio.addEventListener(type, updatePositionState, { passive: true });
+    });
+    els.audio.addEventListener('timeupdate', () => {
+      updatePositionState();
+      if (document.hidden) resumeProcessingAudio('background-timeupdate');
+    }, { passive: true });
+    ['waiting', 'stalled'].forEach(type => els.audio.addEventListener(type, () => {
+      if (!els.audio.paused) resumeProcessingAudio(`audio-${type}`);
+    }, { passive: true }));
+    if (audioCtx) audioCtx.addEventListener?.('statechange', () => {
+      if (audioCtx.state === 'suspended' && !els.audio.paused && !document.hidden) resumeProcessingAudio('context-statechange');
+    });
+    const recover = reason => {
+      if (isPlaying && !els.audio.paused) resumeProcessingAudio(reason);
+    };
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) {
+        cancelAnimationFrame(drawVisId);
+        // Android may suspend Web Audio around screen-off transitions; attempt recovery without a busy loop.
+        recover('visibility-hidden');
+      } else {
+        if (isPlaying) { try { drawVis(); } catch (_) {} }
+        recover('visibility-visible');
+      }
+    });
+    window.addEventListener('pageshow', () => recover('pageshow'));
+    window.addEventListener('focus', () => recover('focus'));
+    document.addEventListener('resume', () => recover('document-resume'));
+    document.addEventListener('freeze', () => {
+      // Keep visualizer work stopped while frozen; actual media continuation remains browser-controlled.
+      cancelAnimationFrame(drawVisId);
+    });
+  }
+
 
   // Track context menu: track rows expose a subtle ⓘ button, and also support right-click.
   function hideTrackContext(){const menu=$('#trackContextMenu');if(menu)menu.hidden=true;}
