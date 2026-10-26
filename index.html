@@ -21,7 +21,6 @@
     <link rel="apple-touch-icon" href="img/icon-192.png" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="mobile-web-app-capable" content="yes" />
-    <meta name="mobile-web-app-capable" content="yes" />
     <meta
       name="apple-mobile-web-app-status-bar-style"
       content="black-translucent"
@@ -114,7 +113,7 @@
 
       * {
         box-sizing: border-box;
-        font-family: "Roboto", sans-serif;
+        font-family: var(--motan-font-body, "Roboto"), sans-serif;
         -webkit-tap-highlight-color: transparent;
       }
 
@@ -986,6 +985,51 @@
       [data-design="material"] #trackList li { border-radius:9px; margin:2px 8px; }
       [data-design="material"] .playlist-item, [data-design="material"] .tab-item { border-radius:10px; }
       [data-design="material"] .main-nav-item[aria-selected="true"] { border-radius:12px; }
+
+      /* Motan v8: Orbitron remains the signature display face; body copy stays Roboto. */
+      .sidebar-title, .main-modal-kicker, .main-modal-header h2, .modal-header h3,
+      .main-panel h2, .main-panel h3, .main-panel h4, .motan-dialog h3 {
+        font-family: var(--motan-font-heading, "Orbitron"), "Roboto", sans-serif;
+        overflow-wrap: anywhere;
+      }
+      .main-modal-window { background: var(--motan-panel-bg, var(--bg-player)); }
+      .motan-dialog { background: var(--motan-panel-bg, var(--bg-player)); }
+      .theme-css-template { background: var(--motan-input-bg, var(--bg-body)); border-color: var(--motan-button-border, var(--border-color)); }
+      .main-panel input:not([type=range]), .main-panel select, .motan-dialog input, .motan-dialog select {
+        background: var(--motan-input-bg, var(--bg-body));
+      }
+      .main-panel .panel-section { margin-bottom: var(--motan-panel-gap, 18px); padding-bottom: var(--motan-panel-gap, 18px); }
+      .panel-section p, .panel-note { font-size: var(--motan-note-size, 12px); }
+      #trackList li:not(.track-list-empty) { background: var(--motan-list-item, var(--list-item-bg)); }
+      #trackList li:not(.track-list-empty):hover { background: var(--motan-list-hover, var(--list-item-hover)); }
+      #trackList li.playing { background: var(--motan-list-active, var(--list-active-bg)); color: var(--motan-list-active-text, var(--list-active-text)); }
+      .playlist-item { background: var(--motan-playlist-item, var(--list-item-bg)); }
+      .playlist-item:hover { background: var(--motan-list-hover, var(--list-item-hover)); }
+      .panel-button.primary { background: var(--motan-button-bg, var(--motan-accent, var(--highlight))); color: var(--motan-button-text, #111); }
+      .motan-dialog { border-radius: var(--motan-radius, 14px); box-shadow: var(--motan-shadow, 0 18px 55px rgba(0,0,0,.45)); }
+      .motan-dialog.sort-dialog { width: min(100%, 480px); padding: clamp(18px, 3vw, 26px); }
+      .motan-dialog.sort-dialog h3 { font-size: clamp(17px, 2vw, 20px); letter-spacing: .04em; padding-bottom: 12px; border-bottom: 1px solid var(--border-color); }
+      .motan-dialog.sort-dialog p { margin: 12px 0 16px; line-height: 1.65; overflow-wrap: anywhere; }
+      .motan-dialog.sort-dialog label { display: grid; gap: 8px; color: var(--text-sub); font-size: 12px; }
+      .motan-dialog.sort-dialog select { min-height: 44px; width:100%; font: inherit; }
+      .motan-dialog.sort-dialog .motan-dialog-actions { padding-top: 12px; border-top: 1px solid var(--border-color); }
+      .motan-dialog.sort-dialog .motan-dialog-actions button { min-width: 104px; }
+      .motan-dialog.sort-dialog .motan-dialog-actions .primary { box-shadow: 0 3px 12px color-mix(in srgb, var(--motan-accent), transparent 68%); }
+      #playlistsOrderModal.playlist-order-dialog { position: fixed; top: 50%; left: 50%; transform: translate(-50%,-50%); width: min(92vw,560px); max-height: min(85vh,720px); overflow-y: auto; padding: 22px; border-radius: var(--motan-radius,14px); background: var(--motan-panel-bg,var(--bg-player)); color: var(--text-main); border: 1px solid var(--border-color); box-shadow: var(--motan-shadow,0 18px 55px rgba(0,0,0,.45)); }
+      #playlistsOrderModal .modal-header { position: sticky; top: -22px; z-index: 1; padding: 4px 0 14px; background: var(--motan-panel-bg,var(--bg-player)); }
+      #playlistsOrderModal .modal-header h3 { font-family: var(--motan-font-heading,"Orbitron"),"Roboto",sans-serif; overflow-wrap:anywhere; }
+      #playlistsOrderModal table { width:100%; border-collapse:collapse; table-layout:fixed; }
+      #playlistsOrderModal td { padding:8px; vertical-align:middle; overflow-wrap:anywhere; }
+      #playlistsOrderModal .playlist-order-name span { display:inline-block; margin-left:8px; max-width:calc(100% - 28px); vertical-align:middle; }
+      #playlistsOrderModal .pl-order-input { width:100%; min-height:40px; padding:8px; border-radius:var(--motan-control-radius,9px); border:1px solid var(--border-color); background:var(--motan-input-bg,var(--bg-body)); color:var(--text-main); }
+      #playlistsOrderModal .playlist-order-actions { display:flex; flex-wrap:wrap; gap:8px; justify-content:flex-end; margin-top:14px; }
+      #playlistsOrderModal .playlist-order-actions button { min-width:100px; }
+      @media(max-width:560px) { #playlistsOrderModal.playlist-order-dialog { width:calc(100vw - 20px); padding:16px; } #playlistsOrderModal .modal-header { top:-16px; } #playlistsOrderModal .playlist-order-actions button { flex:1 1 120px; } }
+      button { color: var(--motan-button-text, var(--text-main)); border-color: var(--motan-button-border, var(--border-color)); }
+      .main-nav-item, .panel-button, .motan-dialog button, .main-panel input:not([type=range]), .main-panel select, .theme-css-template { border-radius: var(--motan-control-radius, 9px); }
+      .panel-button:not(.primary) { background: var(--motan-button-bg, var(--btn-bg)); }
+      .panel-button:not(.primary):active, button:active { background: var(--motan-button-active, var(--btn-active)); }
+      button:focus-visible, select:focus-visible, input:focus-visible, textarea:focus-visible { outline-color: var(--motan-focus, var(--motan-accent)); }
       @media (max-width:700px) {
         .main-modal { padding:0; align-items:stretch; }
         .main-modal-window { width:100%; max-height:100dvh; height:100%; border-radius:0; border-left:0; border-right:0; }
@@ -1038,6 +1082,99 @@
       }
       @media (prefers-reduced-motion: reduce) { .main-modal *, .motan-toast { transition:none !important; animation:none !important; } }
 
+    </style>
+  
+    <style id="motan-v9-layout-styles">
+      /* Active-track hover is intentionally distinct from ordinary row hover. */
+      #trackList li.playing:hover {
+        background: var(--motan-list-active-hover, var(--list-active-bg)) !important;
+        filter: brightness(1.12);
+      }
+      /* A stable desktop Control Center size, adjusted only when the viewport is shorter. */
+      @media (min-width: 701px) {
+        .main-modal-window { height: min(78vh, 760px); min-height: min(560px, 78vh); }
+      }
+      .main-nav-icon, .button-icon { width: 18px; height: 18px; flex: 0 0 18px; fill: currentColor; display:inline-block; vertical-align:middle; }
+      .main-nav-item { gap: 10px; }
+      .main-nav-item .main-nav-icon { opacity: .92; }
+      .panel-button .button-icon { margin-right: 7px; }
+      .panel-button { display:inline-flex; align-items:center; justify-content:center; gap:6px; }
+      .theme-shortcut { flex: 0 0 36px; }
+      .header-bar { justify-content:flex-start; gap:8px; }
+      #headerControls { display:none !important; }
+      .sidebar { width:var(--motan-sidebar-width,220px); min-width:220px; max-width:min(55vw,720px); flex:0 0 var(--motan-sidebar-width,220px); }
+      .sidebar-resize-handle { width:6px; flex:0 0 6px; cursor:col-resize; touch-action:none; background:transparent; position:relative; z-index:4; }
+      .sidebar-resize-handle::after { content:""; position:absolute; top:0; bottom:0; left:2px; width:2px; background:transparent; transition:background .15s; }
+      .sidebar-resize-handle:hover::after, .sidebar-resize-handle:focus-visible::after, .sidebar-resize-handle.dragging::after { background:var(--motan-accent,var(--highlight)); }
+      .sidebar-header { gap:6px; }
+      .sidebar-header .sidebar-title { flex:1 1 auto; min-width:0; }
+      .sidebar-header .add-playlist-btn { width:30px; height:30px; flex:0 0 30px; border-radius:8px; display:inline-flex; align-items:center; justify-content:center; font-size:18px; }
+      .sidebar-header .add-playlist-btn svg { width:17px; height:17px; fill:currentColor; }
+      .sidebar-header .add-playlist-btn:hover { background:var(--list-item-hover); }
+      .main-panel#settingsModal .info-content { display:grid; gap:10px; }
+      .main-panel#settingsModal .info-content p { display:grid; grid-template-columns:minmax(96px,130px) minmax(0,1fr) auto; align-items:center; gap:10px 14px; padding:13px 14px; margin:0; background:var(--bg-sidebar); border:1px solid var(--border-color); border-radius:var(--motan-control-radius,9px); border-bottom:1px solid var(--border-color); }
+      .main-panel#settingsModal .info-label { width:auto; min-width:0; color:var(--text-sub); }
+      .main-panel#settingsModal .info-content p > input[type=range] { width:100% !important; }
+      .main-panel#settingsModal .info-content p > a { overflow-wrap:anywhere; color:var(--text-main); }
+      .main-panel#settingsModal #modalFullscreenBtn, .main-panel#settingsModal #updateCacheBtn { min-height:38px; padding:8px 12px; }
+      .graphical-options { display:none; padding:12px; margin:14px 0 18px; border:1px solid var(--border-color); border-radius:var(--motan-control-radius,9px); background:var(--bg-sidebar); }
+      [data-design="graphical"] .graphical-options { display:block; }
+      .graphical-options h4 { margin:0 0 8px; }
+      .graphical-options label { display:block; font-size:12px; color:var(--text-sub); }
+      .graphical-options .panel-note { margin-bottom:0; }
+      /* Graphical is a layout preset, not a second playback implementation. */
+      [data-design="graphical"] .main-modal-window,
+      [data-design="graphical"] .motan-dialog { border-radius:18px; box-shadow:0 12px 36px rgba(0,0,0,.24); }
+      [data-design="graphical"] button { box-shadow:none; border-radius:11px; }
+      [data-design="graphical"] .playlist-item { min-height:42px; height:auto; padding:10px 12px; margin:3px 0; border:0; border-radius:10px; background:transparent; }
+      [data-design="graphical"] .playlist-item:hover { background:var(--list-item-hover); }
+      [data-design="graphical"] .playlist-item.active { background:color-mix(in srgb, var(--motan-accent,var(--highlight)) 16%, transparent); color:var(--motan-accent,var(--highlight)); }
+      [data-design="graphical"] #trackList li:not(.track-list-empty) { min-height:56px; padding:7px 14px; margin:3px 10px; border:0; border-radius:10px; background:transparent; transition:background .16s, transform .16s; }
+      [data-design="graphical"] #trackList li:not(.track-list-empty):hover { background:color-mix(in srgb, var(--list-item-hover), transparent 12%); }
+      [data-design="graphical"] #trackList li.playing { background:color-mix(in srgb, var(--motan-accent,var(--highlight)) 18%, transparent); color:var(--text-main); border-left:3px solid var(--motan-accent,var(--highlight)); }
+      [data-design="graphical"] #trackList li.playing .duration, [data-design="graphical"] #trackList li.playing .track-info-btn { color:var(--motan-accent,var(--highlight)); }
+      [data-design="graphical"] .playlist-container { padding-top:10px; background:var(--bg-player); }
+      [data-design="graphical"] .screen-area { border-radius:14px 14px 0 0; margin:8px 16px 0; padding:12px 16px 10px; background:var(--screen-bg); box-shadow:none; }
+      [data-design="graphical"] #visualizer { opacity:.36; }
+      [data-design="graphical"] #nowPlaying { font-family:var(--motan-font-heading,"Orbitron"),"Roboto",sans-serif; font-size:15px; margin-bottom:8px; }
+      [data-design="graphical"] .controls-wrapper { margin:0; padding:10px 16px 14px; background:var(--bg-player); border-top:1px solid var(--border-color); }
+      [data-design="graphical"] .controls-main { gap:clamp(8px,1.8vw,18px); margin-bottom:8px; }
+      [data-design="graphical"] .controls-sub { border:0; box-shadow:none; padding-bottom:0; }
+      [data-design="graphical"] .controls-sub button { border-radius:10px; }
+      [data-design="graphical"] .credit { padding:3px; }
+      [data-design="graphical"] .header-bar { border-bottom:1px solid var(--border-color); padding:10px 14px; }
+      [data-design="graphical"] .screen-area #progress { height:8px; }
+      [data-design="graphical"] .track-name { white-space:normal; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; text-overflow:ellipsis; line-height:1.35; }
+      [data-design="graphical"] .header-bar { order:0; }
+      [data-design="graphical"] .mobile-tabs-container { order:1; }
+      [data-design="graphical"] .playlist-container { order:2; flex:1 1 auto; min-height:110px; }
+      [data-design="graphical"] .screen-area { order:3; flex:0 0 auto; }
+      [data-design="graphical"] .controls-wrapper { order:4; flex:0 0 auto; }
+      [data-design="graphical"] .credit { order:5; flex:0 0 auto; }
+      [data-design="graphical"] #trackList li:not(.track-list-empty) { border-radius:var(--motan-graphical-row-radius,10px); margin-block:var(--motan-graphical-row-gap,3px); }
+      [data-design="graphical"] #trackList li.playing:hover { background:color-mix(in srgb, var(--motan-accent,var(--highlight)) 30%, transparent) !important; filter:brightness(1.12); }
+      .app-layout.motan-faux-fullscreen { position:fixed; inset:0; z-index:9999; width:100vw; height:100vh; max-width:none; margin:0; }
+      .sidebar-resize-handle { user-select:none; }
+      .main-modal-panels { touch-action:pan-y; }
+      @media (max-width:700px) {
+        .sidebar-resize-handle { display:none; }
+        .main-modal-window { height:100%; min-height:0; }
+        .main-panel#settingsModal .info-content p { grid-template-columns:minmax(0,1fr) auto; gap:8px 12px; }
+        .main-panel#settingsModal .info-content p .info-label { grid-column:1 / -1; }
+        .main-panel#settingsModal .info-content p > input[type=range] { grid-column:1; }
+        .main-panel#settingsModal .info-content p > span:not(.info-label), .main-panel#settingsModal .info-content p > button { grid-column:2; }
+        [data-design="graphical"] .screen-area { margin:4px 8px 0; padding:10px 12px; }
+        [data-design="graphical"] .controls-wrapper { padding:8px 8px max(10px, env(safe-area-inset-bottom)); }
+        [data-design="graphical"] .controls-main { gap:8px; }
+        [data-design="graphical"] .toolbu { width:40px; height:40px; }
+        [data-design="graphical"] #playPauseBtn { width:52px; height:52px; }
+        [data-design="graphical"] #trackList li:not(.track-list-empty) { margin:3px 6px; padding:8px 10px; }
+      }
+      @media (max-width:380px) {
+        .main-panel#settingsModal .info-content p { padding:10px; }
+        [data-design="graphical"] .controls-main { gap:4px; }
+        [data-design="graphical"] .toolbu { width:36px; height:36px; }
+      }
     </style>
   </head>
 
@@ -1132,6 +1269,12 @@
             stroke-linejoin="round"
           />
         </symbol>
+        <symbol id="icon-playlist" viewBox="0 0 24 24"><path d="M4 5h16v2H4zm0 6h11v2H4zm0 6h8v2H4zm13-2 5 3-5 3z"/></symbol>
+        <symbol id="icon-palette" viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 0 18h1.2a2.8 2.8 0 0 0 2.1-4.7c-.6-.7-.1-1.8.9-1.8H18a3 3 0 0 0 3-3c0-4.7-4-8.5-9-8.5ZM7.5 13A1.5 1.5 0 1 1 7.5 10a1.5 1.5 0 0 1 0 3Zm3-4A1.5 1.5 0 1 1 10.5 6a1.5 1.5 0 0 1 0 3Zm5 0A1.5 1.5 0 1 1 15.5 6a1.5 1.5 0 0 1 0 3Z"/></symbol>
+        <symbol id="icon-language" viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm6.9 9h-3.1a15.6 15.6 0 0 0-1.3-5A8 8 0 0 1 18.9 11ZM12 4.1c.9 1.2 1.7 3.8 1.9 6.9h-3.8c.2-3.1 1-5.7 1.9-6.9ZM4.1 13h3.1a15.6 15.6 0 0 0 1.3 5A8 8 0 0 1 4.1 13Zm3.1-2H4.1a8 8 0 0 1 4.4-5 15.6 15.6 0 0 0-1.3 5ZM12 19.9c-.9-1.2-1.7-3.8-1.9-6.9h3.8c-.2 3.1-1 5.7-1.9 6.9Zm2.5-1.9a15.6 15.6 0 0 0 1.3-5h3.1a8 8 0 0 1-4.4 5Z"/></symbol>
+        <symbol id="icon-sort" viewBox="0 0 24 24"><path d="M3 5h12v2H3zm0 6h9v2H3zm0 6h6v2H3zm14-11 4 4h-3v9h-2V10h-3z"/></symbol>
+        <symbol id="icon-plus" viewBox="0 0 24 24"><path d="M11 4h2v7h7v2h-7v7h-2v-7H4v-2h7z"/></symbol>
+        <symbol id="icon-files" viewBox="0 0 24 24"><path d="M4 4h10l3 3v4h-2V8h-2V6H6v12h6v2H4zm7 8h9v8h-9zm2 2v4h5v-4z"/></symbol>
       </defs>
     </svg>
 
@@ -1139,11 +1282,13 @@
       <aside class="sidebar">
         <div class="sidebar-header">
           <span class="sidebar-title">PLAYLISTS</span>
-          <button class="add-playlist-btn" onclick="createPlaylist()">+</button>
+          <button class="add-playlist-btn" onclick="createPlaylist()" id="sidebarAddPlaylistBtn" title="Create playlist" aria-label="Create playlist"><svg aria-hidden="true"><use href="#icon-plus"></use></svg></button>
+          <button class="add-playlist-btn" id="sortPlaylistsBtn" title="Sort playlists" aria-label="Sort playlists"><svg aria-hidden="true"><use href="#icon-sort"></use></svg></button>
           <button
             class="add-playlist-btn"
             onclick="openMobilePlaylistMenu()"
             title="プレイリスト管理"
+            aria-label="Playlist settings"
           >
             <svg>
               <use href="#icon-settings"></use>
@@ -1154,6 +1299,7 @@
 
         <ul class="playlist-list" id="sidebarList"></ul>
       </aside>
+      <div id="sidebarResizeHandle" class="sidebar-resize-handle" role="separator" aria-orientation="vertical" tabindex="0" title="Resize playlist sidebar" aria-label="Resize playlist sidebar"></div>
 
       <main class="main-content">
         <div class="header-bar">
@@ -1170,17 +1316,10 @@
               <rect x="3" y="16" width="18" height="2" rx="1"></rect>
             </svg>
           </button>
+          <button class="divbutton theme-shortcut" id="themeBtn" title="Color and theme" aria-label="Color and theme">
+            <svg aria-hidden="true"><use href="#icon-dark"></use></svg>
+          </button>
           <div id="headerControls" class="header-controls">
-            <button id="settingsBtn" class="divbutton" title="設定">
-              <svg>
-                <use href="#icon-cmd"></use>
-              </svg>
-            </button>
-            <button class="divbutton" id="themeBtn" title="ダークモード設定">
-              <svg>
-                <use href="#icon-dark"></use>
-              </svg>
-            </button>
             <div style="display: flex; align-items: center; gap: 10px">
               <label class="divbutton" for="fileInput" title="ファイル追加">
                 <svg>
@@ -1405,7 +1544,7 @@
           </p>
           <p>
             <span class="info-label">Version:</span>
-            <a>v7.0 (2026.10.26)</a>
+            <a>v8.0 (2026.10.26)</a>
             <a style="display: none">β5.00(2026.2.08)</a>
           </p>
           <p>
@@ -1628,8 +1767,14 @@
           setMediaPlaybackState("paused");
           updatePositionState();
         });
-        register("previoustrack", () => { if (currentTrackList.length && els.prevBtn) els.prevBtn.click(); });
-        register("nexttrack", () => { if (els.nextBtn) els.nextBtn.click(); });
+        register("previoustrack", () => {
+          const button = document.getElementById("prevBtn");
+          if (currentTrackList.length && button) button.click();
+        });
+        register("nexttrack", () => {
+          const button = document.getElementById("nextBtn");
+          if (currentTrackList.length && button) button.click();
+        });
         register("seekbackward", details => {
           const offset = Number(details?.seekOffset) > 0 ? Number(details.seekOffset) : 10;
           try { els.audio.currentTime = Math.max(0, Number(els.audio.currentTime || 0) - offset); } catch (_) {}
@@ -2130,8 +2275,8 @@
           const empty = document.createElement("li");
           empty.className = "track-list-empty";
           empty.textContent = currentPlaylistId === "__recent__"
-            ? "No recently added tracks"
-            : "No tracks in this playlist. Open Control Center → File Operations to add audio files.";
+            ? (window.motanTranslate?.('noRecentTracks') || "No recently added tracks")
+            : (window.motanTranslate?.('noTracks') || "No tracks in this playlist. Open Control Center → File Operations to add audio files.");
           list.replaceChildren(empty);
           return;
         }
@@ -2142,7 +2287,7 @@
           li.draggable = currentPlaylistId !== "__recent__";
           li.dataset.index = String(index);
           li.dataset.id = String(track.id);
-          li.title = `${formatTrackName(track)} — right-click or use ⓘ for track actions`;
+          li.title = `${formatTrackName(track)} — ${window.motanTranslate?.('trackHint') || 'right-click or use ⓘ for track actions'}`;
           if (String(track.id) === String(currentTrackId)) li.classList.add("playing");
           const name = document.createElement("span");
           name.className = "track-name";
@@ -2697,26 +2842,43 @@
       let drawVisId;
 
       function drawVis() {
-        if (!audioInit || document.hidden) return; // Stop if hidden (iPad fix)
-        drawVisId = requestAnimationFrame(drawVis);
+        if (!audioInit || document.hidden) return;
         const cvs = document.getElementById("visualizer");
+        if (!cvs) return;
         const ctx = cvs.getContext("2d");
-        cvs.width = cvs.clientWidth;
-        cvs.height = cvs.clientHeight;
+        if (!ctx || !analyserNode) return;
+        if (cvs.width !== cvs.clientWidth) cvs.width = cvs.clientWidth;
+        if (cvs.height !== cvs.clientHeight) cvs.height = cvs.clientHeight;
+        ctx.clearRect(0, 0, cvs.width, cvs.height);
+        const mode = localStorage.getItem("motan_visualizer_mode") || "bars";
+        if (mode === "off") return;
+        drawVisId = requestAnimationFrame(drawVis);
+        const isDark = document.documentElement.getAttribute("data-theme") === "dark";
+        const col = isDark ? "0, 255, 204" : "0, 183, 255";
+        if (mode === "wave") {
+          const data = new Uint8Array(analyserNode.fftSize);
+          analyserNode.getByteTimeDomainData(data);
+          ctx.lineWidth = 2;
+          ctx.strokeStyle = `rgba(${col}, .78)`;
+          ctx.beginPath();
+          const step = cvs.width / Math.max(1, data.length - 1);
+          for (let i = 0; i < data.length; i++) {
+            const y = (data[i] / 255) * cvs.height;
+            if (i === 0) ctx.moveTo(0, y); else ctx.lineTo(i * step, y);
+          }
+          ctx.stroke();
+          return;
+        }
         const buf = analyserNode.frequencyBinCount;
         const data = new Uint8Array(buf);
         analyserNode.getByteFrequencyData(data);
-        ctx.clearRect(0, 0, cvs.width, cvs.height);
-        const w = (cvs.width / buf) * 2.5;
+        const barWidth = Math.max(1, (cvs.width / buf) * 2.5);
         let x = 0;
-        const isDark =
-          document.documentElement.getAttribute("data-theme") === "dark";
-        const col = isDark ? "0, 255, 204" : "0, 183, 255";
-        for (let i = 0; i < buf; i++) {
-          const h = data[i] / 2;
-          ctx.fillStyle = `rgba(${col}, ${(h / 255) * 0.6})`;
-          ctx.fillRect(x, cvs.height - h, w, h);
-          x += w + 1;
+        for (let i = 0; i < buf && x < cvs.width; i++) {
+          const h = Math.min(cvs.height, data[i] / 2);
+          ctx.fillStyle = `rgba(${col}, ${(h / Math.max(1,cvs.height)) * 0.7})`;
+          ctx.fillRect(x, cvs.height - h, barWidth, h);
+          x += barWidth + 1;
         }
       }
 
@@ -3209,25 +3371,33 @@
         if (!modal) {
           modal = document.createElement("div");
           modal.id = "playlistsOrderModal";
-          modal.className = "modal";
+          modal.className = "modal playlist-order-dialog";
           modal.setAttribute("aria-hidden", "true");
           modal.style.zIndex = 1200;
           modal.innerHTML = `
       <div class="modal-header">
-        <h3>REORDER PLAYLISTS</h3>
-        <button class="close-btn" onclick="closePlaylistsOrderModal()">×</button>
+        <h3 data-order-title>REORDER PLAYLISTS</h3>
+        <button class="close-btn" title="Close" aria-label="Close" onclick="closePlaylistsOrderModal()">×</button>
       </div>
       <div style="padding:10px">
         <div style="max-height:340px;overflow:auto;border:1px solid var(--border-color);padding:8px;border-radius:8px;background:transparent">
           <table style="width:100%;border-collapse:collapse"><tbody id="playlistsOrderTable"></tbody></table>
         </div>
-        <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:10px">
-          <button class="sub-btn" onclick="applyPlaylistsOrder()">Apply</button>
-          <button class="sub-btn" onclick="closePlaylistsOrderModal()">Cancel</button>
+        <div class="playlist-order-actions">
+          <button class="panel-button primary" onclick="applyPlaylistsOrder()" data-order-apply>Apply</button>
+          <button class="panel-button" onclick="closePlaylistsOrderModal()" data-order-cancel>Cancel</button>
         </div>
       </div>
     `;
           document.body.appendChild(modal);
+        }
+        // Refresh translated labels each time this modal opens. The design remains shared with Control Center.
+        const uiTranslate = window.motanUITranslate;
+        if (typeof uiTranslate === "function") {
+          const title = modal.querySelector("[data-order-title]"); if (title) title.textContent = uiTranslate("sortLists");
+          const apply = modal.querySelector("[data-order-apply]"); if (apply) apply.textContent = uiTranslate("apply");
+          const cancel = modal.querySelector("[data-order-cancel]"); if (cancel) cancel.textContent = uiTranslate("cancel");
+          const close = modal.querySelector(".close-btn"); if (close) { close.title = uiTranslate("close"); close.setAttribute("aria-label", uiTranslate("close")); }
         }
         // populate table
         const tbody = document.getElementById("playlistsOrderTable");
@@ -3235,9 +3405,9 @@
         playlists.forEach((p, idx) => {
           const tr = document.createElement("tr");
           tr.innerHTML = `
-      <td style="padding:8px;vertical-align:middle">${idx + 1}. <a style="margin-left:8px font-family: "Roboto", sans-serif;">${escapeHtml(p.name)}</a></td>
+      <td class="playlist-order-name">${idx + 1}. <span>${escapeHtml(p.name)}</span></td>
       <td style="width:110px;padding:8px">
-        <input type="number" class="pl-order-input" data-id="${p.id}" value="${idx + 1}" style="width:100%;padding:8px;border-radius:6px;border:1px solid var(--border-color);background:var(--bg-body); color: var(--text-main);">
+        <input type="number" min="1" step="1" inputmode="numeric" class="pl-order-input" data-id="${p.id}" value="${idx + 1}" aria-label="${escapeHtml(window.motanTranslate?.('orderForPlaylist') || 'Order')} ${idx + 1}: ${escapeHtml(p.name)}">
       </td>
     `;
           tbody.appendChild(tr);
@@ -3293,7 +3463,7 @@
         }
         loadCurrentPlaylistTracks();
         closePlaylistsOrderModal();
-        alert("Playlists reordered");
+        if (window.motanShowToast) window.motanShowToast(window.motanTranslate?.('playlistsReordered') || 'Playlists reordered.'); else alert(window.motanTranslate?.('playlistsReordered') || 'Playlists reordered.');
       }
 
       function escapeHtml(s) {
@@ -3368,9 +3538,18 @@
       cssCopied:'Theme CSS format copied.', exportWorking:'Preparing WAV export…', exportDone:'WAV export complete.', exportFailed:'Could not export this playlist. Some formats may not be supported by this browser or the export may be too large.',
       noTrack:'No track is currently selected.', pipUnsupported:'Picture-in-picture is unavailable here; opening a compact player window instead.',
       sortDone:'Playlist sorted.', cacheUpdate:'Update the app cache and reload now?', languageNote:'Auto follows the browser/device language. No IP geolocation request is made, so the player stays offline-friendly and does not disclose your IP to a language service.',
-      designClassic:'Classic', designMaterial:'Material Design', colorAuto:'System', colorDark:'Dark', colorLight:'Light', appearance:'Appearance',
+      designClassic:'Classic', designMaterial:'Material Design', designGraphical:'Graphical', visualizer:'Visualizer', visualizerStyle:'Visualizer style', visualizerBars:'Spectrum bars', visualizerWave:'Waveform', visualizerOff:'Off', visualizerNote:'Visualizer styles affect the canvas only; playback controls and the audio pipeline remain unchanged.', playlistManagement:'Playlist management', createPlaylist:'Add playlist', resizeSidebar:'Resize playlist sidebar', sortPlaylists:'Sort playlists', sortPlaylistsTitle:'Sort playlists', sortPlaylistsNote:'Choose a name ordering. This changes playlist order only, not the tracks inside each playlist.', sortJaAsc:'Japanese syllabary (あ → ん)', sortJaDesc:'Japanese syllabary (ん → あ)', sortAbcAsc:'Alphabetical (A → Z)', sortAbcDesc:'Alphabetical (Z → A)', colorAuto:'System', colorDark:'Dark', colorLight:'Light', appearance:'Appearance',
       cssImport:'Load theme CSS', cssCopy:'Copy CSS format', currentTrackActions:'Actions for the playing track', recent:'Recently added', lastTrack:'Last played track', lastPlaylist:'Last played playlist',
       recoverRecent:'Recover unassigned recent files', recoverRecentNote:'Use recovery if files were stored in the library but did not appear in a playlist. Recovery may also find recently migrated or previously removed files.', recoverNone:'No unassigned recent tracks were found.', recoveryPrompt:(count,names,suffix)=>`Found ${count} recent file(s) stored in the library but not assigned to a playlist: ${names}${suffix}. Add them to the current/last playlist? Previously removed tracks or recently migrated records may also appear.`, recovered:(count,name)=>`Recovered ${count} file(s) to ${name}.`, noPlaylistAvailable:'No playlist is available.',
+      toggle:'Toggle', filesNote:'Select supported audio files and add them to the current playlist.',
+      exportNote:'Exports the selected playlist as one WAV file in track order. Very long playlists may exceed browser memory limits.',
+      miniPlayerNote:'Uses Document Picture-in-Picture where supported; otherwise opens a compact companion window.',
+      languageTitle:'Interface language', languageLabel:'Language', languageAuto:'Auto (device language)', languageEnglish:'English', languageJapanese:'Japanese',
+      customCssNote:'Motan applies only documented --motan-* variables from this file. Arbitrary selectors, external resources, and scripts are not executed.',
+      copyFallback:'Select the CSS above and copy it manually.', sortTitle:'Sort playlist', sortNote:'Choose how tracks should be ordered. The original audio files are not changed.', sortOrder:'Sort order', sortMetadata:'Track title / metadata', sortFilename:'File name',
+      file:'File', title:'Title', artist:'Artist', album:'Album', year:'Year', genre:'Genre', duration:'Duration', bitrate:'Bitrate', size:'Size', mime:'MIME type', artwork:'Artwork', loadingTrackInfo:'Loading track information…',
+      apply:'Apply', orderForPlaylist:'Order for playlist', sortTracks:'Sort tracks', sortLists:'Reorder playlists', rename:'Rename', clear:'Clear', delete:'Delete', selected:'Selected', toggle:'Toggle', emptyPlaylist:'This playlist is empty.', noPlaylistWritable:'No playlist is available. Create a playlist and try again.', mainPlaylistCannotDelete:'The main playlist cannot be deleted.', playlistCleared:'Playlist cleared.', miniPlayerOpenFailed:'Mini player could not open. Use the browser menu or try again from a click.', saveEqPreset:'Save equalizer preset', userPreset1:'User 1', userPreset2:'User 2', recoverMore:n=>`, and ${n} more`,
+      playing:'Playing', paused:'Paused', playPause:'Play or pause', closeCenter:'Close control center', noTracks:'No tracks in this playlist. Open Control Center → File Operations to add audio files.', noRecentTracks:'No recently added tracks', trackHint:'Right-click or select ⓘ for track actions', playlistsReordered:'Playlists reordered.',
       play:'Play', pause:'Pause', previous:'Previous', next:'Next', miniPlayer:'Mini player / PiP', customTheme:'Custom theme CSS', none:'None', noRating:'Not rated'
     },
     ja: {
@@ -3389,9 +3568,18 @@
       exportWorking:'WAV 書き出しを準備しています…', exportDone:'WAV の書き出しが完了しました。', exportFailed:'書き出しに失敗しました。形式が非対応か、ファイルが大きすぎる可能性があります。',
       noTrack:'トラックが選択されていません。', pipUnsupported:'この環境では PiP に非対応のため、コンパクトな別ウィンドウを開きます。',
       sortDone:'プレイリストを並べ替えました。', cacheUpdate:'アプリのキャッシュを更新して再読み込みしますか？', languageNote:'自動設定ではブラウザー／デバイスの言語を使用します。IP 照会は行わず、オフライン動作とプライバシーを優先します。',
-      designClassic:'クラシック', designMaterial:'マテリアルデザイン', colorAuto:'システムに合わせる', colorDark:'ダーク', colorLight:'ライト', appearance:'外観',
+      designClassic:'クラシック', designMaterial:'マテリアルデザイン', designGraphical:'グラフィカル', visualizer:'ビジュアライザー', visualizerStyle:'表示スタイル', visualizerBars:'スペクトラムバー', visualizerWave:'波形', visualizerOff:'オフ', visualizerNote:'変更するのはキャンバスの描画のみです。再生操作と音声処理は変更しません。', playlistManagement:'プレイリスト管理', createPlaylist:'プレイリストを追加', resizeSidebar:'プレイリスト欄の幅を変更', sortPlaylists:'プレイリストをソート', sortPlaylistsTitle:'プレイリストのソート', sortPlaylistsNote:'名前の並び順を選択します。プレイリストの順序だけが変わり、各プレイリスト内の楽曲順は変わりません。', sortJaAsc:'五十音順（あ → ん）', sortJaDesc:'五十音順（ん → あ）', sortAbcAsc:'ABC順（A → Z）', sortAbcDesc:'ABC順（Z → A）', colorAuto:'システムに合わせる', colorDark:'ダーク', colorLight:'ライト', appearance:'外観',
       cssImport:'テーマ CSS を読み込む', cssCopy:'CSS フォーマットをコピー', currentTrackActions:'再生中トラックの操作', recent:'最近追加した項目', lastTrack:'最後に再生した曲', lastPlaylist:'最後に再生したプレイリスト',
       recoverRecent:'未割り当ての最近のファイルを復旧', recoverRecentNote:'読み込んだファイルがプレイリストに表示されない場合に使用します。最近移行されたファイルや、以前に削除したファイルが含まれる場合もあります。', recoverNone:'復旧できる最近の未割り当てトラックはありません。', recoveryPrompt:(count,names,suffix)=>`ライブラリには保存されていますが、プレイリストに割り当てられていない最近のファイルが ${count} 件あります：${names}${suffix}。現在／最後に使ったプレイリストに追加しますか？ 最近削除した曲や移行されたデータが含まれる場合もあります。`, recovered:(count,name)=>`${name} に ${count} 件のファイルを復旧しました。`, noPlaylistAvailable:'利用できるプレイリストがありません。',
+      toggle:'切り替え', filesNote:'対応する音声ファイルを選択し、現在のプレイリストに追加します。',
+      exportNote:'選択したプレイリスト内の曲を順番に連結し、1つの WAV ファイルに書き出します。長いプレイリストはブラウザーのメモリ上限を超える場合があります。',
+      miniPlayerNote:'対応ブラウザーでは Document Picture-in-Picture を使用します。非対応の場合は小さな別ウィンドウを開きます。',
+      languageTitle:'インターフェース言語', languageLabel:'表示言語', languageAuto:'自動（端末の言語）', languageEnglish:'英語', languageJapanese:'日本語',
+      customCssNote:'この CSS から適用するのは、定義済みの --motan-* 変数のみです。任意のセレクター、外部リソース、スクリプトは実行しません。',
+      copyFallback:'上の CSS を選択し、手動でコピーしてください。', sortTitle:'プレイリストの並べ替え', sortNote:'曲の並び順を選択してください。音声ファイル本体は変更されません。', sortOrder:'並べ替え基準', sortMetadata:'曲名／メタデータ', sortFilename:'ファイル名',
+      file:'ファイル', title:'曲名', artist:'アーティスト', album:'アルバム', year:'年', genre:'ジャンル', duration:'再生時間', bitrate:'ビットレート', size:'サイズ', mime:'MIME タイプ', artwork:'アートワーク', loadingTrackInfo:'トラック情報を読み込んでいます…',
+      apply:'適用', orderForPlaylist:'プレイリストの表示順', sortTracks:'曲を並べ替え', sortLists:'プレイリストの順序変更', rename:'名前を変更', clear:'クリア', delete:'削除', selected:'選択中', toggle:'切り替え', emptyPlaylist:'このプレイリストには曲がありません。', noPlaylistWritable:'利用できるプレイリストがありません。プレイリストを作成してからお試しください。', mainPlaylistCannotDelete:'メインのプレイリストは削除できません。', playlistCleared:'プレイリストを空にしました。', miniPlayerOpenFailed:'ミニプレーヤーを開けませんでした。ブラウザーのメニューを使うか、もう一度操作してください。', saveEqPreset:'イコライザープリセットを保存', userPreset1:'ユーザー 1', userPreset2:'ユーザー 2', recoverMore:n=>`ほか ${n} 件`,
+      playing:'再生中', paused:'一時停止中', playPause:'再生／一時停止', closeCenter:'コントロールセンターを閉じる', noTracks:'このプレイリストには曲がありません。「コントロールセンター」→「ファイル操作」から音声ファイルを追加してください。', noRecentTracks:'最近追加した曲はありません', trackHint:'右クリックまたは ⓘ からトラック操作を開けます', playlistsReordered:'プレイリストの順序を変更しました。',
       play:'再生', pause:'一時停止', previous:'前へ', next:'次へ', miniPlayer:'ミニプレーヤー / PiP', customTheme:'カスタムテーマ CSS', none:'なし', noRating:'未評価'
     }
   };
@@ -3407,10 +3595,22 @@
   const eqStorageKey = 'motan_eq_values';
   const themeStyleId = 'motan-user-theme-style';
   const themeVars = {
+    // Surface and text colors
     '--motan-bg':'--bg-body', '--motan-surface':'--bg-player', '--motan-sidebar':'--bg-sidebar',
+    '--motan-panel-bg':'--motan-panel-bg', '--motan-input-bg':'--motan-input-bg',
     '--motan-text':'--text-main', '--motan-muted':'--text-sub', '--motan-accent':'--highlight',
     '--motan-border':'--border-color', '--motan-screen':'--screen-bg', '--motan-list':'--list-bg',
-    '--motan-radius':'--motan-radius'
+    // More detailed component colors
+    '--motan-list-item':'--motan-list-item', '--motan-list-hover':'--motan-list-hover',
+    '--motan-list-active':'--motan-list-active', '--motan-list-active-hover':'--motan-list-active-hover', '--motan-list-active-text':'--motan-list-active-text', '--motan-graphical-row-radius':'--motan-graphical-row-radius', '--motan-graphical-row-gap':'--motan-graphical-row-gap',
+    '--motan-playlist-item':'--motan-playlist-item', '--motan-button-bg':'--motan-button-bg',
+    '--motan-button-active':'--motan-button-active', '--motan-button-text':'--motan-button-text',
+    '--motan-button-border':'--motan-button-border', '--motan-focus':'--motan-focus',
+    // Typography, geometry, spacing, and depth
+    '--motan-radius':'--motan-radius', '--motan-control-radius':'--motan-control-radius',
+    '--motan-shadow':'--motan-shadow', '--motan-panel-gap':'--motan-panel-gap',
+    '--motan-note-size':'--motan-note-size', '--motan-heading-font':'--motan-font-heading',
+    '--motan-body-font':'--motan-font-body'
   };
   function lang() {
     if (currentLang !== 'auto') return currentLang;
@@ -3598,7 +3798,7 @@
       || playlists.find(p => String(p.id) === String(lastPlaylistId))
       || playlists[0];
     if (!playlist) {
-      showToast('No playlist is available. Create a playlist and try again.');
+      showToast(tr('noPlaylistWritable'));
       console.error('Motan import blocked: no writable playlist exists.', currentPlaylistId, playlists);
       return false;
     }
@@ -3689,7 +3889,7 @@
     const candidates = allMeta.filter(t => t && t.id != null && !referenced.has(String(t.id)) && Number(t.addedAt || 0) >= cutoff);
     if (!candidates.length) { showToast(tr('recoverNone')); return; }
     const names = candidates.slice(0, 5).map(t => t.customName || t.title || t.name || `Track ${t.id}`).join(', ');
-    const suffix = candidates.length > 5 ? `, and ${candidates.length - 5} more` : '';
+    const suffix = candidates.length > 5 ? ((LANGS[lang()]?.recoverMore || LANGS.en.recoverMore)(candidates.length - 5)) : ''; 
     const prompt = LANGS[lang()]?.recoveryPrompt || LANGS.en.recoveryPrompt;
     const ok = await askConfirm(prompt(candidates.length, names, suffix));
     if (!ok) return;
@@ -3716,11 +3916,11 @@
     const shell = $('#mainModal'), nav = $('#mainModalNav'), area = $('#mainModalPanels');
     if (!shell || !nav || !area) return;
     const configs = [
-      {id:'settingsModal', key:'settings', icon:'⚙'},
-      {id:'mobilePlModal', key:'playlist', icon:'▤'},
-      {id:'colorModal', key:'theme', icon:'◐'},
-      {id:'eqModal', key:'eq', icon:'≋'},
-      {id:'fileOperationsPanel', key:'files', icon:'⇧'}
+      {id:'settingsModal', key:'settings', icon:'icon-settings'},
+      {id:'mobilePlModal', key:'playlist', icon:'icon-playlist'},
+      {id:'colorModal', key:'theme', icon:'icon-palette'},
+      {id:'eqModal', key:'eq', icon:'icon-eq'},
+      {id:'fileOperationsPanel', key:'files', icon:'icon-files'}
     ];
     // These panels intentionally live in a single shell. IDs remain stable for existing handlers.
     configs.forEach((cfg, index) => {
@@ -3736,7 +3936,7 @@
       const btn = document.createElement('button');
       btn.type='button'; btn.className='main-nav-item'; btn.dataset.panel=cfg.id;
       btn.setAttribute('role','tab'); btn.setAttribute('aria-controls',cfg.id); btn.setAttribute('aria-selected','false');
-      btn.innerHTML = `<span aria-hidden="true">${cfg.icon}</span><span data-nav-label="${cfg.key}">${esc(ui(cfg.key))}</span>`;
+      btn.innerHTML = `<svg class="main-nav-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#${cfg.icon}"></use></svg><span data-nav-label="${cfg.key}">${esc(ui(cfg.key))}</span>`;
       btn.title = ui(cfg.key); btn.addEventListener('click', () => openMainModal(cfg.id)); nav.appendChild(btn);
     });
     // Remove old modal-only close buttons; the global header owns closing the whole control center.
@@ -3747,19 +3947,19 @@
     // File operations panel.
     const filePanel = $('#fileOperationsPanel');
     filePanel.innerHTML = `
-      <section class="panel-section"><h4>${esc(ui('fileLoad'))}</h4><p>Select one or more supported audio files and add them to the current playlist.</p>
+      <section class="panel-section"><h4 id="filesLoadHeading">${esc(ui('fileLoad'))}</h4><p id="filesImportNote" class="panel-note">${esc(tr('filesNote'))}</p>
         <div class="panel-actions"><button class="panel-button primary" id="loadFilesBtn" type="button" title="${esc(ui('fileLoad'))}">＋ ${esc(ui('fileLoad'))}</button>
         <button class="panel-button" id="loadFolderBtn" type="button" title="${esc(ui('folderLoad'))}">▰ ${esc(ui('folderLoad'))}</button></div>
         <div class="panel-actions"><button class="panel-button" id="recoverRecentBtn" type="button" title="${esc(ui('recoverRecent'))}">${esc(ui('recoverRecent'))}</button></div>
-        <p class="panel-note">${esc(ui('recoverRecentNote'))}</p>
+        <p id="recoverRecentNote" class="panel-note">${esc(tr('recoverRecentNote'))}</p>
       </section>
-      <section class="panel-section"><h4>${esc(ui('exportPlaylist'))}</h4><label for="exportPlaylistSelect">${esc(ui('choosePlaylist'))}</label>
+      <section class="panel-section"><h4 id="exportHeading">${esc(ui('exportPlaylist'))}</h4><label for="exportPlaylistSelect">${esc(ui('choosePlaylist'))}</label>
         <select id="exportPlaylistSelect" aria-label="${esc(ui('choosePlaylist'))}" style="display:block;width:100%;margin:8px 0 12px"></select>
         <button class="panel-button primary" id="exportPlaylistBtn" type="button" title="${esc(ui('exportPlaylist'))}">${esc(ui('exportPlaylist'))}</button>
-        <p>Exports a single WAV file by decoding and joining tracks in playlist order. Very long playlists may exceed browser memory limits.</p>
+        <p id="exportNote" class="panel-note">${esc(tr('exportNote'))}</p>
       </section>
-      <section class="panel-section"><h4>${esc(ui('miniPlayer'))}</h4><button class="panel-button" id="miniPlayerBtn" type="button" title="${esc(ui('miniPlayer'))}">▣ ${esc(ui('miniPlayer'))}</button>
-        <p>Uses Document Picture-in-Picture where supported; otherwise opens a compact companion window.</p></section>
+      <section class="panel-section"><h4 id="miniPlayerHeading">${esc(ui('miniPlayer'))}</h4><button class="panel-button" id="miniPlayerBtn" type="button" title="${esc(ui('miniPlayer'))}">▣ ${esc(ui('miniPlayer'))}</button>
+        <p id="miniPlayerNote" class="panel-note">${esc(tr('miniPlayerNote'))}</p></section>
       <input type="file" id="folderInput" webkitdirectory directory multiple hidden aria-label="${esc(ui('folderLoad'))}">
     `;
     const folderInput = $('#folderInput');
@@ -3783,10 +3983,10 @@
 
     // Language panel.
     const langPanel = document.createElement('section'); langPanel.id='languagePanel'; langPanel.className='main-panel'; langPanel.setAttribute('role','region');
-    langPanel.innerHTML = `<section class="panel-section"><h4>Interface language</h4><label for="languageSelect">Language</label><select id="languageSelect" style="display:block;width:100%;margin:8px 0 12px"><option value="auto">Auto (device language)</option><option value="en">English</option><option value="ja">日本語</option></select><p class="panel-note">${esc(tr('languageNote'))}</p></section>`;
+    langPanel.innerHTML = `<section class="panel-section"><h4 id="languagePanelTitle">${esc(ui('languageTitle'))}</h4><label for="languageSelect" id="languagePanelLabel">${esc(ui('languageLabel'))}</label><select id="languageSelect" style="display:block;width:100%;margin:8px 0 12px"><option value="auto">${esc(ui('languageAuto'))}</option><option value="en">${esc(ui('languageEnglish'))}</option><option value="ja">${esc(ui('languageJapanese'))}</option></select><p class="panel-note">${esc(tr('languageNote'))}</p></section>`;
     area.appendChild(langPanel);
     const languageButton = document.createElement('button'); languageButton.type='button'; languageButton.className='main-nav-item';
-    languageButton.dataset.panel='languagePanel'; languageButton.setAttribute('role','tab'); languageButton.setAttribute('aria-controls','languagePanel'); languageButton.setAttribute('aria-selected','false'); languageButton.innerHTML='<span aria-hidden="true">文</span><span data-nav-label="language"></span>';
+    languageButton.dataset.panel='languagePanel'; languageButton.setAttribute('role','tab'); languageButton.setAttribute('aria-controls','languagePanel'); languageButton.setAttribute('aria-selected','false'); languageButton.innerHTML='<svg class="main-nav-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-language"></use></svg><span data-nav-label="language"></span>';
     languageButton.title=ui('language'); languageButton.addEventListener('click',()=>openMainModal('languagePanel')); nav.appendChild(languageButton);
     languageButton.querySelector('[data-nav-label]').textContent = ui('language');
     $('#languageSelect', langPanel).value = currentLang;
@@ -3795,21 +3995,97 @@
     // Theme controls augment the original COLOR panel without replacing existing controls.
     const colorPanel = $('#colorModal');
     const themeExtra = document.createElement('div'); themeExtra.className='panel-section';
-    themeExtra.innerHTML = `<h4>${esc(ui('appearance'))}</h4><div class="panel-actions"><button type="button" class="panel-button theme-choice" data-design-choice="classic">${esc(ui('designClassic'))}</button><button type="button" class="panel-button theme-choice" data-design-choice="material">${esc(ui('designMaterial'))}</button></div>
-      <h4 style="margin-top:18px">${esc(ui('customTheme'))}</h4><p>Motan reads only the documented --motan-* variables from this CSS file; arbitrary CSS and script-like rules are ignored.</p>
+    themeExtra.innerHTML = `<h4 id="appearanceHeading">${esc(ui('appearance'))}</h4><div class="panel-actions"><button type="button" class="panel-button theme-choice" data-design-choice="classic">${esc(ui('designClassic'))}</button><button type="button" class="panel-button theme-choice" data-design-choice="material">${esc(ui('designMaterial'))}</button><button type="button" class="panel-button theme-choice" data-design-choice="graphical">${esc(ui('designGraphical'))}</button></div>
+      <div class="graphical-options" id="graphicalOptions"><h4 id="graphicalVisualizerHeading">${esc(ui('visualizer'))}</h4><label for="graphicalVisualizerSelect" id="graphicalVisualizerLabel">${esc(ui('visualizerStyle'))}</label><select id="graphicalVisualizerSelect" style="display:block;width:100%;margin:8px 0 12px"><option value="bars">${esc(ui('visualizerBars'))}</option><option value="wave">${esc(ui('visualizerWave'))}</option><option value="off">${esc(ui('visualizerOff'))}</option></select><p class="panel-note" id="graphicalVisualizerNote">${esc(tr('visualizerNote'))}</p></div>
+      <h4 id="customThemeHeading" style="margin-top:18px">${esc(ui('customTheme'))}</h4><p id="customCssNote" class="panel-note">${esc(tr('customCssNote'))}</p>
       <textarea class="theme-css-template" id="themeCssTemplate" spellcheck="false" aria-label="Custom CSS format"></textarea>
       <div class="panel-actions" style="margin-top:8px"><button class="panel-button" id="copyThemeCssBtn" type="button">${esc(ui('cssCopy'))}</button><button class="panel-button" id="loadThemeCssBtn" type="button">${esc(ui('cssImport'))}</button><input type="file" id="themeCssInput" accept=".css,text/css" hidden></div>`;
     colorPanel.appendChild(themeExtra);
-    const cssTemplate = `:root {\n  --motan-bg: #dddddd;\n  --motan-surface: #f2f2f2;\n  --motan-sidebar: #e8e8e8;\n  --motan-text: #333333;\n  --motan-muted: #666666;\n  --motan-accent: #00b7ff;\n  --motan-border: #cccccc;\n  --motan-screen: #111111;\n  --motan-list: #dddddd;\n  --motan-radius: 12px;\n}\n[data-theme="dark"] {\n  --motan-bg: #1a1a1a;\n  --motan-surface: #2b2b2b;\n  --motan-sidebar: #222222;\n  --motan-text: #dddddd;\n  --motan-muted: #aaaaaa;\n  --motan-accent: #00ffcc;\n  --motan-border: #444444;\n  --motan-screen: #000000;\n  --motan-list: #111111;\n  --motan-radius: 12px;\n}`;
+    const cssTemplate = `:root {
+  --motan-bg: #dddddd;
+  --motan-surface: #f2f2f2;
+  --motan-sidebar: #e8e8e8;
+  --motan-panel-bg: #f2f2f2;
+  --motan-input-bg: #ffffff;
+  --motan-text: #333333;
+  --motan-muted: #666666;
+  --motan-accent: #00b7ff;
+  --motan-border: #cccccc;
+  --motan-screen: #111111;
+  --motan-list: #dddddd;
+  --motan-list-item: #f0f0f5;
+  --motan-list-hover: #ffffff;
+  --motan-list-active: #007bff;
+  --motan-list-active-hover: #006fdf;
+  --motan-list-active-text: #ffffff;
+  --motan-graphical-row-radius: 10px;
+  --motan-graphical-row-gap: 3px;
+  --motan-playlist-item: #f0f0f5;
+  --motan-button-bg: #00b7ff;
+  --motan-button-active: #008bc2;
+  --motan-button-text: #15202b;
+  --motan-button-border: #cccccc;
+  --motan-focus: #007bff;
+  --motan-radius: 14px;
+  --motan-control-radius: 9px;
+  --motan-shadow: 0 18px 55px rgba(0,0,0,.24);
+  --motan-panel-gap: 18px;
+  --motan-note-size: 12px;
+  --motan-heading-font: "Orbitron";
+  --motan-body-font: "Roboto";
+}
+[data-theme="dark"] {
+  --motan-bg: #1a1a1a;
+  --motan-surface: #2b2b2b;
+  --motan-sidebar: #222222;
+  --motan-panel-bg: #252525;
+  --motan-input-bg: #1a1a1a;
+  --motan-text: #dddddd;
+  --motan-muted: #aaaaaa;
+  --motan-accent: #00ffcc;
+  --motan-border: #444444;
+  --motan-screen: #000000;
+  --motan-list: #111111;
+  --motan-list-item: #2b2b2b;
+  --motan-list-hover: #3a3a3a;
+  --motan-list-active: #005f99;
+  --motan-list-active-hover: #0878b6;
+  --motan-list-active-text: #ffffff;
+  --motan-graphical-row-radius: 10px;
+  --motan-graphical-row-gap: 3px;
+  --motan-playlist-item: #2b2b2b;
+  --motan-button-bg: #00ffcc;
+  --motan-button-active: #00b999;
+  --motan-button-text: #111111;
+  --motan-button-border: #444444;
+  --motan-focus: #00ffcc;
+  --motan-radius: 14px;
+  --motan-control-radius: 9px;
+  --motan-shadow: 0 18px 55px rgba(0,0,0,.5);
+  --motan-panel-gap: 18px;
+  --motan-note-size: 12px;
+  --motan-heading-font: "Orbitron";
+  --motan-body-font: "Roboto";
+}`;
     $('#themeCssTemplate').value = localStorage.getItem('motan_lastThemeCSS') || cssTemplate;
+    const visualizerSelect = $('#graphicalVisualizerSelect');
+    if (visualizerSelect) {
+      visualizerSelect.value = localStorage.getItem('motan_visualizer_mode') || 'bars';
+      visualizerSelect.addEventListener('change', () => {
+        localStorage.setItem('motan_visualizer_mode', visualizerSelect.value);
+        try { cancelAnimationFrame(drawVisId); if (isPlaying) drawVis(); } catch (_) {}
+        haptic(5);
+      });
+    }
     $$('.theme-choice', colorPanel).forEach(btn => btn.addEventListener('click', () => {
       const design = btn.dataset.designChoice; localStorage.setItem('motan_design',design); document.documentElement.dataset.design=design;
       refreshThemeChoiceButtons(); haptic();
+      if (visualizerSelect) { try { cancelAnimationFrame(drawVisId); if (isPlaying) drawVis(); } catch (_) {} }
     }));
     $('#copyThemeCssBtn').addEventListener('click', async () => {
       const val = $('#themeCssTemplate').value || cssTemplate;
       try { await navigator.clipboard.writeText(val); showToast(tr('cssCopied')); }
-      catch (_) { $('#themeCssTemplate').focus(); $('#themeCssTemplate').select(); try { document.execCommand('copy'); showToast(tr('cssCopied')); } catch (_) { showToast('Select and copy the CSS above.'); } }
+      catch (_) { $('#themeCssTemplate').focus(); $('#themeCssTemplate').select(); try { document.execCommand('copy'); showToast(tr('cssCopied')); } catch (_) { showToast(tr('copyFallback')); } }
     });
     $('#loadThemeCssBtn').addEventListener('click', () => $('#themeCssInput').click());
     $('#themeCssInput').addEventListener('change', async e => {
@@ -3822,8 +4098,15 @@
     // Extend playlist settings with direct shortcuts to the context menu for the currently playing track.
     const plPanel = $('#mobilePlModal');
     const actions = document.createElement('section'); actions.className='panel-section';
-    actions.innerHTML = `<h4>${esc(ui('currentTrackActions'))}</h4><button class="panel-button" type="button" id="playingTrackActionsBtn">ⓘ ${esc(ui('trackActions'))}</button>`;
+    actions.innerHTML = `<h4 id="playingTrackActionsHeading">${esc(ui('currentTrackActions'))}</h4><button class="panel-button" type="button" id="playingTrackActionsBtn">ⓘ ${esc(ui('trackActions'))}</button>`;
     plPanel.appendChild(actions);
+    const playlistManagement = document.createElement('section'); playlistManagement.className='panel-section playlist-management-section';
+    playlistManagement.innerHTML = `<h4 id="playlistManagementHeading">${esc(ui('playlistManagement'))}</h4><div class="panel-actions"><button class="panel-button primary" type="button" id="createPlaylistPanelBtn"><svg class="button-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-plus"></use></svg><span>${esc(ui('createPlaylist'))}</span></button><button class="panel-button" type="button" id="sortPlaylistsPanelBtn"><svg class="button-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-sort"></use></svg><span>${esc(ui('sortPlaylists'))}</span></button><button class="panel-button" type="button" id="reorderPlaylistsPanelBtn"><svg class="button-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-playlist"></use></svg><span>${esc(ui('sortLists'))}</span></button></div>`;
+    plPanel.insertBefore(playlistManagement, plPanel.firstChild);
+    $('#createPlaylistPanelBtn').addEventListener('click', () => window.createPlaylist());
+    $('#sortPlaylistsPanelBtn').addEventListener('click', () => window.sortPlaylistsAlphabetically());
+    $('#reorderPlaylistsPanelBtn').addEventListener('click', () => window.sortListsModal());
+    $('#sortPlaylistsBtn')?.addEventListener('click', () => window.sortPlaylistsAlphabetically());
     $('#playingTrackActionsBtn').addEventListener('click', e => {
       const t = currentTrackList.find(x=>x.id===currentTrackId) || currentTrackList[currentIndex];
       if (!t) { showToast(tr('noTrack')); return; }
@@ -3864,19 +4147,49 @@
     shell.classList.remove('open'); shell.setAttribute('aria-hidden','true');
   }
   function applyLanguage() {
-    $$('#mainModalNav [data-nav-label]').forEach(el => { el.textContent=tr(el.dataset.navLabel); });
+    $$('#mainModalNav [data-nav-label]').forEach(el => { el.textContent=ui(el.dataset.navLabel); });
     $$('#mainModalNav [data-panel]').forEach(btn => { btn.title=btn.textContent.trim(); });
     const title=$('#mainModalTitle'); const selected=$(`#mainModalNav [data-panel="${activePanelId}"]`); if(title && selected) title.textContent=selected.textContent.trim();
     const note=$('#languagePanel .panel-note'); if(note) note.textContent=tr('languageNote');
-    const choices=$$('.theme-choice'); choices.forEach(b=>b.textContent=b.dataset.designChoice==='material'?ui('designMaterial'):ui('designClassic'));
+    const setText=(selector,key)=>{const el=$(selector);if(el)el.textContent=tr(key);};
+    setText('#filesImportNote','filesNote'); setText('#exportNote','exportNote'); setText('#miniPlayerNote','miniPlayerNote'); setText('#customCssNote','customCssNote');
+    setText('#languagePanelTitle','languageTitle'); setText('#languagePanelLabel','languageLabel');
+    const uiText=(selector,key)=>{const el=$(selector);if(el)el.textContent=ui(key);};
+    uiText('#filesLoadHeading','fileLoad'); uiText('#exportHeading','exportPlaylist'); uiText('#miniPlayerHeading','miniPlayer');
+    uiText('#appearanceHeading','appearance'); uiText('#customThemeHeading','customTheme'); uiText('#playingTrackActionsHeading','currentTrackActions');
+    uiText('#playlistManagementHeading','playlistManagement'); uiText('#graphicalVisualizerHeading','visualizer'); uiText('#graphicalVisualizerLabel','visualizerStyle');
+    const visualizerLabels={bars:ui('visualizerBars'),wave:ui('visualizerWave'),off:ui('visualizerOff')}; const visualizerSelect=$('#graphicalVisualizerSelect'); if(visualizerSelect)Array.from(visualizerSelect.options).forEach(o=>{if(visualizerLabels[o.value])o.textContent=visualizerLabels[o.value];});
+    const visualizerNote=$('#graphicalVisualizerNote'); if(visualizerNote)visualizerNote.textContent=tr('visualizerNote');
+    const createPlaylistButton=$('#createPlaylistPanelBtn'); if(createPlaylistButton)createPlaylistButton.querySelector('span').textContent=ui('createPlaylist');
+    const sortPlaylistsButton=$('#sortPlaylistsPanelBtn'); if(sortPlaylistsButton)sortPlaylistsButton.querySelector('span').textContent=ui('sortPlaylists');
+    const reorderPlaylistsButton=$('#reorderPlaylistsPanelBtn'); if(reorderPlaylistsButton)reorderPlaylistsButton.querySelector('span').textContent=ui('sortLists');
+    const sideSort=$('#sortPlaylistsBtn'); if(sideSort){sideSort.title=ui('sortPlaylists');sideSort.setAttribute('aria-label',ui('sortPlaylists'));}
+    const sideAdd=$('#sidebarAddPlaylistBtn'); if(sideAdd){sideAdd.title=ui('createPlaylist');sideAdd.setAttribute('aria-label',ui('createPlaylist'));}
+    const sideSettings=$('.sidebar-header button[onclick="openMobilePlaylistMenu()"]'); if(sideSettings){sideSettings.title=ui('playlist');sideSettings.setAttribute('aria-label',ui('playlist'));}
+    const resizeHandle=$('#sidebarResizeHandle'); if(resizeHandle){resizeHandle.title=ui('resizeSidebar');resizeHandle.setAttribute('aria-label',ui('resizeSidebar'));}
+    const exportLabel=$('label[for="exportPlaylistSelect"]');if(exportLabel)exportLabel.textContent=ui('choosePlaylist');
+    const langSelect=$('#languageSelect'); if(langSelect){const labels={auto:ui('languageAuto'),en:ui('languageEnglish'),ja:ui('languageJapanese')};Array.from(langSelect.options).forEach(o=>{if(labels[o.value])o.textContent=labels[o.value];});}
+    const colorNote=$('#colorModal p'); if(colorNote)colorNote.textContent=lang()==='ja'?'自動設定では端末の配色設定を使用します。':'Auto follows your device color preference.';
+    const colorLabels={auto:ui('colorAuto'),dark:ui('colorDark'),light:ui('colorLight')};
+    $$('#colorModal [onclick^="applyColorMode"]').forEach(b=>{const m=/applyColorMode\('(auto|dark|light)'\)/.exec(b.getAttribute('onclick')||'');if(m)b.textContent=colorLabels[m[1]];});
+    const playlistLabels=[['sortPlaylistModal()','sortTracks'],['sortListsModal()','sortLists'],['_mobilePlRename()','rename'],['clearCurrentPlaylist()','clear'],['_mobilePlDelete()','delete']];
+    playlistLabels.forEach(([pattern,key])=>{const b=$(`#mobilePlModal button[onclick="${pattern}"]`);if(b)b.textContent=ui(key);});
+    const selectedLabel=$('#mobilePlModal .info-label');if(selectedLabel)selectedLabel.textContent=ui('selected')+':';
+    const orderModal=$('#playlistsOrderModal'); if(orderModal){const heading=orderModal.querySelector('[data-order-title]');if(heading)heading.textContent=ui('sortLists');const apply=orderModal.querySelector('[data-order-apply]');if(apply)apply.textContent=ui('apply');const cancel=orderModal.querySelector('[data-order-cancel]');if(cancel)cancel.textContent=ui('cancel');}
+    const choices=$$('.theme-choice'); choices.forEach(b=>b.textContent=b.dataset.designChoice==='material'?ui('designMaterial'):b.dataset.designChoice==='graphical'?ui('designGraphical'):ui('designClassic'));
     const copy=$('#copyThemeCssBtn'); if(copy) copy.textContent=ui('cssCopy'); const load=$('#loadThemeCssBtn'); if(load) load.textContent=ui('cssImport');
     const fileBtn=$('#loadFilesBtn'); if(fileBtn) fileBtn.textContent='＋ '+ui('fileLoad');
     const folderBtn=$('#loadFolderBtn'); if(folderBtn) folderBtn.textContent='▰ '+ui('folderLoad');
     const expBtn=$('#exportPlaylistBtn'); if(expBtn) expBtn.textContent=ui('exportPlaylist');
     const pipBtn=$('#miniPlayerBtn'); if(pipBtn) pipBtn.textContent='▣ '+ui('miniPlayer');
     const recoverBtn=$('#recoverRecentBtn'); if(recoverBtn){recoverBtn.textContent=ui('recoverRecent');recoverBtn.title=ui('recoverRecent');}
-    const recoverNote=$('#fileOperationsPanel .panel-note'); if(recoverNote) recoverNote.textContent=ui('recoverRecentNote');
+    const recoverNote=$('#recoverRecentNote'); if(recoverNote) recoverNote.textContent=tr('recoverRecentNote');
     const playingBtn=$('#playingTrackActionsBtn'); if(playingBtn) playingBtn.textContent='ⓘ '+ui('trackActions');
+    const settingLabelKeys=['speed','volume','fullscreen','version','update'];
+    settingLabelKeys.forEach((key,index)=>{const label=$(`#settingsModal .info-content p:nth-of-type(${index+1}) .info-label`);if(label)label.textContent=ui(key)+':';});
+    const fullscreenButton=$('#modalFullscreenBtn'); if(fullscreenButton)fullscreenButton.textContent=ui('toggle');
+    const updateButton=$('#updateCacheBtn'); if(updateButton)updateButton.textContent=ui('update');
+    const cssArea=$('#themeCssTemplate'); if(cssArea)cssArea.setAttribute('aria-label',ui('customTheme'));
     // Force the app's major surfaces to readable English by default, while allowing a forced Japanese language.
     const loopText=$('#loopText'); if(loopText) loopText.setAttribute('aria-label',`Loop: ${loopText.textContent}`);
     $$('.track-info-btn').forEach((b,i)=> { const li=b.closest('li'); b.title=ui('trackActions'); b.setAttribute('aria-label',`${ui('trackActions')}: ${li?.querySelector('.track-name')?.textContent||''}`); });
@@ -3888,14 +4201,33 @@
   }
   function colorAllowed(value) {
     const v=String(value||'').trim();
-    return v.length<=80 && (CSS.supports('color',v) || /^#[0-9a-f]{3,8}$/i.test(v));
+    return v.length<=100 && !/(url\s*\(|@import|expression\s*\(|javascript:|var\s*\()/i.test(v) && (CSS.supports('color',v) || /^#[0-9a-f]{3,8}$/i.test(v));
+  }
+  function safeThemeValue(name, value) {
+    const v=String(value||'').trim();
+    if(!v || v.length>140 || /[{};<>]|url\s*\(|@import|expression\s*\(|javascript:|data:/i.test(v)) return false;
+    const colorTokens=new Set(['--motan-bg','--motan-surface','--motan-sidebar','--motan-panel-bg','--motan-input-bg','--motan-text','--motan-muted','--motan-accent','--motan-border','--motan-screen','--motan-list','--motan-list-item','--motan-list-hover','--motan-list-active','--motan-list-active-hover','--motan-list-active-text','--motan-playlist-item','--motan-button-text','--motan-button-border','--motan-focus']);
+    const backgroundTokens=new Set(['--motan-button-bg','--motan-button-active']);
+    if(colorTokens.has(name)) return colorAllowed(v);
+    if(backgroundTokens.has(name)) return !/url\s*\(|@import|expression|javascript:/i.test(v) && CSS.supports('background',v);
+    if(name==='--motan-radius' || name==='--motan-control-radius') return /^(0|\d+(?:\.\d+)?)(px|rem|em|%)$/.test(v) && CSS.supports('border-radius',v);
+    if(name==='--motan-panel-gap') return /^(0|\d+(?:\.\d+)?)(px|rem|em|%)$/.test(v) && CSS.supports('margin',v);
+    if(name==='--motan-note-size') return /^(\d+(?:\.\d+)?)(px|rem|em|%)$/.test(v) && CSS.supports('font-size',v);
+    if(name==='--motan-graphical-row-radius') return /^(0|\d+(?:\.\d+)?)(px|rem|em|%)$/.test(v) && CSS.supports('border-radius',v);
+    if(name==='--motan-graphical-row-gap') return /^(0|\d+(?:\.\d+)?)(px|rem|em|%)$/.test(v) && CSS.supports('margin',v);
+    if(name==='--motan-shadow') return CSS.supports('box-shadow',v) && !/inset\s+inset/i.test(v);
+    if(name==='--motan-heading-font' || name==='--motan-body-font') return /^[a-z0-9 _,'"-]+$/i.test(v) && CSS.supports('font-family',v);
+    return false;
   }
   function applyUserThemeCss(cssText) {
-    // Purposefully accept only the documented tokens, never arbitrary selectors, URLs, @imports, or scripts.
+    // Only allow a whitelist of variables in light/dark root blocks; never execute imported CSS.
     const allowed = new Set(Object.keys(themeVars));
-    const blocks = [...String(cssText).matchAll(/([^{}]+)\{([^{}]*)\}/g)];
-    if (!blocks.length || /@import|url\s*\(|expression\s*\(|javascript:|<script/i.test(cssText)) return false;
+    const original=String(cssText);
+    const input=original.replace(/\/\*[\s\S]*?\*\//g,'');
+    const blocks = [...input.matchAll(/([^{}]+)\{([^{}]*)\}/g)];
+    if (!blocks.length || /@import|url\s*\(|expression\s*\(|javascript:|<script/i.test(input)) return false;
     const generated=[];
+    let accepted=0;
     for (const m of blocks) {
       const selector=m[1].trim();
       const isDark=/data-theme\s*=\s*["']dark["']/.test(selector);
@@ -3904,26 +4236,22 @@
       m[2].split(';').forEach(part=> {
         const i=part.indexOf(':'); if(i<0) return;
         const name=part.slice(0,i).trim(), val=part.slice(i+1).trim();
-        if(!allowed.has(name)) return;
-        if(name==='--motan-radius') { if(!/^(0|\d+(?:\.\d+)?)(px|rem|em|%)$/.test(val)) return; }
-        else if(!colorAllowed(val)) return;
-        const target=themeVars[name];
-        // Theme token values are rewritten into declarations instead of injecting the provided CSS text.
-        if(name==='--motan-radius') decl.push(`${target}:${val}`); else decl.push(`${target}:${val}`);
+        if(!allowed.has(name) || !safeThemeValue(name,val)) return;
+        const target=themeVars[name]; decl.push(`${target}:${val}`); accepted++;
       });
       if(decl.length) generated.push(`${isDark?'html[data-theme="dark"]':'html:not([data-theme="dark"])'}{${decl.join(';')}}`);
     }
-    if(!generated.length) return false;
+    if(!generated.length || !accepted) return false;
     let style=$(`#${themeStyleId}`); if(!style){style=document.createElement('style');style.id=themeStyleId;document.head.appendChild(style);}
     style.textContent=generated.join('\n');
-    localStorage.setItem('motan_lastThemeCSS',String(cssText));
+    try { localStorage.setItem('motan_lastThemeCSS',original); } catch (_) {}
     return true;
   }
-  function customDialog({title,message='',inputLabel='',defaultValue='',placeholder='',kind='text',options=[],confirmText, cancelText}={}) {
+  function customDialog({title,message='',inputLabel='',defaultValue='',placeholder='',kind='text',options=[],confirmText, cancelText, className=''}={}) {
     return new Promise(resolve => {
       const root=$('#motanDialogRoot'); root.innerHTML='';
       const scrim=document.createElement('div'); scrim.className='motan-dialog-scrim';
-      const box=document.createElement('section'); box.className='motan-dialog'; box.setAttribute('role','dialog');box.setAttribute('aria-modal','true');
+      const box=document.createElement('section'); box.className='motan-dialog'; String(className).split(/\s+/).filter(x=>/^[a-z0-9_-]+$/i.test(x)).forEach(x=>box.classList.add(x)); box.setAttribute('role','dialog');box.setAttribute('aria-modal','true');
       const h=document.createElement('h3');h.textContent=title||'';box.appendChild(h);
       if(message){const p=document.createElement('p');p.textContent=message;box.appendChild(p);}
       let field=null;
@@ -3975,7 +4303,7 @@
       localStorage.setItem(eqStorageKey,JSON.stringify(ranges.map(r=>Number(r.value))));haptic(9);
     };
     window.saveEqPreset=async()=>{
-      const choice=await customDialog({title:'Save equalizer preset',kind:'select',options:[{value:'1',label:'User 1'},{value:'2',label:'User 2'}],confirmText:tr('save')});
+      const choice=await customDialog({title:tr('saveEqPreset'),kind:'select',options:[{value:'1',label:tr('userPreset1')},{value:'2',label:tr('userPreset2')}],confirmText:tr('save')});
       if(choice){const vals=ranges.map(r=>Number(r.value));localStorage.setItem('motanEq_custom'+choice,JSON.stringify(vals));showToast(`${tr('save')}: User ${choice}`);}
     };
   }
@@ -4039,6 +4367,36 @@
     if (t) updateMediaSessionMetadata(t);
     updatePositionState();
   }
+  function installKeyboardMediaKeys() {
+    if (window.__motanKeyboardMediaKeysInstalled) return;
+    window.__motanKeyboardMediaKeysInstalled = true;
+    const editable = target => !!target?.closest?.('input, textarea, select, [contenteditable="true"], [role="textbox"]');
+    document.addEventListener('keydown', event => {
+      if (event.defaultPrevented || (event.repeat && !['MediaFastForward','FastFwd','MediaRewind'].includes(String(event.key||''))) || event.altKey || event.ctrlKey || event.metaKey || editable(event.target)) return;
+      if (!Array.isArray(currentTrackList) || currentTrackList.length === 0) return;
+      const key = String(event.key || '');
+      const code = String(event.code || '');
+      const codeNum = Number(event.keyCode || event.which || 0);
+      let action = null;
+      // Explicit user-requested keyboard keys: F8 = previous track; F10 = next track.
+      if (key === 'F8' || code === 'F8' || codeNum === 119) action = 'previous';
+      else if (key === 'F10' || code === 'F10' || codeNum === 121) action = 'next';
+      // Native media keys and common legacy aliases used by USB/Bluetooth controls.
+      else if (['MediaTrackPrevious','MediaPreviousTrack','MediaPrevTrack'].includes(key) || codeNum === 177) action = 'previous';
+      else if (['MediaTrackNext','MediaNextTrack'].includes(key) || codeNum === 176) action = 'next';
+      else if (['MediaFastForward','FastFwd'].includes(key)) action = 'seekforward';
+      else if (key === 'MediaRewind') action = 'seekbackward';
+      else if (['MediaPlayPause','MediaTogglePlayPause'].includes(key) || codeNum === 179) action = 'toggle';
+      else if (key === 'MediaPlay' || codeNum === 250) action = 'play';
+      else if (key === 'MediaPause' || codeNum === 179) action = 'toggle';
+      if (!action) return;
+      const buttonId = action === 'previous' ? 'prevBtn' : action === 'next' ? 'nextBtn' : action === 'seekbackward' ? 'rewindBtn' : action === 'seekforward' ? 'forwardBtn' : 'playPauseBtn';
+      const button = document.getElementById(buttonId);
+      if (!button) return;
+      event.preventDefault();
+      button.click();
+    }, true);
+  }
   function installPlaybackStateHandlers() {
     els.audio.addEventListener('play', () => {
       isPlaying = true;
@@ -4060,6 +4418,8 @@
       isPlaying = false;
       syncMediaSessionPlaybackState();
     });
+    els.audio.addEventListener('emptied', () => { updatePositionState(); syncMediaSessionPlaybackState(); });
+    els.audio.addEventListener('ratechange', () => { updatePositionState(); syncMediaSessionPlaybackState(); }, { passive: true });
     ['loadedmetadata', 'durationchange', 'seeked', 'ratechange'].forEach(type => {
       els.audio.addEventListener(type, updatePositionState, { passive: true });
     });
@@ -4120,15 +4480,15 @@
   }
   async function showTrackInfo(id) {
     const t=currentTrackList.find(x=>String(x.id)===String(id));if(!t){showToast(tr('noTrack'));return;}
-    const modal=$('#infoModal'), content=$('#infoContent');modal.style.zIndex='650';modal.classList.add('open');modal.setAttribute('aria-hidden','false');content.innerHTML='<p>Loading track information…</p>';
+    const modal=$('#infoModal'), content=$('#infoContent');modal.style.zIndex='650';modal.classList.add('open');modal.setAttribute('aria-hidden','false');content.textContent='';const loading=document.createElement('p');loading.textContent=tr('loadingTrackInfo');content.appendChild(loading);
     let record=null;try{record=await getTrackRecord(t.id);}catch(_){}
     const duration=Number(t.duration)>0?fmtTime(t.duration):(currentTrackId===t.id&&Number.isFinite(els.audio.duration)?fmtTime(els.audio.duration):'—');
     const size=record?.blob?.size||t.size||0, mime=record?.blob?.type||t.mimeType||'—';
     const durationSeconds=Number(t.duration)>0?Number(t.duration):(currentTrackId===t.id&&Number.isFinite(els.audio.duration)?els.audio.duration:0);
     const bitrate=durationSeconds>0&&size>0?`${Math.round(size*8/durationSeconds/1000)} kbps`:'—';
-    const rows=[['File',t.name],['Title',t.customName||t.title||t.name],['Artist',t.artist||'—'],['Album',t.album||'—'],['Year',t.year||'—'],['Genre',t.genre||'—'],['Duration',duration],['Bitrate',bitrate],['Size',`${Math.round(size/1024)} KB`],['MIME',mime],['Rating',t.rating?`${t.rating}/5`:'—']];
+    const rows=[[tr('file'),t.name],[tr('title'),t.customName||t.title||t.name],[tr('artist'),t.artist||'—'],[tr('album'),t.album||'—'],[tr('year'),t.year||'—'],[tr('genre'),t.genre||'—'],[tr('duration'),duration],[tr('bitrate'),bitrate],[tr('size'),`${Math.round(size/1024)} KB`],[tr('mime'),mime],[tr('rating'),t.rating?`${t.rating}/5`:'—']];
     content.innerHTML=rows.map(([k,v])=>`<p><span class="info-label">${esc(k)}:</span> ${esc(v)}</p>`).join('');
-    if(t.artwork){const row=document.createElement('p');const label=document.createElement('span');label.className='info-label';label.textContent='Artwork:';const img=document.createElement('img');img.src=t.artwork;img.alt='Album artwork';img.style.cssText='max-width:140px;border-radius:8px';row.append(label,document.createElement('br'),img);content.appendChild(row);}
+    if(t.artwork){const row=document.createElement('p');const label=document.createElement('span');label.className='info-label';label.textContent=tr('artwork')+':';const img=document.createElement('img');img.src=t.artwork;img.alt='Album artwork';img.style.cssText='max-width:140px;border-radius:8px';row.append(label,document.createElement('br'),img);content.appendChild(row);}
   }
   function installContextListeners(){
     document.addEventListener('pointerdown',e=>{if(!e.target.closest('#trackContextMenu')&&!e.target.closest('.track-info-btn'))hideTrackContext();},{passive:true});
@@ -4148,27 +4508,47 @@
     const name=await askName(tr('renamePlaylist'),p.name);if(name===null)return;if(!name){showToast(tr('nameRequired'));return;}p.name=name;savePlaylistsMeta();renderSidebar();updateExportPlaylistOptions();showToast(tr('playlistRenamed'));
   };
   window.deletePlaylist = async function(id,e) {
-    if(e)e.stopPropagation();const p=playlists.find(x=>x.id===id);if(!p||p.id==='default'){showToast('The main playlist cannot be deleted.');return;}
+    if(e)e.stopPropagation();const p=playlists.find(x=>x.id===id);if(!p||p.id==='default'){showToast(tr('mainPlaylistCannotDelete'));return;}
     if(!await askConfirm(tr('deletePlaylistConfirm')))return;
     playlists=playlists.filter(x=>x.id!==id);if(currentPlaylistId===id){currentPlaylistId=playlists[0]?.id||'default';localStorage.setItem('motan_lastPlaylist',currentPlaylistId);}savePlaylistsMeta();loadCurrentPlaylistTracks();updateExportPlaylistOptions();showToast(tr('playlistDeleted'));
   };
   window.openMobilePlaylistMenu = () => openMainModal('mobilePlModal');
   window.closeMobilePlModal = () => closeMainModal();
   window._mobilePlRename = () => { const p=playlists.find(x=>x.id===currentPlaylistId);if(p)renamePlaylist(p.id); };
-  window._mobilePlDelete = () => { if(currentPlaylistId!=='default')deletePlaylist(currentPlaylistId);else showToast('The main playlist cannot be deleted.'); };
+  window._mobilePlDelete = () => { if(currentPlaylistId!=='default')deletePlaylist(currentPlaylistId);else showToast(tr('mainPlaylistCannotDelete')); };
   window._mobilePlCreate = () => createPlaylist();
   window.removeTrack = async function(id){if(await askConfirm(tr('deleteTrackConfirm')))await removeTrackById(id);};
   window.clearCurrentPlaylist = async function(){
     const p=playlists.find(x=>x.id===currentPlaylistId);if(!p)return;if(!await askConfirm(tr('clearPlaylistConfirm')))return;
-    p.tracks=[];savePlaylistsMeta();if(currentTrackId!==null){els.audio.pause();isPlaying=false;currentTrackId=null;updatePlayBtn();}loadCurrentPlaylistTracks();showToast('Playlist cleared.');
+    p.tracks=[];savePlaylistsMeta();if(currentTrackId!==null){els.audio.pause();isPlaying=false;currentTrackId=null;updatePlayBtn();}loadCurrentPlaylistTracks();showToast(tr('playlistCleared'));
   };
   window.sortPlaylistModal = async function(){
-    const id=currentPlaylistId;const p=playlists.find(x=>x.id===id);if(!p)return;
-    const ok=await askConfirm('Sort tracks alphabetically?');if(!ok)return;
-    const mode=await customDialog({title:'Sort by',kind:'select',options:[{value:'meta',label:'Track title / metadata'},{value:'file',label:'File name'}],confirmText:tr('confirm')});if(!mode)return;
-    const metas=await new Promise(resolve=>{const req=db.transaction('tracksMeta','readonly').objectStore('tracksMeta').getAll();req.onsuccess=()=>resolve(req.result||[]);req.onerror=()=>resolve([]);});
-    const map=new Map(metas.map(t=>[t.id,t]));p.tracks.sort((a,b)=>String(mode==='meta'?(map.get(a)?.customName||map.get(a)?.title||map.get(a)?.name):(map.get(a)?.name)||'').localeCompare(String(mode==='meta'?(map.get(b)?.customName||map.get(b)?.title||map.get(b)?.name):(map.get(b)?.name)||''),lang()==='ja'?'ja':undefined));
-    savePlaylistsMeta();loadCurrentPlaylistTracks();showToast(tr('sortDone'));
+    const id=currentPlaylistId;const p=playlists.find(x=>String(x.id)===String(id));if(!p)return;
+    if(!Array.isArray(p.tracks)||p.tracks.length<2){showToast(tr('sortDone'));return;}
+    const mode=await customDialog({className:'sort-dialog',title:tr('sortTitle'),message:tr('sortNote'),inputLabel:tr('sortOrder'),kind:'select',options:[{value:'meta',label:tr('sortMetadata')},{value:'file',label:tr('sortFilename')}],confirmText:tr('confirm')});
+    if(!mode)return;
+    const metas=await new Promise(resolve=>{try{const req=db.transaction('tracksMeta','readonly').objectStore('tracksMeta').getAll();req.onsuccess=()=>resolve(req.result||[]);req.onerror=()=>resolve([]);}catch(_){resolve([]);}});
+    const map=new Map(metas.map(t=>[String(t.id),t]));
+    const titleFor=id=>{const t=map.get(String(id));return String(mode==='meta'?(t?.customName||t?.title||t?.name):(t?.name||t?.customName||t?.title)||'');};
+    const collator=new Intl.Collator(lang()==='ja'?'ja':undefined,{numeric:true,sensitivity:'base'});
+    p.tracks.sort((a,b)=>collator.compare(titleFor(a),titleFor(b)));
+    savePlaylistsMeta();await loadCurrentPlaylistTracks();showToast(tr('sortDone'));
+  };
+  window.sortPlaylistsAlphabetically = async function(){
+    if(!Array.isArray(playlists)||playlists.length<2){showToast(tr('sortDone'));return;}
+    const mode=await customDialog({className:'sort-dialog',title:tr('sortPlaylistsTitle'),message:tr('sortPlaylistsNote'),inputLabel:tr('sortOrder'),kind:'select',options:[
+      {value:'ja-asc',label:ui('sortJaAsc')},{value:'ja-desc',label:ui('sortJaDesc')},
+      {value:'abc-asc',label:ui('sortAbcAsc')},{value:'abc-desc',label:ui('sortAbcDesc')}
+    ],confirmText:tr('apply')});
+    if(!mode)return;
+    const collator=new Intl.Collator(mode.startsWith('ja')?'ja':'en',{numeric:true,sensitivity:'base',usage:'sort'});
+    const direction=mode.endsWith('desc')?-1:1;
+    const originalIndex=new Map(playlists.map((p,i)=>[String(p.id),i]));
+    playlists.sort((a,b)=>direction*collator.compare(String(a.name||''),String(b.name||'')) || originalIndex.get(String(a.id))-originalIndex.get(String(b.id)));
+    savePlaylistsMeta();
+    try{localStorage.setItem('motanPlaylists',JSON.stringify(playlists));}catch(e){console.warn('Could not persist playlist sort:',e);}
+    renderSidebar();updateExportPlaylistOptions();refreshThemeChoiceButtons();
+    showToast(tr('sortDone'));
   };
   window.applyColorMode = function(mode){
     localStorage.setItem('motanColorMode',mode);
@@ -4196,7 +4576,7 @@
   // Export all tracks in a selected playlist into a single PCM WAV. This is explicit work, so Blob reads are allowed here.
   async function exportPlaylistAsWav(playlistId) {
     const p=playlists.find(x=>x.id===playlistId);if(!p)return;
-    const ids=p.tracks||[];if(!ids.length){showToast('This playlist is empty.');return;}
+    const ids=p.tracks||[];if(!ids.length){showToast(tr('emptyPlaylist'));return;}
     const btn=$('#exportPlaylistBtn');if(btn)btn.disabled=true;showToast(tr('exportWorking'));
     try {
       const records=await Promise.all(ids.map(id=>new Promise((resolve,reject)=>{const req=db.transaction('tracks','readonly').objectStore('tracks').get(id);req.onsuccess=()=>req.result?resolve(req.result):reject(new Error('missing track'));req.onerror=()=>reject(req.error);}))) ;
@@ -4229,12 +4609,12 @@
         showToast(tr('pipUnsupported'));
         const win=window.open('','motan-mini-player','popup=yes,width=340,height=220,resizable=yes');if(!win)return;pipWindow=win;renderMiniPlayer(win.document);win.addEventListener('pagehide',()=>{pipWindow=null;});
       }
-    }catch(err){showToast('Mini player could not open. Use the browser menu or try again from a click.');}
+    }catch(err){showToast(tr('miniPlayerOpenFailed'));}
   }
   function renderMiniPlayer(doc){
-    doc.open();doc.write(`<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Motan Mini Player</title><style>body{margin:0;padding:18px;background:#222;color:#eee;font:14px system-ui,sans-serif;display:flex;flex-direction:column;gap:12px}small{color:#aaa;letter-spacing:.14em}#track{font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}nav{display:flex;gap:10px;justify-content:center}button{width:48px;height:40px;border:1px solid #555;border-radius:12px;background:#333;color:#fff;font-size:18px}button:focus-visible{outline:2px solid #00b7ff}button#play{background:#00b7ff;color:#111}</style></head><body><small>MOTAN PLAYER</small><div id="track">${esc(els.nowPlaying.textContent||'NO DISC')}</div><nav><button id="prev" title="Previous track" aria-label="Previous track">Ⅱ◀</button><button id="play" title="Play or pause" aria-label="Play or pause">▶</button><button id="next" title="Next track" aria-label="Next track">▶Ⅱ</button></nav><small id="state">${isPlaying?'Playing':'Paused'}</small></body></html>`);doc.close();
+    doc.open();doc.write(`<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Motan Mini Player</title><style>body{margin:0;padding:18px;background:#222;color:#eee;font:14px system-ui,sans-serif;display:flex;flex-direction:column;gap:12px}small{color:#aaa;letter-spacing:.14em}#track{font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}nav{display:flex;gap:10px;justify-content:center}button{width:48px;height:40px;border:1px solid #555;border-radius:12px;background:#333;color:#fff;font-size:18px}button:focus-visible{outline:2px solid #00b7ff}button#play{background:#00b7ff;color:#111}</style></head><body><small>MOTAN PLAYER</small><div id="track">${esc(els.nowPlaying.textContent||'NO DISC')}</div><nav><button id="prev" title="${esc(tr('previous'))}" aria-label="${esc(tr('previous'))}">Ⅱ◀</button><button id="play" title="${esc(tr('playPause'))}" aria-label="${esc(tr('playPause'))}">▶</button><button id="next" title="${esc(tr('next'))}" aria-label="${esc(tr('next'))}">▶Ⅱ</button></nav><small id="state">${isPlaying?esc(tr('playing')):esc(tr('paused'))}</small></body></html>`);doc.close();
     const bind=()=>{doc.getElementById('prev')?.addEventListener('click',()=>$('#prevBtn').click());doc.getElementById('next')?.addEventListener('click',()=>$('#nextBtn').click());doc.getElementById('play')?.addEventListener('click',()=>els.playBtn.click());};bind();
-    const update=()=>{try{if(doc.defaultView?.closed)return;doc.getElementById('track').textContent=els.nowPlaying.textContent||'NO DISC';doc.getElementById('state').textContent=isPlaying?'Playing':'Paused';doc.getElementById('play').textContent=isPlaying?'Ⅱ':'▶';}catch(_){}};
+    const update=()=>{try{if(doc.defaultView?.closed)return;doc.getElementById('track').textContent=els.nowPlaying.textContent||'NO DISC';doc.getElementById('state').textContent=isPlaying?tr('playing'):tr('paused');doc.getElementById('play').textContent=isPlaying?'Ⅱ':'▶';}catch(_){}};
     els.audio.addEventListener('play',update);els.audio.addEventListener('pause',update);els.audio.addEventListener('ended',update);document.addEventListener('motan-track-change',update);update();
   }
   // PWA shortcuts: recent item, last played track, and last used playlist.
@@ -4258,13 +4638,13 @@
     } catch(err){console.warn('Shortcut launch failed',err);}
   }
   function addTitlesAndAccessibility(){
-    const titles={'hamburgerBtn':'Open control center','settingsBtn':'Open settings','themeBtn':'Color and theme','rewindBtn':'Seek backward 5 seconds','prevBtn':'Previous track','playPauseBtn':'Play or pause','nextBtn':'Next track','forwardBtn':'Seek forward 5 seconds','loopBtn':'Change repeat mode','shuffleBtn':'Toggle shuffle','eqBtn':'Open equalizer','wakeLockBtn':'Keep screen awake','progress':'Seek playback position','add-playlist-btn':'Playlist action'};
+    const titles={'hamburgerBtn':'Open control center','themeBtn':'Color and theme','rewindBtn':'Seek backward 5 seconds','prevBtn':'Previous track','playPauseBtn':'Play or pause','nextBtn':'Next track','forwardBtn':'Seek forward 5 seconds','loopBtn':'Change repeat mode','shuffleBtn':'Toggle shuffle','eqBtn':'Open equalizer','wakeLockBtn':'Keep screen awake','progress':'Seek playback position','add-playlist-btn':'Playlist action'};
     Object.entries(titles).forEach(([id,title])=>{const el=$('#'+id);if(el){el.title=title;if(el.tagName==='BUTTON'&&!el.hasAttribute('aria-label'))el.setAttribute('aria-label',title);}});
     $$('button').forEach(btn=>{if(!btn.title&&!btn.getAttribute('aria-label')){const txt=btn.textContent.trim();if(txt)btn.title=txt;else btn.title='Motan Player action';}});
   }
   function patchMainControls(){
     const hamburger=$('#hamburgerBtn');if(hamburger){hamburger.onclick=e=>{e?.stopPropagation?.();openMainModal('settingsModal');};hamburger.addEventListener('click',e=>{e.stopImmediatePropagation();openMainModal('settingsModal');},{capture:true});}
-    const settings=$('#settingsBtn');if(settings)settings.onclick=()=>openMainModal('settingsModal');
+    // The separate Open Settings shortcut was removed; the hamburger opens Control Center.
     const theme=$('#themeBtn');if(theme)theme.onclick=()=>openMainModal('colorModal');
     const eq=$('#eqBtn');if(eq)eq.onclick=()=>openMainModal('eqModal');
     const openPl=$$('.mobile-pl-menu-btn');openPl.forEach(b=>b.onclick=()=>openMainModal('mobilePlModal'));
@@ -4288,7 +4668,7 @@
     if(saved==='dark')document.documentElement.setAttribute('data-theme','dark');
     else if(saved==='light')document.documentElement.setAttribute('data-theme','light');
     else {if(window.matchMedia?.('(prefers-color-scheme: dark)').matches)document.documentElement.setAttribute('data-theme','dark');else document.documentElement.removeAttribute('data-theme');}
-    document.documentElement.dataset.design=localStorage.getItem('motan_design')||'classic';
+    const savedDesign=localStorage.getItem('motan_design')||'classic'; document.documentElement.dataset.design=['classic','material','graphical'].includes(savedDesign)?savedDesign:'classic';
     const last=localStorage.getItem('motan_lastThemeCSS');if(last)applyUserThemeCss(last);
     window.matchMedia?.('(prefers-color-scheme: dark)').addEventListener?.('change',()=>{if((localStorage.getItem('motanColorMode')||'auto')==='auto')window.applyColorMode('auto');});
   }
@@ -4303,13 +4683,61 @@
   }
 
   // Delay initialization just enough for original script handlers and IndexedDB schema upgrade to be installed.
+  function installSidebarResize(){
+    const sidebar=$('.sidebar'), handle=$('#sidebarResizeHandle'); if(!sidebar||!handle)return;
+    const minWidth=220;
+    const maxWidth=()=>Math.max(minWidth,Math.min(Math.floor(window.innerWidth*.55),720));
+    const saved=Number(localStorage.getItem('motan_sidebar_width'));
+    const initial=Number.isFinite(saved)&&saved>=minWidth?saved:minWidth;
+    const setWidth=value=>{const width=Math.max(minWidth,Math.min(maxWidth(),Math.round(value)));document.documentElement.style.setProperty('--motan-sidebar-width',width+'px');handle.setAttribute('aria-valuemin',String(minWidth));handle.setAttribute('aria-valuemax',String(maxWidth()));handle.setAttribute('aria-valuenow',String(width));};
+    setWidth(initial);
+    let startX=0,startWidth=initial,dragging=false;
+    handle.addEventListener('pointerdown',e=>{if(window.matchMedia('(max-width:700px)').matches)return;dragging=true;startX=e.clientX;startWidth=sidebar.getBoundingClientRect().width;handle.classList.add('dragging');try{handle.setPointerCapture(e.pointerId)}catch(_){}e.preventDefault();});
+    handle.addEventListener('pointermove',e=>{if(!dragging)return;setWidth(startWidth+(e.clientX-startX));});
+    const end=()=>{if(!dragging)return;dragging=false;handle.classList.remove('dragging');try{localStorage.setItem('motan_sidebar_width',String(sidebar.getBoundingClientRect().width));}catch(_){};};
+    handle.addEventListener('pointerup',end);handle.addEventListener('pointercancel',end);window.addEventListener('blur',end);
+    handle.addEventListener('keydown',e=>{let current=sidebar.getBoundingClientRect().width;if(e.key==='ArrowLeft'||e.key==='ArrowRight'){e.preventDefault();setWidth(current+(e.key==='ArrowRight'?20:-20));try{localStorage.setItem('motan_sidebar_width',String(sidebar.getBoundingClientRect().width));}catch(_){}}else if(e.key==='Home'){setWidth(minWidth);e.preventDefault();}else if(e.key==='End'){setWidth(maxWidth());e.preventDefault();}});
+    window.addEventListener('resize',()=>{if(window.matchMedia('(max-width:700px)').matches)return;const savedWidth=Number(localStorage.getItem('motan_sidebar_width'));setWidth(savedWidth>=minWidth?savedWidth:(sidebar.getBoundingClientRect().width||minWidth));});
+  }
+  function installMainModalSwipe(){
+    const panels=$('#mainModalPanels'); if(!panels)return;
+    let start=null;
+    panels.addEventListener('pointerdown',e=>{
+      if(e.pointerType==='mouse'||e.target.closest('button,input,select,textarea,canvas,.eq-sliders,[data-no-panel-swipe]')){start=null;return;}
+      start={x:e.clientX,y:e.clientY};
+    },{passive:true});
+    panels.addEventListener('pointerup',e=>{
+      if(!start)return;const dx=e.clientX-start.x,dy=e.clientY-start.y;start=null;
+      if(Math.abs(dx)<65||Math.abs(dy)>55)return;
+      const buttons=$$('#mainModalNav [data-panel]');const current=buttons.findIndex(b=>b.dataset.panel===activePanelId);if(current<0)return;
+      const next=dx<0?current+1:current-1;if(next<0||next>=buttons.length)return;
+      openMainModal(buttons[next].dataset.panel);haptic(5);
+    },{passive:true});
+    panels.addEventListener('pointercancel',()=>{start=null;},{passive:true});
+  }
+  function installFullscreenToggle(){
+    const button=$('#modalFullscreenBtn');if(!button)return;
+    button.onclick=async()=>{
+      const root=$('.app-layout');if(!root)return;
+      const active=document.fullscreenElement||document.webkitFullscreenElement||document.mozFullScreenElement||document.msFullscreenElement;
+      try{
+        if(active){const exit=document.exitFullscreen||document.webkitExitFullscreen||document.mozCancelFullScreen||document.msExitFullscreen;if(exit)await exit.call(document);else root.classList.remove('motan-faux-fullscreen');}
+        else{const request=root.requestFullscreen||root.webkitRequestFullscreen||root.mozRequestFullScreen||root.msRequestFullscreen;if(request)await request.call(root);else root.classList.toggle('motan-faux-fullscreen');}
+      }catch(error){root.classList.toggle('motan-faux-fullscreen');console.warn('Fullscreen API unavailable; using app-level fallback.',error);}
+      haptic(7);
+    };
+  }
   function bootEnhancements(){
     autoApplyTheme();
     setupMainModal();
+    installSidebarResize();
+    installMainModalSwipe();
+    installFullscreenToggle();
     wireEq();
     patchMainControls();
     installContextListeners();
     installPlaybackStateHandlers();
+    installKeyboardMediaKeys();
     installTrackpadGesture();
     installSettingsSave();
     addTitlesAndAccessibility();
@@ -4334,6 +4762,9 @@
   // renderTrackList cleared #trackList, then threw `tr is not defined` for the first row.
   window.motanTrackActionsLabel = () => tr('trackActions');
   window.motanOpenTrackContext = openTrackContext;
+  window.motanTranslate = key => tr(key);
+  window.motanUITranslate = key => ui(key);
+  window.motanShowToast = showToast;
 
   // Expose small extension hooks for future playback queue/effect modules without coupling them to DOM details.
   window.MotanExtensions = window.MotanExtensions || {};
