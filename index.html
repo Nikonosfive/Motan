@@ -20,6 +20,7 @@
     <link rel="manifest" href="manifest.json" />
     <link rel="apple-touch-icon" href="img/icon-192.png" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
     <meta
       name="apple-mobile-web-app-status-bar-style"
       content="black-translucent"
@@ -555,20 +556,53 @@
 
       .playlist-container {
         flex: 1 1 auto;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+        overflow-x: hidden;
         overflow-y: auto;
         background: var(--list-bg);
         padding-top: 5px;
+        position: relative;
+        isolation: isolate;
       }
 
       #trackList {
+        display: block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        flex: 0 0 auto;
+        width: 100%;
+        min-height: 0;
         list-style: none;
         padding: 0;
         margin: 0;
       }
 
-      #trackList li {
+      #trackList .track-list-empty {
+        display: block !important;
+        min-height: 44px;
+        height: auto;
+        padding: 12px 14px;
+        color: var(--text-sub);
+        background: transparent;
+        border: 0;
+        font-size: 13px;
+        line-height: 1.5;
+        text-align: center;
+        white-space: normal;
+      }
+
+      #trackList li:not(.track-list-empty) {
+        display: flex !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        position: relative;
+        z-index: 1;
+        flex: 0 0 auto;
         list-style: none;
-        height: 1.6rem;
+        min-height: 1.8rem;
+        height: auto;
         line-height: 1.6rem;
         margin: 0 0.5rem 0.2rem 0.5rem;
         padding: 0 0.35rem;
@@ -1049,7 +1083,7 @@
             d="M7 14H5v4h4v-2H7v-2zm10-8h-4v2h2v2h2V6zM5 6h4V4H5v4zm14 12h-4v2h4v-4z"
           />
         </symbol>
-        <symbol id="plus-button" viewBox="1px 1px 1px 1px">
+        <symbol id="plus-button" viewBox="0 0 24 24">
           <path
             d="M12 5V19M5 12H19"
             fill="none"
@@ -1467,11 +1501,12 @@
       if (localStorage.getItem("motanTheme") === "dark")
         document.documentElement.setAttribute("data-theme", "dark");
       // Color modal wiring
-      document.getElementById("themeBtn").onclick = () => {
-        document.getElementById("colorModal").classList.add("open");
-        document
-          .getElementById("colorModal")
-          .setAttribute("aria-hidden", "false");
+      const legacyThemeBtn = document.getElementById("themeBtn");
+      if (legacyThemeBtn) legacyThemeBtn.onclick = () => {
+        const colorModal = document.getElementById("colorModal");
+        if (!colorModal) return;
+        colorModal.classList.add("open");
+        colorModal.setAttribute("aria-hidden", "false");
       };
 
       function closeColorModal() {
@@ -1698,7 +1733,9 @@
       els.wakeLockBtn.onclick = toggleWakeLock;
       // --- Speed Control Fix ---
       // --- DB & Playlist ---
-      const request = indexedDB.open("motanDB_v2", 2);
+      // Version 3 repairs libraries created by earlier builds where tracksMeta was missing
+      // or incomplete. Existing audio Blobs remain in the tracks store and are not duplicated.
+      const request = indexedDB.open("motanDB_v2", 3);
       request.onupgradeneeded = (e) => {
         db = e.target.result;
         const tx = e.target.transaction;
@@ -1706,33 +1743,54 @@
           db.createObjectStore("tracks", { keyPath: "id", autoIncrement: true });
         }
         if (!db.objectStoreNames.contains("tracksMeta")) {
-          const metaStore = db.createObjectStore("tracksMeta", { keyPath: "id" });
-          // One-time migration: copy small metadata only; never copy audio Blobs into this store.
-          if (tx && tx.objectStoreNames.contains("tracks")) {
-            const cursorReq = tx.objectStore("tracks").openCursor();
-            cursorReq.onsuccess = (event) => {
-              const cursor = event.target.result;
-              if (!cursor) return;
-              const t = cursor.value || {};
-              metaStore.put({
-                id: t.id, name: t.name || `Track ${t.id}`, customName: t.customName || null,
-                title: t.title || null, artist: t.artist || null, album: t.album || null,
-                year: t.year || null, genre: t.genre || null, artwork: t.artwork || null,
-                artworkType: t.artworkType || null, duration: Number(t.duration) || null,
-                size: t.blob && t.blob.size || Number(t.size) || 0,
-                mimeType: t.blob && t.blob.type || t.mimeType || '',
-                rating: Number(t.rating) || 0, addedAt: Number(t.addedAt) || Date.now(),
-                _metaRead: !!(t.title || t.artist || t.album || t.artwork)
-              });
+          db.createObjectStore("tracksMeta", { keyPath: "id" });
+        }
+        // Backfill metadata for every existing audio record, including databases whose
+        // tracksMeta store exists but whose previous import left some metadata rows missing.
+        if (tx && db.objectStoreNames.contains("tracks") && db.objectStoreNames.contains("tracksMeta")) {
+          const tracksStore = tx.objectStore("tracks");
+          const metaStore = tx.objectStore("tracksMeta");
+          const cursorReq = tracksStore.openCursor();
+          cursorReq.onsuccess = (event) => {
+            const cursor = event.target.result;
+            if (!cursor) return;
+            const t = cursor.value || {};
+            const id = t.id ?? cursor.primaryKey;
+            const metaReq = metaStore.get(id);
+            metaReq.onsuccess = () => {
+              if (!metaReq.result) {
+                metaStore.put({
+                  id, name: t.name || `Track ${id}`, customName: t.customName || null,
+                  title: t.title || null, artist: t.artist || null, album: t.album || null,
+                  year: t.year || null, genre: t.genre || null, artwork: t.artwork || null,
+                  artworkType: t.artworkType || null, duration: Number(t.duration) || null,
+                  size: t.blob && t.blob.size || Number(t.size) || 0,
+                  mimeType: t.blob && t.blob.type || t.mimeType || '',
+                  rating: Number(t.rating) || 0, addedAt: Number(t.addedAt) || Date.now(),
+                  _metaRead: !!(t.title || t.artist || t.album || t.artwork)
+                });
+              }
               cursor.continue();
             };
-          }
+            metaReq.onerror = () => cursor.continue();
+          };
         }
       };
       request.onsuccess = (e) => {
         db = e.target.result;
+        db.onversionchange = () => db.close();
+        if (!db.objectStoreNames.contains("tracks") || !db.objectStoreNames.contains("tracksMeta")) {
+          console.error("Motan database opened without required object stores.", [...db.objectStoreNames]);
+          showToast("Audio library could not be initialized. Reload the app and try again.");
+          return;
+        }
         loadPlaylistsMeta();
       };
+      request.onerror = () => {
+        console.error("Motan IndexedDB open failed:", request.error);
+        setTimeout(() => { if (typeof showToast === 'function') showToast("Could not open the audio library. Check browser storage permissions and reload."); }, 0);
+      };
+      request.onblocked = () => console.warn("Motan database upgrade is blocked by another open tab. Close other Motan tabs and reload.");
 
       function loadPlaylistsMeta() {
         const saved = localStorage.getItem("motanPlaylists");
@@ -1765,61 +1823,101 @@
 
       function loadCurrentPlaylistTracks() {
         if (!db || !db.objectStoreNames.contains("tracksMeta")) return;
-        const activePL = playlists.find((p) => p.id === currentPlaylistId) || playlists[0];
+        // IDs persisted by older builds can arrive as strings while IndexedDB keyPath IDs
+        // are numbers. Always compare normalized IDs so a valid track is not silently hidden.
+        const activePL = playlists.find((p) => String(p.id) === String(currentPlaylistId)) || playlists[0];
         if (!activePL) return;
-        const tx = db.transaction("tracksMeta", "readonly");
-        const req = tx.objectStore("tracksMeta").getAll();
-        req.onsuccess = () => {
-          const trackMap = new Map((req.result || []).map((t) => [t.id, t]));
-          currentTrackList = (activePL.tracks || []).filter((id) => trackMap.has(id)).map((id) => ({ ...trackMap.get(id) }));
+        const wantedIds = Array.isArray(activePL.tracks) ? activePL.tracks.filter((id) => id != null) : [];
+        const paint = (metaRows) => {
+          const trackMap = new Map((metaRows || []).filter((t) => t && t.id != null).map((t) => [String(t.id), t]));
+          currentTrackList = wantedIds.filter((id) => trackMap.has(String(id))).map((id) => ({ ...trackMap.get(String(id)) }));
           if (currentTrackId !== null) {
-            const idx = currentTrackList.findIndex((t) => t.id === currentTrackId);
+            const idx = currentTrackList.findIndex((t) => String(t.id) === String(currentTrackId));
             currentIndex = idx !== -1 ? idx : 0;
           } else currentIndex = Math.min(currentIndex, Math.max(0, currentTrackList.length - 1));
           renderTrackList();
           updatePlaylistSummary();
-          if (currentTrackId !== null && currentTrackList.some((t) => t.id === currentTrackId)) prepareTrackWindow(currentIndex);
+          if (currentTrackId !== null && currentTrackList.some((t) => String(t.id) === String(currentTrackId))) window.motanPrepareTrackWindow?.(currentIndex);
         };
+        const tx = db.transaction("tracksMeta", "readonly");
+        const req = tx.objectStore("tracksMeta").getAll();
+        req.onsuccess = () => {
+          const rows = req.result || [];
+          const knownIds = new Set(rows.filter((t) => t && t.id != null).map((t) => String(t.id)));
+          const missing = wantedIds.filter((id) => !knownIds.has(String(id)));
+          if (!missing.length || !db.objectStoreNames.contains("tracks")) { paint(rows); return; }
+
+          // Repair metadata-only gaps on demand for IDs already referenced by this playlist.
+          // This reads only missing records, never all audio Blobs into memory.
+          let readTx;
+          try { readTx = db.transaction("tracks", "readonly"); } catch (_) { paint(rows); return; }
+          const repaired = [];
+          const store = readTx.objectStore("tracks");
+          let pending = missing.length;
+          const finishRepair = () => {
+            if (--pending !== 0) return;
+            if (repaired.length) {
+              try {
+                const writeTx = db.transaction("tracksMeta", "readwrite");
+                const metaStore = writeTx.objectStore("tracksMeta");
+                repaired.forEach((meta) => metaStore.put(meta));
+                writeTx.oncomplete = () => paint(rows.concat(repaired));
+                writeTx.onerror = writeTx.onabort = () => paint(rows.concat(repaired));
+              } catch (_) { paint(rows.concat(repaired)); }
+            } else paint(rows);
+          };
+          missing.forEach((rawId) => {
+            const keys = [rawId];
+            if (typeof rawId === 'string' && rawId.trim() !== '' && Number.isFinite(Number(rawId))) keys.push(Number(rawId));
+            else if (typeof rawId === 'number' && Number.isFinite(rawId)) keys.push(String(rawId));
+            let keyIndex = 0;
+            const tryNextKey = () => {
+              if (keyIndex >= keys.length) { finishRepair(); return; }
+              const key = keys[keyIndex++];
+              let r;
+              try { r = store.get(key); } catch (_) { tryNextKey(); return; }
+              r.onsuccess = () => {
+                const rec = r.result;
+                if (!rec) { tryNextKey(); return; }
+                const id = rec.id ?? key;
+                repaired.push({ id, name: rec.name || `Track ${id}`, customName: rec.customName || null,
+                  title: rec.title || null, artist: rec.artist || null, album: rec.album || null,
+                  year: rec.year || null, genre: rec.genre || null, artwork: rec.artwork || null,
+                  artworkType: rec.artworkType || null, duration: Number(rec.duration) || null,
+                  size: rec.blob?.size || Number(rec.size) || 0, mimeType: rec.blob?.type || rec.mimeType || '',
+                  rating: Number(rec.rating) || 0, addedAt: Number(rec.addedAt) || Date.now(), _metaRead: false });
+                finishRepair();
+              };
+              r.onerror = tryNextKey;
+            };
+            tryNextKey();
+          });
+        };
+        req.onerror = () => { console.error('Could not load playlist metadata:', req.error); };
       }
 
+      // Shared file predicate for legacy listeners and the modern importer layer.
+      // Exposing it on window prevents scope errors when older event handlers remain cached.
+      window.isSupportedAudioFile = window.isSupportedAudioFile || function (file) {
+        const ext = String(file && file.name || "").split(".").pop().toLowerCase();
+        return /^audio\//i.test((file && file.type) || "") ||
+          ["mp3", "m4a", "mp4", "aac", "wav", "wave", "ogg", "oga", "opus", "webm", "flac", "aif", "aiff", "caf", "3gp", "wma"].includes(ext);
+      };
+      // The import pipeline is implemented in the enhancement layer below so file and
+      // folder imports share the same transaction/error handling. Copy File references first;
+      // clearing the picker then allows selecting the same file again next time.
       els.fileInput.addEventListener("change", () => {
-        const files = Array.from(els.fileInput.files || []).filter(isSupportedAudioFile);
-        if (!files.length) {
-          if ((els.fileInput.files || []).length) showToast(tr("noAudioFiles"));
-          els.fileInput.value = "";
-          return;
-        }
-        if (!db || !db.objectStoreNames.contains("tracksMeta")) {
-          showToast(tr("dbNotReady"));
-          els.fileInput.value = "";
-          return;
-        }
-        const tx = db.transaction(["tracks", "tracksMeta"], "readwrite");
-        const store = tx.objectStore("tracks");
-        const metaStore = tx.objectStore("tracksMeta");
-        const pl = playlists.find((p) => p.id === currentPlaylistId);
-        const addedIds = [];
-        files.forEach((file) => {
-          const rec = { name: file.name, blob: file, size: file.size, mimeType: file.type || '', addedAt: Date.now() };
-          const addReq = store.add(rec);
-          addReq.onsuccess = (e) => {
-            const id = e.target.result;
-            addedIds.push(id);
-            if (pl) pl.tracks.push(id);
-            metaStore.put({ id, name: file.name, customName: null, title: null, artist: null, album: null,
-              year: null, genre: null, artwork: null, artworkType: null, duration: null, size: file.size,
-              mimeType: file.type || '', rating: 0, addedAt: rec.addedAt, _metaRead: false });
-          };
-        });
-        tx.oncomplete = () => {
-          if (pl) savePlaylistsMeta();
-          const recent = JSON.parse(localStorage.getItem("motan_recentTracks") || "[]");
-          localStorage.setItem("motan_recentTracks", JSON.stringify([...addedIds.reverse(), ...recent.filter(id => !addedIds.includes(id))].slice(0, 500)));
-          loadCurrentPlaylistTracks();
-          showToast(tr("filesAdded", files.length));
-        };
-        tx.onerror = () => showToast(tr("importFailed"));
+        const chosen = Array.from(els.fileInput.files || []);
         els.fileInput.value = "";
+        if (typeof window.motanImportAudioFiles === "function") {
+          window.motanImportAudioFiles(chosen).catch?.(error => {
+            console.error("Motan import failed:", error);
+            showToast("Import failed. Please retry or check the browser console.");
+          });
+          return;
+        }
+        console.error("Motan audio importer is unavailable.");
+        showToast("The audio importer did not initialize. Reload Motan Player and try again.");
       });
 
       function renderSidebar() {
@@ -1946,39 +2044,81 @@
       }
 
       function renderTrackList() {
-        els.trackListEl.innerHTML = "";
+        const list = els.trackListEl;
+        if (!list) {
+          console.error("Motan playlist renderer: #trackList was not found.");
+          return;
+        }
+        // Reassert visibility: this view must never disappear due to stale gesture/UI state.
+        list.hidden = false;
+        list.style.setProperty("display", "block", "important");
+        list.style.setProperty("visibility", "visible", "important");
+        list.style.setProperty("opacity", "1", "important");
+
+        // Render off-DOM first and replace the visible list only after every row is built.
+        // A single bad label/action callback must never leave the user's playlist blank.
+        const tracks = Array.isArray(currentTrackList) ? currentTrackList : [];
+        if (!tracks.length) {
+          const empty = document.createElement("li");
+          empty.className = "track-list-empty";
+          empty.textContent = currentPlaylistId === "__recent__"
+            ? "No recently added tracks"
+            : "No tracks in this playlist. Open Control Center → File Operations to add audio files.";
+          list.replaceChildren(empty);
+          return;
+        }
+
         const frag = document.createDocumentFragment();
-        currentTrackList.forEach((track, index) => {
+        tracks.forEach((track, index) => {
           const li = document.createElement("li");
-          li.draggable = currentPlaylistId !== '__recent__';
+          li.draggable = currentPlaylistId !== "__recent__";
           li.dataset.index = String(index);
           li.dataset.id = String(track.id);
           li.title = `${formatTrackName(track)} — right-click or use ⓘ for track actions`;
-          if (track.id === currentTrackId) li.classList.add("playing");
+          if (String(track.id) === String(currentTrackId)) li.classList.add("playing");
           const name = document.createElement("span");
           name.className = "track-name";
           name.textContent = formatTrackName(track);
           const duration = document.createElement("span");
           duration.className = "duration";
-          duration.textContent = Number.isFinite(track.duration) && track.duration > 0 ? fmtTime(track.duration) : "--:--";
+          duration.textContent = Number.isFinite(Number(track.duration)) && Number(track.duration) > 0 ? fmtTime(Number(track.duration)) : "--:--";
           const info = document.createElement("button");
           info.className = "track-info-btn";
           info.type = "button";
           info.textContent = "ⓘ";
-          info.title = tr("trackActions");
-          info.setAttribute("aria-label", `${tr("trackActions")}: ${formatTrackName(track)}`);
-          info.addEventListener("click", (e) => { e.stopPropagation(); openTrackContext(track.id, e); });
+          // `tr` and `openTrackContext` live in the later enhancement IIFE, so they
+          // must be accessed through its explicit window bridge rather than as globals.
+          const actionsLabel = typeof window.motanTrackActionsLabel === "function"
+            ? window.motanTrackActionsLabel()
+            : "Track actions";
+          info.title = actionsLabel;
+          info.setAttribute("aria-label", `${actionsLabel}: ${formatTrackName(track)}`);
+          info.addEventListener("click", (e) => {
+            e.stopPropagation();
+            if (typeof window.motanOpenTrackContext === "function") window.motanOpenTrackContext(track.id, e);
+          });
           li.append(name, duration, info);
           li.addEventListener("click", (e) => {
             if (e.target.closest("button")) return;
             currentIndex = index;
             playCurrent();
           });
-          li.addEventListener("contextmenu", (e) => { e.preventDefault(); openTrackContext(track.id, e); });
-          addDragEvents(li);
+          li.addEventListener("contextmenu", (e) => {
+            e.preventDefault();
+            if (typeof window.motanOpenTrackContext === "function") window.motanOpenTrackContext(track.id, e);
+          });
           frag.appendChild(li);
         });
-        els.trackListEl.appendChild(frag);
+        // Atomic DOM update: keep the previously rendered rows until the new fragment is ready.
+        list.replaceChildren(frag);
+        // Bind drag handlers only after the rows are safely attached to the live DOM.
+        Array.from(list.children).filter(li => !li.classList.contains("track-list-empty")).forEach(li => {
+          try { addDragEvents(li); }
+          catch (error) { console.warn("Motan: drag/reorder unavailable for one row", error); }
+        });
+        if (list.children.length !== tracks.length) {
+          console.warn("Motan playlist render mismatch", { expected: tracks.length, rendered: list.children.length });
+        }
       }
 
       function removeTrack(id) {
@@ -2021,7 +2161,7 @@
       function fetchMetadata() {
         const t = currentTrackList.find((x) => x.id === currentTrackId) || currentTrackList[currentIndex];
         if (!t || t._metaRead || typeof jsmediatags === "undefined") return;
-        getTrackRecord(t.id).then((record) => {
+        window.motanGetTrackRecord(t.id).then((record) => {
           if (!record || !record.blob) return;
           jsmediatags.read(record.blob, {
             onSuccess: (tag) => {
@@ -2091,22 +2231,36 @@
         drawVis();
       }
 
-      function playCurrent() {
+      let legacyPlaybackRequest = 0;
+      let legacyPlaybackUrl = null;
+      async function playCurrent() {
         if (!currentTrackList[currentIndex]) return;
-        if (!audioInit) initAudio();
-        if (audioCtx.state === "suspended") audioCtx.resume();
+        const requestId = ++legacyPlaybackRequest;
         const t = currentTrackList[currentIndex];
         currentTrackId = t.id;
-        els.audio.src = URL.createObjectURL(t.blob);
-        els.audio.playbackRate = parseFloat(
-          els.settingSpeed ? els.settingSpeed.value : 1
-        );
-        els.audio.play();
-        isPlaying = true;
-        updateUI();
-        // ensure metadata & artwork are applied
-        updateArtworkUI(t);
-        updateMediaSessionMetadata(t);
+        try {
+          if (!audioInit) { try { initAudio(); } catch (audioError) { console.warn("Web Audio unavailable; using direct audio playback.", audioError); } }
+          if (audioCtx && audioCtx.state === "suspended") { try { await audioCtx.resume(); } catch (_) {} }
+          const record = typeof window.motanGetTrackRecord === "function"
+            ? await window.motanGetTrackRecord(t.id)
+            : null;
+          if (requestId !== legacyPlaybackRequest) return;
+          if (!record || !record.blob) throw new Error("Audio data is missing from the local library.");
+          if (legacyPlaybackUrl) { try { URL.revokeObjectURL(legacyPlaybackUrl); } catch (_) {} }
+          legacyPlaybackUrl = URL.createObjectURL(record.blob);
+          els.audio.src = legacyPlaybackUrl;
+          const speedInput = document.getElementById("settingSpeed");
+          els.audio.playbackRate = parseFloat(speedInput ? speedInput.value : (localStorage.getItem("motan_speed") || "1")) || 1;
+          await els.audio.play();
+          isPlaying = true;
+          updateUI();
+          updateArtworkUI(t);
+          updateMediaSessionMetadata(t);
+        } catch (error) {
+          isPlaying = false;
+          updatePlayBtn();
+          console.error("Motan playback failed:", error);
+        }
       }
 
       function updateUI() {
@@ -2200,11 +2354,13 @@
       };
       // --- EQ Logic ---
       const eqModal = document.getElementById("eqModal");
-      document.getElementById("eqBtn").onclick = () => {
+      const legacyEqBtn = document.getElementById("eqBtn");
+      const closeEqBtn = document.getElementById("closeEqBtn");
+      if (legacyEqBtn && eqModal) legacyEqBtn.onclick = () => {
         eqModal.classList.add("open");
         eqModal.setAttribute("aria-hidden", "false");
       };
-      document.getElementById("closeEqBtn").onclick = () => {
+      if (closeEqBtn && eqModal) closeEqBtn.onclick = () => {
         eqModal.classList.remove("open");
         eqModal.setAttribute("aria-hidden", "true");
       };
@@ -2343,76 +2499,16 @@
       }
       // 初期化の実行
       initSettingsUI();
-      // --- Info Modal Logic (extended) ---
+      // Track information is now opened from each track's context menu.
+      // The former global #infoBtn was intentionally removed, so do not bind to it here.
       const infoModal = document.getElementById("infoModal");
-      const infoContent = document.getElementById("infoContent");
-      document.getElementById("infoBtn").onclick = () => {
-        infoModal.classList.add("open");
-        infoModal.setAttribute("aria-hidden", "false");
-        if (!currentTrackList[currentIndex]) return;
-        const t = currentTrackList[currentIndex];
-        infoContent.innerHTML = "<p>Loading...</p>";
-        // First read tags (to get title/artist/album/artwork if any)
-        jsmediatags.read(t.blob, {
-          onSuccess: (tag) => {
-            const tags = tag.tags;
-            // build basic info HTML
-            let html = `\n                    <p><span class="info-label">File:</span> ${t.name}</p>\n                    <p><span class="info-label">Title:</span> ${tags.title || t.title || "Unknown"}</p>\n                    <p><span class="info-label">Artist:</span> ${tags.artist || t.artist || "Unknown"}</p>\n                    <p><span class="info-label">Album:</span> ${tags.album || t.album || "Unknown"}</p>\n                    <p><span class="info-label">Year:</span> ${tags.year || t.year || "-"}</p>\n                    <p><span class="info-label">Genre:</span> ${tags.genre || t.genre || "-"}</p>\n                `;
-            // If picture data was included by jsmediatags earlier (fetchMetadata), show it
-            if (t.artwork) {
-              html += `<p><span class="info-label">Artwork:</span><br><img src="${t.artwork}" alt="art" style="max-width:120px;border-radius:6px;margin-top:6px"></p>`;
-            } else if (tags.picture && tags.picture.data) {
-              // convert and show
-              const picture = tags.picture;
-              let base64String = "";
-              for (let i = 0; i < picture.data.length; i++)
-                base64String += String.fromCharCode(picture.data[i]);
-              const base64 = btoa(base64String);
-              const dataUrl = `data:${picture.format};base64,${base64}`;
-              html += `<p><span class="info-label">Artwork:</span><br><img src="${dataUrl}" alt="art" style="max-width:120px;border-radius:6px;margin-top:6px"></p>`;
-            }
-            // For bitrate, file size and mime, create temporary audio to get duration
-            try {
-              const tmpUrl = URL.createObjectURL(t.blob);
-              const tmpA = new Audio(tmpUrl);
-              tmpA.onloadedmetadata = () => {
-                const duration = tmpA.duration;
-                URL.revokeObjectURL(tmpUrl);
-                const sizeBytes = t.blob.size || 0;
-                const bitrateKbps =
-                  duration && duration > 0
-                    ? Math.round((sizeBytes * 8) / duration / 1000)
-                    : "-";
-                html += `<p><span class="info-label">Bitrate:</span> ${bitrateKbps === "-" ? "-" : bitrateKbps + " kbps"}</p>`;
-                html += `<p><span class="info-label">Size:</span> ${Math.round(sizeBytes / 1024)} KB</p>`;
-                html += `<p><span class="info-label">MIME:</span> ${t.blob.type || "-"}</p>`;
-                infoContent.innerHTML = html;
-              };
-              tmpA.onerror = () => {
-                // fallback if cannot load
-                const sizeBytes = t.blob.size || 0;
-                html += `<p><span class="info-label">Bitrate:</span> -</p>`;
-                html += `<p><span class="info-label">Size:</span> ${Math.round(sizeBytes / 1024)} KB</p>`;
-                html += `<p><span class="info-label">MIME:</span> ${t.blob.type || "-"}</p>`;
-                infoContent.innerHTML = html;
-              };
-            } catch (err) {
-              const sizeBytes = t.blob.size || 0;
-              html += `<p><span class="info-label">Bitrate:</span> -</p>`;
-              html += `<p><span class="info-label">Size:</span> ${Math.round(sizeBytes / 1024)} KB</p>`;
-              html += `<p><span class="info-label">MIME:</span> ${t.blob.type || "-"}</p>`;
-              infoContent.innerHTML = html;
-            }
-          },
-          onError: () => {
-            infoContent.innerHTML = `<p>Error loading metadata</p>`;
-          }
-        });
-      };
-      document.getElementById("closeInfoBtn").onclick = () => {
-        infoModal.classList.remove("open");
-        infoModal.setAttribute("aria-hidden", "true");
-      };
+      const infoCloseButton = document.getElementById("closeInfoBtn");
+      if (infoCloseButton && infoModal) {
+        infoCloseButton.onclick = () => {
+          infoModal.classList.remove("open");
+          infoModal.setAttribute("aria-hidden", "true");
+        };
+      }
       els.audio.ontimeupdate = () => {
         if (!els.audio.duration) return;
         const pct = (els.audio.currentTime / els.audio.duration) * 100;
@@ -2586,8 +2682,8 @@
         const el = document.getElementById("playlistSummary");
         if (!el) return;
         const count = currentTrackList.length;
-        const known = currentTrackList.filter(t => Number.isFinite(t.duration) && t.duration > 0);
-        const total = known.reduce((sum, t) => sum + t.duration, 0);
+        const known = currentTrackList.filter(t => Number.isFinite(Number(t.duration)) && Number(t.duration) > 0);
+        const total = known.reduce((sum, t) => sum + Number(t.duration), 0);
         if (!count) el.textContent = "0 tracks / 0:00";
         else if (known.length === count) el.textContent = `${count} tracks / ${fmtTotalTime(total)}`;
         else el.textContent = `${count} tracks / ${known.length ? "~" + fmtTotalTime(total) : "duration on demand"}`;
@@ -2625,23 +2721,22 @@
           swipeHandled = true;
           lastSwipeTime = now;
           try { if (navigator.vibrate) navigator.vibrate(8); } catch (e) {}
-          // 視覚的残存対策：切替前に trackList を即時クリアしておく
-          try {
-            if (els && els.trackListEl) els.trackListEl.innerHTML = "";
-            const summaryEl = document.getElementById("playlistSummary");
-            if (summaryEl) summaryEl.textContent = "... switching ...";
-          } catch (e) {}
-          const idx = playlists.findIndex((p) => p.id === currentPlaylistId);
-          if (idx === -1 || playlists.length === 0) return;
-          // dx > 0 -> 右スワイプ（指を右へ） => 前のプレイリスト
+          // Do not clear the track DOM before confirming a real playlist change.
+          // Previously, a one-playlist setup could be left blank because switchPlaylist
+          // returned early when asked to switch to the current playlist.
+          const idx = playlists.findIndex((p) => String(p.id) === String(currentPlaylistId));
+          if (idx === -1 || playlists.length < 2) return;
+          // dx > 0 -> right swipe => previous playlist; dx < 0 => next playlist.
           const dir = dx > 0 ? -1 : 1;
           const nextIdx = (idx + dir + playlists.length) % playlists.length;
           const nextId = playlists[nextIdx].id;
-          // 呼び出し：既存の switchPlaylist が renderSidebar() と loadCurrentPlaylistTracks() を行う
+          if (String(nextId) === String(currentPlaylistId)) return;
           try {
             switchPlaylist(nextId);
           } catch (err) {
             console.error("switchPlaylist error", err);
+            // A failed switch must not leave a blank track list.
+            loadCurrentPlaylistTracks();
           }
         }
         // pointer events (推奨)
@@ -3113,6 +3208,7 @@
       sortDone:'Playlist sorted.', cacheUpdate:'Update the app cache and reload now?', languageNote:'Auto follows the browser/device language. No IP geolocation request is made, so the player stays offline-friendly and does not disclose your IP to a language service.',
       designClassic:'Classic', designMaterial:'Material Design', colorAuto:'System', colorDark:'Dark', colorLight:'Light', appearance:'Appearance',
       cssImport:'Load theme CSS', cssCopy:'Copy CSS format', currentTrackActions:'Actions for the playing track', recent:'Recently added', lastTrack:'Last played track', lastPlaylist:'Last played playlist',
+      recoverRecent:'Recover unassigned recent files', recoverRecentNote:'Use recovery if files were stored in the library but did not appear in a playlist. Recovery may also find recently migrated or previously removed files.', recoverNone:'No unassigned recent tracks were found.', recoveryPrompt:(count,names,suffix)=>`Found ${count} recent file(s) stored in the library but not assigned to a playlist: ${names}${suffix}. Add them to the current/last playlist? Previously removed tracks or recently migrated records may also appear.`, recovered:(count,name)=>`Recovered ${count} file(s) to ${name}.`, noPlaylistAvailable:'No playlist is available.',
       play:'Play', pause:'Pause', previous:'Previous', next:'Next', miniPlayer:'Mini player / PiP', customTheme:'Custom theme CSS', none:'None', noRating:'Not rated'
     },
     ja: {
@@ -3133,6 +3229,7 @@
       sortDone:'プレイリストを並べ替えました。', cacheUpdate:'アプリのキャッシュを更新して再読み込みしますか？', languageNote:'自動設定ではブラウザー／デバイスの言語を使用します。IP 照会は行わず、オフライン動作とプライバシーを優先します。',
       designClassic:'クラシック', designMaterial:'マテリアルデザイン', colorAuto:'システムに合わせる', colorDark:'ダーク', colorLight:'ライト', appearance:'外観',
       cssImport:'テーマ CSS を読み込む', cssCopy:'CSS フォーマットをコピー', currentTrackActions:'再生中トラックの操作', recent:'最近追加した項目', lastTrack:'最後に再生した曲', lastPlaylist:'最後に再生したプレイリスト',
+      recoverRecent:'未割り当ての最近のファイルを復旧', recoverRecentNote:'読み込んだファイルがプレイリストに表示されない場合に使用します。最近移行されたファイルや、以前に削除したファイルが含まれる場合もあります。', recoverNone:'復旧できる最近の未割り当てトラックはありません。', recoveryPrompt:(count,names,suffix)=>`ライブラリには保存されていますが、プレイリストに割り当てられていない最近のファイルが ${count} 件あります：${names}${suffix}。現在／最後に使ったプレイリストに追加しますか？ 最近削除した曲や移行されたデータが含まれる場合もあります。`, recovered:(count,name)=>`${name} に ${count} 件のファイルを復旧しました。`, noPlaylistAvailable:'利用できるプレイリストがありません。',
       play:'再生', pause:'一時停止', previous:'前へ', next:'次へ', miniPlayer:'ミニプレーヤー / PiP', customTheme:'カスタムテーマ CSS', none:'なし', noRating:'未評価'
     }
   };
@@ -3185,6 +3282,8 @@
     const ext = String(file?.name || '').split('.').pop().toLowerCase();
     return /^audio\//i.test(file?.type || '') || ['mp3','m4a','mp4','aac','wav','wave','ogg','oga','opus','webm','flac','aif','aiff','caf','3gp','wma'].includes(ext);
   }
+  // Make the predicate available to cached/legacy handlers loaded in other classic scripts.
+  window.isSupportedAudioFile = isSupportedAudioFile;
   function getTrackRecord(id) {
     if (!db) return Promise.reject(new Error('database-not-ready'));
     if (blobCache.has(id)) return Promise.resolve(blobCache.get(id));
@@ -3232,6 +3331,143 @@
     }
     blobCache = nextCache;
   }
+  // Bridge helpers used by the legacy playback/metadata layer above this enhancement IIFE.
+  window.motanGetTrackRecord = getTrackRecord;
+  window.motanPrepareTrackWindow = prepareTrackWindow;
+
+  async function importAudioFiles(inputFiles) {
+    const selected = Array.from(inputFiles || []);
+    const files = selected.filter(file => window.isSupportedAudioFile(file));
+    if (!files.length) {
+      if (selected.length) showToast(tr('noAudioFiles'));
+      return false;
+    }
+    if (!db || !db.objectStoreNames.contains('tracks') || !db.objectStoreNames.contains('tracksMeta')) {
+      showToast(tr('dbNotReady'));
+      console.error('Motan import blocked: database or required object store is not ready.', db && [...db.objectStoreNames]);
+      return false;
+    }
+    // Shortcut views (for example Recently Added) are virtual and are not writable playlists.
+    // In that case, import into the last real playlist, then return the UI to that playlist.
+    const lastPlaylistId = localStorage.getItem('motan_lastPlaylist');
+    const playlist = playlists.find(p => String(p.id) === String(currentPlaylistId))
+      || playlists.find(p => String(p.id) === String(lastPlaylistId))
+      || playlists[0];
+    if (!playlist) {
+      showToast('No playlist is available. Create a playlist and try again.');
+      console.error('Motan import blocked: no writable playlist exists.', currentPlaylistId, playlists);
+      return false;
+    }
+    if (!Array.isArray(playlist.tracks)) playlist.tracks = [];
+
+    let tx;
+    try {
+      tx = db.transaction(['tracks', 'tracksMeta'], 'readwrite');
+    } catch (error) {
+      console.error('Could not create Motan import transaction:', error);
+      showToast(tr('importFailed'));
+      return false;
+    }
+    const store = tx.objectStore('tracks');
+    const metaStore = tx.objectStore('tracksMeta');
+    const addedIds = [];
+    const addedAt = Date.now();
+    return new Promise(resolve => {
+      let settled = false;
+      const finish = value => { if (!settled) { settled = true; resolve(value); } };
+      tx.oncomplete = () => {
+        // Commit only IDs that actually received a key, deduplicating across number/string IDs.
+        const present = new Set(playlist.tracks.map(id => String(id)));
+        const committedIds = addedIds.filter(id => !present.has(String(id)));
+        playlist.tracks.push(...committedIds);
+        // A virtual shortcut view is read-only; switch back to the real destination playlist.
+        if (!playlists.some(p => String(p.id) === String(currentPlaylistId))) currentPlaylistId = playlist.id;
+        try { localStorage.setItem('motan_lastPlaylist', String(playlist.id)); } catch (_) {}
+        try { savePlaylistsMeta(); } catch (error) { console.error('Could not persist playlist metadata:', error); }
+        try {
+          const recent = JSON.parse(localStorage.getItem('motan_recentTracks') || '[]');
+          localStorage.setItem('motan_recentTracks', JSON.stringify([...addedIds.slice().reverse(), ...recent.filter(id => !addedIds.some(a => String(a) === String(id)))].slice(0, 500)));
+        } catch (error) { console.warn('Could not update recent tracks:', error); }
+        loadCurrentPlaylistTracks();
+        updateExportPlaylistOptions();
+        if (addedIds.length === 0) {
+          showToast(tr('importFailed'));
+          finish(false);
+        } else {
+          showToast(tr('filesAdded', addedIds.length));
+          finish(true);
+        }
+      };
+      tx.onerror = () => console.error('Motan import transaction error:', tx.error);
+      tx.onabort = () => {
+        console.error('Motan import transaction aborted:', tx.error);
+        showToast(`${tr('importFailed')}${tx.error?.message ? ' (' + tx.error.message + ')' : ''}`);
+        finish(false);
+      };
+      try {
+        files.forEach(file => {
+          const rec = { name: file.name, blob: file, size: file.size, mimeType: file.type || '', addedAt };
+          const addReq = store.add(rec);
+          addReq.onsuccess = event => {
+            const id = event.target.result;
+            addedIds.push(id);
+            metaStore.put({ id, name: file.name, customName: null, title: null, artist: null, album: null,
+              year: null, genre: null, artwork: null, artworkType: null, duration: null, size: file.size,
+              mimeType: file.type || '', rating: 0, addedAt, _metaRead: false });
+          };
+          addReq.onerror = () => console.error('Could not store audio file:', file.name, addReq.error);
+        });
+      } catch (error) {
+        console.error('Motan file import failed while queuing records:', error);
+        try { tx.abort(); } catch (_) {}
+        showToast(tr('importFailed'));
+        finish(false);
+      }
+    });
+  }
+  // The file picker and folder picker both use this exact import path.
+  window.motanImportAudioFiles = importAudioFiles;
+
+  // Recover records from a recent failed import without loading every audio Blob.
+  // This is user-triggered because removed tracks can also be unassigned by design.
+  window.motanRecoverRecentTracks = async function() {
+    if (!db || !db.objectStoreNames.contains('tracksMeta')) { showToast(tr('dbNotReady')); return; }
+    const allMeta = await new Promise((resolve) => {
+      try {
+        const req = db.transaction('tracksMeta', 'readonly').objectStore('tracksMeta').getAll();
+        req.onsuccess = () => resolve(req.result || []);
+        req.onerror = () => resolve([]);
+      } catch (_) { resolve([]); }
+    });
+    const referenced = new Set();
+    playlists.forEach(p => (Array.isArray(p.tracks) ? p.tracks : []).forEach(id => referenced.add(String(id))));
+    const cutoff = Date.now() - 24 * 60 * 60 * 1000;
+    const candidates = allMeta.filter(t => t && t.id != null && !referenced.has(String(t.id)) && Number(t.addedAt || 0) >= cutoff);
+    if (!candidates.length) { showToast(tr('recoverNone')); return; }
+    const names = candidates.slice(0, 5).map(t => t.customName || t.title || t.name || `Track ${t.id}`).join(', ');
+    const suffix = candidates.length > 5 ? `, and ${candidates.length - 5} more` : '';
+    const prompt = LANGS[lang()]?.recoveryPrompt || LANGS.en.recoveryPrompt;
+    const ok = await askConfirm(prompt(candidates.length, names, suffix));
+    if (!ok) return;
+    const lastId = localStorage.getItem('motan_lastPlaylist');
+    const target = playlists.find(p => String(p.id) === String(currentPlaylistId))
+      || playlists.find(p => String(p.id) === String(lastId)) || playlists[0];
+    if (!target) { showToast(tr('noPlaylistAvailable')); return; }
+    if (!Array.isArray(target.tracks)) target.tracks = [];
+    const existing = new Set(target.tracks.map(String));
+    const otherPlaylistRefs = new Set();
+    playlists.forEach(p => (Array.isArray(p.tracks) ? p.tracks : []).forEach(id => otherPlaylistRefs.add(String(id))));
+    const recovered = candidates.filter(t => !otherPlaylistRefs.has(String(t.id)) && !existing.has(String(t.id))).map(t => t.id);
+    target.tracks.push(...recovered);
+    currentPlaylistId = target.id;
+    try { localStorage.setItem('motan_lastPlaylist', String(target.id)); } catch (_) {}
+    savePlaylistsMeta();
+    loadCurrentPlaylistTracks();
+    updateExportPlaylistOptions();
+    const recoveredMessage = LANGS[lang()]?.recovered || LANGS.en.recovered;
+    showToast(recoveredMessage(recovered.length, target.name));
+  };
+
   function setupMainModal() {
     const shell = $('#mainModal'), nav = $('#mainModalNav'), area = $('#mainModalPanels');
     if (!shell || !nav || !area) return;
@@ -3270,6 +3506,8 @@
       <section class="panel-section"><h4>${esc(ui('fileLoad'))}</h4><p>Select one or more supported audio files and add them to the current playlist.</p>
         <div class="panel-actions"><button class="panel-button primary" id="loadFilesBtn" type="button" title="${esc(ui('fileLoad'))}">＋ ${esc(ui('fileLoad'))}</button>
         <button class="panel-button" id="loadFolderBtn" type="button" title="${esc(ui('folderLoad'))}">▰ ${esc(ui('folderLoad'))}</button></div>
+        <div class="panel-actions"><button class="panel-button" id="recoverRecentBtn" type="button" title="${esc(ui('recoverRecent'))}">${esc(ui('recoverRecent'))}</button></div>
+        <p class="panel-note">${esc(ui('recoverRecentNote'))}</p>
       </section>
       <section class="panel-section"><h4>${esc(ui('exportPlaylist'))}</h4><label for="exportPlaylistSelect">${esc(ui('choosePlaylist'))}</label>
         <select id="exportPlaylistSelect" aria-label="${esc(ui('choosePlaylist'))}" style="display:block;width:100%;margin:8px 0 12px"></select>
@@ -3288,11 +3526,13 @@
     if (fileTitle && fileTitle !== oldInput && fileTitle.tagName === 'DIV' && fileTitle.querySelector('#fileInput')) fileTitle.remove();
     $('#loadFilesBtn').addEventListener('click', () => $('#fileInput').click());
     $('#loadFolderBtn').addEventListener('click', () => folderInput.click());
+    $('#recoverRecentBtn').addEventListener('click', () => window.motanRecoverRecentTracks?.());
     folderInput.addEventListener('change', () => {
-      const transfer = new DataTransfer();
-      Array.from(folderInput.files || []).filter(isSupportedAudioFile).forEach(f => transfer.items.add(f));
-      const input = $('#fileInput'); input.files = transfer.files;
-      input.dispatchEvent(new Event('change', {bubbles:true})); folderInput.value='';
+      // Avoid DataTransfer shims: importing the File objects directly is more reliable,
+      // especially in Safari and when the user selects a large folder.
+      const chosen = Array.from(folderInput.files || []);
+      folderInput.value = '';
+      window.motanImportAudioFiles(chosen);
     });
     $('#miniPlayerBtn').addEventListener('click', openMiniPlayer);
     $('#exportPlaylistBtn').addEventListener('click', () => exportPlaylistAsWav($('#exportPlaylistSelect').value));
@@ -3390,6 +3630,8 @@
     const folderBtn=$('#loadFolderBtn'); if(folderBtn) folderBtn.textContent='▰ '+ui('folderLoad');
     const expBtn=$('#exportPlaylistBtn'); if(expBtn) expBtn.textContent=ui('exportPlaylist');
     const pipBtn=$('#miniPlayerBtn'); if(pipBtn) pipBtn.textContent='▣ '+ui('miniPlayer');
+    const recoverBtn=$('#recoverRecentBtn'); if(recoverBtn){recoverBtn.textContent=ui('recoverRecent');recoverBtn.title=ui('recoverRecent');}
+    const recoverNote=$('#fileOperationsPanel .panel-note'); if(recoverNote) recoverNote.textContent=ui('recoverRecentNote');
     const playingBtn=$('#playingTrackActionsBtn'); if(playingBtn) playingBtn.textContent='ⓘ '+ui('trackActions');
     // Force the app's major surfaces to readable English by default, while allowing a forced Japanese language.
     const loopText=$('#loopText'); if(loopText) loopText.setAttribute('aria-label',`Loop: ${loopText.textContent}`);
@@ -3765,6 +4007,13 @@
     const list=$('.playlist-container');list?.addEventListener('touchend',()=>{}, {passive:true});
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bootEnhancements,{once:true});else bootEnhancements();
+
+  // Explicit bridge for the legacy renderer in the preceding classic script.
+  // Function declarations/consts inside this IIFE are not globals and cannot be called
+  // by the legacy script without this bridge. This was the cause of a blank track list:
+  // renderTrackList cleared #trackList, then threw `tr is not defined` for the first row.
+  window.motanTrackActionsLabel = () => tr('trackActions');
+  window.motanOpenTrackContext = openTrackContext;
 
   // Expose small extension hooks for future playback queue/effect modules without coupling them to DOM details.
   window.MotanExtensions = window.MotanExtensions || {};
