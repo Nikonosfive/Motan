@@ -1,13 +1,15 @@
-const CACHE_NAME = 'motan-player-v2';
+const CACHE_NAME = 'motan-player-v9.0-shell-cache';
 const SHELL_ASSETS = [
   './',
   './index.html',
   './manifest.json',
+  './theme-template.css',
   './img/icon-192.png',
   './img/icon-512.png'
 ];
 const OPTIONAL_ASSETS = [
   'https://cdnjs.cloudflare.com/ajax/libs/jsmediatags/3.9.5/jsmediatags.min.js',
+  'https://cdn.jsdelivr.net/npm/jsmediatags@3.9.5/dist/jsmediatags.min.js',
   'https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js',
   'https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Orbitron:wght@500&display=swap'
 ];
