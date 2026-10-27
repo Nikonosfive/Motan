@@ -1,11 +1,9 @@
-const CACHE_NAME = 'motan-player-v9.0-shell-cache';
+/* Motan Player v10 — offline shell cache. Audio blobs stay in IndexedDB. */
+'use strict';
+const CACHE_NAME = 'motan-player-v10-quality-shell';
 const SHELL_ASSETS = [
-  './',
-  './index.html',
-  './manifest.json',
-  './theme-template.css',
-  './img/icon-192.png',
-  './img/icon-512.png'
+  './', './index.html', './manifest.json', './theme-template.css',
+  './img/icon-192.png', './img/icon-512.png'
 ];
 const OPTIONAL_ASSETS = [
   'https://cdnjs.cloudflare.com/ajax/libs/jsmediatags/3.9.5/jsmediatags.min.js',
@@ -13,69 +11,69 @@ const OPTIONAL_ASSETS = [
   'https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js',
   'https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Orbitron:wght@500&display=swap'
 ];
-
 self.addEventListener('install', event => {
   event.waitUntil((async () => {
     const cache = await caches.open(CACHE_NAME);
-    // Do not make installation fail just because an optional CDN is unavailable.
-    await cache.addAll(SHELL_ASSETS);
+    await Promise.all(SHELL_ASSETS.map(async url => {
+      try { const response = await fetch(url, { cache: 'reload' }); if (response.ok) await cache.put(url, response); }
+      catch (error) { console.warn('[Motan SW] Shell asset could not be cached:', url, error); }
+    }));
     await Promise.all(OPTIONAL_ASSETS.map(async url => {
-      try { const response = await fetch(url, { mode: 'no-cors' }); if (response && (response.ok || response.type === 'opaque')) await cache.put(url, response); } catch (_) {}
+      try {
+        const response = await fetch(url, { mode: 'no-cors', cache: 'reload' });
+        if (response && (response.ok || response.type === 'opaque')) await cache.put(url, response);
+      } catch (_) { /* Optional dependency: offline audio playback still works. */ }
     }));
     await self.skipWaiting();
   })());
 });
-
 self.addEventListener('activate', event => {
   event.waitUntil((async () => {
-    const names = await caches.keys();
-    await Promise.all(names.filter(name => name.startsWith('motan-player-') && name !== CACHE_NAME).map(name => caches.delete(name)));
+    const keys = await caches.keys();
+    await Promise.all(keys.filter(key => key.startsWith('motan-player-') && key !== CACHE_NAME).map(key => caches.delete(key)));
     await self.clients.claim();
   })());
 });
-
-self.addEventListener('message', event => {
-  if (event.data?.type === 'SKIP_WAITING') self.skipWaiting();
-  if (event.data?.type === 'REFRESH_INDEX') {
-    event.waitUntil((async () => {
-      const cache = await caches.open(CACHE_NAME);
-      try { await cache.delete('./index.html'); } catch (_) {}
-      try { const response = await fetch('./index.html', { cache: 'reload' }); if (response.ok) await cache.put('./index.html', response); } catch (_) {}
-    })());
-  }
-});
-
 self.addEventListener('fetch', event => {
   const request = event.request;
   if (request.method !== 'GET') return;
   const url = new URL(request.url);
-  // Never intercept audio blobs, IndexedDB, or cross-origin requests other than cached CDN assets.
-  const sameOrigin = url.origin === self.location.origin;
-  if (!sameOrigin && !OPTIONAL_ASSETS.some(item => item.startsWith(url.origin))) return;
+  if (url.origin !== self.location.origin) {
+    // Cache only explicitly optional dependencies; never cache arbitrary third-party media.
+    if (OPTIONAL_ASSETS.includes(request.url)) {
+      event.respondWith((async () => {
+        const cache = await caches.open(CACHE_NAME);
+        const cached = await cache.match(request);
+        if (cached) return cached;
+        try { const response = await fetch(request); if (response && (response.ok || response.type === 'opaque')) await cache.put(request, response.clone()); return response; }
+        catch (error) { throw error; }
+      })());
+    }
+    return;
+  }
   if (request.mode === 'navigate') {
     event.respondWith((async () => {
+      const cache = await caches.open(CACHE_NAME);
       try {
         const response = await fetch(request);
-        if (response.ok) (await caches.open(CACHE_NAME)).put('./index.html', response.clone());
+        if (response && response.ok) cache.put('./index.html', response.clone()).catch(() => {});
         return response;
       } catch (_) {
-        return (await caches.match('./index.html')) || (await caches.match('./')) || Response.error();
+        return (await cache.match(request)) || (await cache.match('./index.html')) || Response.error();
       }
     })());
     return;
   }
   event.respondWith((async () => {
-    const cached = await caches.match(request);
-    if (cached) return cached;
-    try {
-      const response = await fetch(request);
-      if (response && (response.ok || response.type === 'opaque')) {
-        const cache = await caches.open(CACHE_NAME);
-        cache.put(request, response.clone()).catch(() => {});
-      }
+    const cache = await caches.open(CACHE_NAME);
+    const cached = await cache.match(request);
+    const update = fetch(request).then(response => {
+      if (response && response.ok) cache.put(request, response.clone()).catch(() => {});
       return response;
-    } catch (_) {
-      return cached || Response.error();
-    }
+    }).catch(() => null);
+    if (cached) { event.waitUntil(update); return cached; }
+    const fresh = await update;
+    if (fresh) return fresh;
+    return Response.error();
   })());
 });
