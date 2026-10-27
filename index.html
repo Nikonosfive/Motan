@@ -6,7 +6,7 @@
       name="viewport"
       content="width=device-width, initial-scale=1.0, user-scalable=no"
     />
-    <title>Motan Player - Night Owl Edition</title>
+    <title>Motan Player v10 - Night Owl Edition</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jsmediatags/3.9.5/jsmediatags.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
 
@@ -1176,7 +1176,98 @@
         [data-design="graphical"] .toolbu { width:36px; height:36px; }
       }
     </style>
-  </head>
+  
+<style id="motan-v10-feature-styles">
+  :root { --motan-rack-bg:#171b22; --motan-rack-line:#3b4654; --motan-rack-led:#58e69b; }
+  .theme-profile-list { display:grid; gap:10px; margin-top:12px; }
+  .theme-profile-card { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:9px; align-items:center; padding:11px; background:var(--bg-sidebar); border:1px solid var(--border-color); border-radius:var(--motan-control-radius,9px); }
+  .theme-profile-main { min-width:0; display:grid; gap:6px; }
+  .theme-profile-name { overflow-wrap:anywhere; font-weight:650; }
+  .theme-profile-swatches { display:flex; gap:5px; flex-wrap:wrap; }
+  .theme-swatch { width:24px; height:18px; border:1px solid rgba(127,127,127,.6); border-radius:5px; display:inline-block; }
+  .theme-profile-actions { display:flex; flex-wrap:wrap; gap:5px; }
+  .theme-profile-actions button { min-height:34px; padding:6px 9px; }
+  .theme-css-reset-row { display:flex; flex-wrap:wrap; gap:8px; margin-top:9px; }
+  .theme-css-reset-row > button { flex:1 1 150px; }
+  .header-custom-buttons { display:flex; align-items:center; gap:8px; min-width:0; }
+  .header-custom-button { width:auto !important; min-width:36px; max-width:128px; height:36px; padding:0 10px; border-radius:18px; display:inline-flex; align-items:center; gap:6px; overflow:hidden; }
+  .header-custom-button svg { width:17px; height:17px; flex:0 0 17px; fill:currentColor; }
+  .header-custom-button span { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:82px; font-size:11px; }
+  .header-custom-button[hidden], #themeBtn[hidden] { display:none !important; }
+  .shortcut-config-list { display:grid; gap:10px; }
+  .shortcut-config-row { display:grid; grid-template-columns:minmax(90px,1fr) minmax(0,1.3fr); gap:7px 10px; align-items:center; padding:10px; border:1px solid var(--border-color); border-radius:var(--motan-control-radius,9px); background:var(--bg-sidebar); }
+  .shortcut-config-row label { min-width:0; display:grid; gap:5px; color:var(--text-sub); font-size:12px; }
+  .shortcut-config-row input,.shortcut-config-row select { width:100%; }
+  .rack-toolbar { display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+  .rack-toolbar select { flex:1 1 180px; }
+  .rack-json-editor { width:100%; min-height:130px; resize:vertical; font:12px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace; }
+  .rack-list { display:grid; gap:12px; margin:14px 0; }
+  .rack-empty { padding:22px 14px; text-align:center; border:1px dashed var(--border-color); border-radius:12px; color:var(--text-sub); }
+  .rack-module { color:#e8edf4; background:linear-gradient(145deg,#222a35,#11161d); border:1px solid #465362; border-radius:12px; box-shadow:0 8px 20px rgba(0,0,0,.17); overflow:hidden; }
+  .rack-module-head { display:grid; grid-template-columns:12px minmax(0,1fr) auto; gap:9px; align-items:center; padding:11px 12px; background:linear-gradient(90deg,#2a3543,#1b222b); border-bottom:1px solid #465362; }
+  .rack-led { width:9px; height:9px; border-radius:50%; background:#59616d; box-shadow:inset 0 0 0 1px rgba(0,0,0,.4); }
+  .rack-module.enabled .rack-led { background:var(--motan-rack-led); box-shadow:0 0 9px rgba(88,230,155,.55); }
+  .rack-module-name { color:#f3f7fc; font-weight:700; min-width:0; overflow-wrap:anywhere; }
+  .rack-module-type { color:#9eacbd; text-transform:uppercase; letter-spacing:.1em; font-size:9px; }
+  .rack-module-actions { display:flex; gap:5px; }
+  .rack-module-actions button { min-width:31px; min-height:31px; border-color:#586678; color:#edf4fa; background:linear-gradient(#354252,#242d39); box-shadow:none; }
+  .rack-module-body { display:grid; grid-template-columns:repeat(auto-fit,minmax(145px,1fr)); gap:12px; padding:14px; }
+  .rack-control { display:grid; gap:7px; min-width:0; color:#c5d0dd; font-size:11px; }
+  .rack-control output { color:#fff; font-variant-numeric:tabular-nums; }
+  .rack-control input[type=range] { width:100%; accent-color:#4fd1a1; }
+  .rack-control select { width:100%; background:#111821; color:#e8edf4; border-color:#465362; }
+  .rack-enable { display:inline-flex; align-items:center; gap:5px; color:#c5d0dd; font-size:11px; white-space:nowrap; }
+  .rack-enable input { accent-color:#4fd1a1; }
+  .rack-preset-row { display:flex; flex-wrap:wrap; gap:7px; margin-top:8px; }
+  .effect-playlist-dock { display:none; flex:1 1 50%; min-height:110px; overflow:auto; border-top:2px solid var(--motan-accent,var(--highlight)); background:var(--motan-rack-bg); padding:10px; color:#e8edf4; }
+  .playlist-container.has-effect-dock { overflow:hidden; }
+  .playlist-container.has-effect-dock #trackList { flex:1 1 50%; overflow-y:auto; min-height:0; }
+  .playlist-container.has-effect-dock .effect-playlist-dock { display:block; }
+  .effect-dock-title { display:flex; justify-content:space-between; align-items:center; gap:8px; margin:0 0 8px; color:#c5d0dd; font-size:11px; letter-spacing:.09em; text-transform:uppercase; }
+  .effect-dock-content { display:grid; grid-template-columns:repeat(auto-fit,minmax(165px,1fr)); gap:8px; }
+  .effect-dock-content .rack-module { min-width:0; }
+  .effect-dock-content .rack-module-body { grid-template-columns:1fr; padding:9px; }
+  .effect-dock-content .rack-module-head { padding:8px; }
+  .desktop-artwork-preview { display:none; flex:0 0 auto; min-width:0; max-height:250px; padding:9px; border-top:1px solid var(--border-color); background:var(--bg-player); }
+  .desktop-artwork-preview.visible { display:block; }
+  .desktop-artwork-preview .art-frame { width:100%; aspect-ratio:1; max-height:190px; display:grid; place-items:center; overflow:hidden; border-radius:10px; background:linear-gradient(135deg,#262f3c,#11161d); }
+  .desktop-artwork-preview img { width:100%; height:100%; object-fit:contain; display:block; }
+  .desktop-artwork-preview .art-placeholder { color:#8f9db0; font-size:11px; text-align:center; padding:14px; }
+  .desktop-artwork-title { margin-top:8px; font-size:12px; line-height:1.45; font-weight:650; overflow-wrap:anywhere; }
+  .desktop-artwork-artist { margin-top:3px; font-size:10px; line-height:1.4; color:var(--text-sub); overflow-wrap:anywhere; }
+  .sidebar-context-menu { position:fixed; z-index:1200; min-width:220px; max-width:min(300px,calc(100vw - 16px)); padding:6px; border:1px solid var(--border-color); border-radius:12px; background:var(--bg-player); color:var(--text-main); box-shadow:0 12px 36px rgba(0,0,0,.3); }
+  .sidebar-context-menu[hidden] { display:none; }
+  .sidebar-context-menu button { width:100%; display:flex; justify-content:flex-start; padding:10px 11px; min-height:38px; border:0; background:transparent; box-shadow:none; border-radius:7px; text-align:left; white-space:normal; line-height:1.4; }
+  .sidebar-context-menu button:hover { background:var(--list-item-hover); }
+  .sidebar-context-menu .menu-divider { height:1px; background:var(--border-color); margin:5px 3px; }
+  .sidebar-context-menu .danger { color:#e65b65; }
+  @media (max-width:700px) {
+    #sidebarContextMenu { display:none !important; }
+    .desktop-artwork-preview { display:none !important; }
+    .shortcut-config-row { grid-template-columns:1fr; }
+    .header-custom-button { max-width:82px; padding:0 7px; }
+    .header-custom-button span { max-width:42px; }
+    .effect-playlist-dock { flex-basis:50%; }
+  }
+</style>
+<style id="motan-v10-safe-widget-styles">
+  .rack-display { display:grid; gap:6px; min-height:54px; padding:10px 12px; border:1px inset #596778; border-radius:7px; background:linear-gradient(#0e141b,#1b2732); color:#b9ffd9; font:11px/1.4 ui-monospace,Menlo,monospace; box-shadow:inset 0 2px 8px rgba(0,0,0,.4); }
+  .rack-display output { color:#eafff3; letter-spacing:.08em; font-weight:700; overflow-wrap:anywhere; }
+  .rack-push { min-height:46px; width:100%; border:1px solid #566375; border-radius:7px; background:linear-gradient(#3b4858,#202a35); color:#f4f7fb; text-transform:uppercase; letter-spacing:.08em; font-weight:700; box-shadow:0 3px 0 #0d1116; touch-action:manipulation; }
+  .rack-push.pressed { transform:translateY(2px); box-shadow:0 1px 0 #0d1116,inset 0 2px 5px rgba(0,0,0,.45); border-color:var(--motan-rack-led); }
+  .rack-custom-toggle { justify-content:space-between; min-height:36px; padding:8px 10px; background:#202a35; border:1px solid #3f4e60; border-radius:7px; }
+  .rack-custom-toggle input { width:36px; height:20px; accent-color:#4fd1a1; }
+  .rack-control-lever select { appearance:auto; min-height:40px; font-weight:650; }
+  .rack-control-rotary { align-items:center; text-align:center; }
+  .rack-rotary { width:78px; height:78px; margin:4px auto 2px; border-radius:50%; touch-action:none; cursor:ns-resize; outline-offset:3px; display:grid; place-items:center; }
+  .rack-rotary-dial { width:64px; height:64px; position:relative; display:block; border-radius:50%; border:1px solid #607084; background:radial-gradient(circle at 35% 28%,#4e5b6b 0,#2b3542 43%,#131a22 76%); box-shadow:0 5px 8px rgba(0,0,0,.4),inset 0 1px 1px rgba(255,255,255,.18),inset 0 -4px 8px rgba(0,0,0,.5); }
+  .rack-rotary-pointer { position:absolute; top:7px; left:calc(50% - 1.5px); width:3px; height:22px; border-radius:2px; background:var(--motan-rack-led); box-shadow:0 0 6px rgba(88,230,155,.6); transform-origin:50% 25px; transform:rotate(var(--rotary-angle,-135deg)); }
+  .rack-module-body { align-items:start; }
+  #sidebarFileLoadBtn { color:var(--motan-accent,var(--highlight)); }
+  #sidebarFileLoadBtn svg { width:17px; height:17px; }
+  @media(max-width:700px) { .rack-module-body { grid-template-columns:minmax(0,1fr); } .rack-rotary { width:72px;height:72px; } }
+</style>
+</head>
 
   <body>
     <svg style="display: none">
@@ -1275,6 +1366,7 @@
         <symbol id="icon-sort" viewBox="0 0 24 24"><path d="M3 5h12v2H3zm0 6h9v2H3zm0 6h6v2H3zm14-11 4 4h-3v9h-2V10h-3z"/></symbol>
         <symbol id="icon-plus" viewBox="0 0 24 24"><path d="M11 4h2v7h7v2h-7v7h-2v-7H4v-2h7z"/></symbol>
         <symbol id="icon-files" viewBox="0 0 24 24"><path d="M4 4h10l3 3v4h-2V8h-2V6H6v12h6v2H4zm7 8h9v8h-9zm2 2v4h5v-4z"/></symbol>
+        <symbol id="icon-effects" viewBox="0 0 24 24"><path d="M4 3h16v18H4zM7 6h10v3H7zm0 5h10v2H7zm0 4h6v3H7z"/></symbol>
       </defs>
     </svg>
 
@@ -1282,6 +1374,7 @@
       <aside class="sidebar">
         <div class="sidebar-header">
           <span class="sidebar-title">PLAYLISTS</span>
+          <button class="add-playlist-btn" id="sidebarFileLoadBtn" title="Load audio files" aria-label="Load audio files"><svg aria-hidden="true"><use href="#icon-files"></use></svg></button>
           <button class="add-playlist-btn" onclick="createPlaylist()" id="sidebarAddPlaylistBtn" title="Create playlist" aria-label="Create playlist"><svg aria-hidden="true"><use href="#icon-plus"></use></svg></button>
           <button class="add-playlist-btn" id="sortPlaylistsBtn" title="Sort playlists" aria-label="Sort playlists"><svg aria-hidden="true"><use href="#icon-sort"></use></svg></button>
           <button
@@ -1298,6 +1391,11 @@
         <div id="artworkStack" aria-hidden="true"></div>
 
         <ul class="playlist-list" id="sidebarList"></ul>
+        <section id="desktopArtworkPreview" class="desktop-artwork-preview" aria-label="Now playing artwork">
+          <div class="art-frame"><div class="art-placeholder" data-art-placeholder>No artwork available</div><img data-art-image alt="Album artwork" hidden></div>
+          <div class="desktop-artwork-title" data-art-title>No track</div>
+          <div class="desktop-artwork-artist" data-art-artist></div>
+        </section>
       </aside>
       <div id="sidebarResizeHandle" class="sidebar-resize-handle" role="separator" aria-orientation="vertical" tabindex="0" title="Resize playlist sidebar" aria-label="Resize playlist sidebar"></div>
 
@@ -2158,7 +2256,7 @@
     if (!els.sidebarList || !els.mobileTabs) return;
     els.sidebarList.innerHTML=''; els.mobileTabs.innerHTML='';
     playlists.forEach(p=>{
-      const li=document.createElement('li');li.className='playlist-item'+(p.id===currentPlaylistId?' active':'');li.tabIndex=0;li.setAttribute('role','button');li.title=p.name;
+      const li=document.createElement('li');li.dataset.id=String(p.id);li.className='playlist-item'+(p.id===currentPlaylistId?' active':'');li.tabIndex=0;li.setAttribute('role','button');li.title=p.name;
       const name=document.createElement('span');name.textContent=p.name;name.style.minWidth='0';name.style.overflow='hidden';name.style.textOverflow='ellipsis';name.style.whiteSpace='nowrap';
       const actions=document.createElement('div');actions.className='pl-actions';
       const rename=document.createElement('button');rename.className='pl-btn';rename.type='button';rename.title='Rename playlist';rename.setAttribute('aria-label',`Rename ${p.name}`);rename.innerHTML='<svg aria-hidden="true"><use href="#icon-edit"></use></svg>';rename.addEventListener('click',e=>{e.stopPropagation();renamePlaylist(p.id,e);});actions.appendChild(rename);
@@ -4067,6 +4165,7 @@
   --motan-heading-font: "Orbitron";
   --motan-body-font: "Roboto";
 }`;
+    window.motanDefaultThemeCssTemplate = cssTemplate;
     $('#themeCssTemplate').value = localStorage.getItem('motan_lastThemeCSS') || cssTemplate;
     const visualizerSelect = $('#graphicalVisualizerSelect');
     if (visualizerSelect) {
@@ -4612,7 +4711,141 @@
     }catch(err){showToast(tr('miniPlayerOpenFailed'));}
   }
   function renderMiniPlayer(doc){
-    doc.open();doc.write(`<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Motan Mini Player</title><style>body{margin:0;padding:18px;background:#222;color:#eee;font:14px system-ui,sans-serif;display:flex;flex-direction:column;gap:12px}small{color:#aaa;letter-spacing:.14em}#track{font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}nav{display:flex;gap:10px;justify-content:center}button{width:48px;height:40px;border:1px solid #555;border-radius:12px;background:#333;color:#fff;font-size:18px}button:focus-visible{outline:2px solid #00b7ff}button#play{background:#00b7ff;color:#111}</style></head><body><small>MOTAN PLAYER</small><div id="track">${esc(els.nowPlaying.textContent||'NO DISC')}</div><nav><button id="prev" title="${esc(tr('previous'))}" aria-label="${esc(tr('previous'))}">Ⅱ◀</button><button id="play" title="${esc(tr('playPause'))}" aria-label="${esc(tr('playPause'))}">▶</button><button id="next" title="${esc(tr('next'))}" aria-label="${esc(tr('next'))}">▶Ⅱ</button></nav><small id="state">${isPlaying?esc(tr('playing')):esc(tr('paused'))}</small></body></html>`);doc.close();
+    doc.open();doc.write(`<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Motan Mini Player</title><style>body{margin:0;padding:18px;background:#222;color:#eee;font:14px system-ui,sans-serif;display:flex;flex-direction:column;gap:12px}small{color:#aaa;letter-spacing:.14em}#track{font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}nav{display:flex;gap:10px;justify-content:center}button{width:48px;height:40px;border:1px solid #555;border-radius:12px;background:#333;color:#fff;font-size:18px}button:focus-visible{outline:2px solid #00b7ff}button#play{background:#00b7ff;color:#111}</style></head><body><small>MOTAN PLAYER</small><div id="track">${esc(els.nowPlaying.textContent||'NO DISC')}</div><nav><button id="prev" title="${esc(tr('previous'))}" aria-label="${esc(tr('previous'))}">Ⅱ◀</button><button id="play" title="${esc(tr('playPause'))}" aria-label="${esc(tr('playPause'))}">▶</button><button id="next" title="${esc(tr('next'))}" aria-label="${esc(tr('next'))}">▶Ⅱ</button></nav><small id="state">${isPlaying?esc(tr('playing')):esc(tr('paused'))}</small>
+<style id="motan-v10-quality-polish">
+  /* Give every Control Center panel a little more breathing room vertically. */
+  #mainModal .main-modal-panels {
+    padding: clamp(24px, 2.6vw, 32px) clamp(20px, 2.5vw, 30px) clamp(34px, 4vh, 44px);
+  }
+  #mainModal .main-panel > .panel-section {
+    margin-bottom: 25px;
+    padding-bottom: 24px;
+  }
+  #mainModal .main-panel > .panel-section:last-child {
+    margin-bottom: 10px;
+    padding-bottom: 12px;
+  }
+  #mainModal .main-panel .panel-section h4 {
+    margin-top: 2px;
+    margin-bottom: 13px;
+    line-height: 1.48;
+  }
+  #mainModal .main-panel .panel-note {
+    line-height: 1.68;
+    margin-block: 9px 14px;
+  }
+  #mainModal .panel-actions { row-gap: 11px; }
+
+  /* The first shortcut used to inherit a forced 36px flex-basis, clipping its label. */
+  #hamburgerBtn { flex: 0 0 36px; width:36px; height:36px; padding:0; }
+  #themeBtn.header-custom-button.theme-shortcut.with-label { flex: 0 1 auto; width:auto !important; min-width:36px; padding-inline:11px; }
+  .header-custom-buttons { flex:0 1 auto; gap:7px; align-items:center; }
+  .header-custom-button {
+    box-sizing:border-box; flex:0 1 auto; min-width:36px; max-width:160px;
+    padding:0 10px; gap:7px; justify-content:center; white-space:nowrap;
+    line-height:1; vertical-align:middle;
+  }
+  .header-custom-button .shortcut-icon { display:block; width:18px; height:18px; flex:0 0 18px; margin:0; fill:currentColor; }
+  .header-custom-button span { display:block; min-width:0; max-width:86px; line-height:1.2; text-align:left; }
+  .header-custom-button span[hidden] { display:none !important; }
+  .header-custom-button.icon-only { flex:0 0 36px; width:36px !important; min-width:36px; padding:0; gap:0; justify-content:center; }
+  .header-custom-button.icon-only .shortcut-icon { width:18px; height:18px; margin:0; }
+  .shortcut-config-row .shortcut-show-label { grid-column:1 / -1; display:flex; align-items:center; justify-content:flex-start; gap:9px; padding-top:1px; }
+  .shortcut-config-row .shortcut-show-label input[type=checkbox] { width:17px; height:17px; margin:0; flex:0 0 17px; accent-color:var(--motan-accent,var(--highlight)); }
+  @media (max-width:700px) {
+    #mainModal .main-modal-panels { padding:20px 16px calc(34px + env(safe-area-inset-bottom)); }
+    #mainModal .main-panel > .panel-section { margin-bottom:22px; padding-bottom:21px; }
+    .header-custom-buttons { gap:5px; }
+    .header-custom-button.with-label { max-width:112px; padding-inline:8px; }
+    .header-custom-button.with-label span { max-width:55px; font-size:10px; }
+    .header-custom-button.icon-only { flex-basis:34px; width:34px !important; min-width:34px; }
+    #themeBtn.header-custom-button.theme-shortcut.with-label { max-width:112px; padding-inline:8px; }
+  }
+
+  /* Tactile, material-like rack hardware — scoped to effect modules only. */
+  .rack-module {
+    position:relative;
+    border:1px solid #637286;
+    border-radius:14px;
+    background:linear-gradient(155deg,#303c4b 0%,#202a35 42%,#121820 100%);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.16), inset 0 -2px 0 rgba(0,0,0,.42), 0 10px 24px rgba(0,0,0,.28);
+  }
+  .rack-module-head {
+    padding:14px 15px;
+    background:repeating-linear-gradient(180deg,rgba(255,255,255,.022) 0 1px,transparent 1px 3px),linear-gradient(180deg,#566575 0%,#3b4858 38%,#283340 100%);
+    border-bottom:1px solid #718195;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.24),inset 0 -1px 0 rgba(0,0,0,.3);
+  }
+  .rack-module-name { letter-spacing:.015em; text-shadow:0 1px 2px rgba(0,0,0,.8); }
+  .rack-module-type { margin-top:3px; color:#c0ccda; letter-spacing:.13em; }
+  .rack-module-actions { align-items:center; }
+  .rack-module-actions button {
+    min-width:32px; min-height:32px; border:1px solid #78899d;
+    border-bottom-color:#131a22; border-radius:8px;
+    background:linear-gradient(180deg,#77869a 0%,#4d5c6e 48%,#2a3542 100%);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.3),0 2px 0 #0c1117,0 3px 5px rgba(0,0,0,.25);
+    color:#f7fbff; font-weight:750;
+  }
+  .rack-module-actions button:active { transform:translateY(1px); box-shadow:inset 0 2px 4px rgba(0,0,0,.35),0 1px 0 #0c1117; }
+  .rack-module-body {
+    padding:15px;
+    background:linear-gradient(180deg,rgba(255,255,255,.028),transparent 45%),linear-gradient(135deg,#202a35,#151c24);
+  }
+  .rack-control {
+    padding:11px 12px 12px;
+    border:1px solid #3e4c5d; border-radius:10px;
+    background:linear-gradient(180deg,rgba(255,255,255,.055),rgba(255,255,255,.012)),linear-gradient(145deg,#26313e,#1a222c);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.08),inset 0 -1px 0 rgba(0,0,0,.22),0 2px 4px rgba(0,0,0,.13);
+  }
+  .rack-control > span:first-child { display:flex; align-items:center; justify-content:space-between; gap:8px; min-height:18px; color:#dbe4ef; letter-spacing:.025em; }
+  .rack-control output { padding:3px 6px; border:1px solid #354454; border-radius:5px; background:linear-gradient(180deg,#0d141b,#202b36); box-shadow:inset 0 1px 4px rgba(0,0,0,.62); color:#baffd8; white-space:nowrap; }
+  .rack-control input[type=range] { appearance:none; -webkit-appearance:none; width:100%; height:24px; margin:2px 0 0; padding:0; background:transparent; cursor:pointer; accent-color:#4fd1a1; }
+  .rack-control input[type=range]::-webkit-slider-runnable-track { height:7px; border:1px solid #4b5b6d; border-radius:99px; background:linear-gradient(180deg,#0b1016,#303b49); box-shadow:inset 0 2px 3px rgba(0,0,0,.7),0 1px 0 rgba(255,255,255,.08); }
+  .rack-control input[type=range]::-moz-range-track { height:7px; border:1px solid #4b5b6d; border-radius:99px; background:linear-gradient(180deg,#0b1016,#303b49); box-shadow:inset 0 2px 3px rgba(0,0,0,.7); }
+  .rack-control input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:17px; height:17px; margin-top:-6px; border:1px solid #d8e1eb; border-radius:50%; background:radial-gradient(circle at 35% 28%,#ffffff 0,#c9d5e1 42%,#718195 78%,#3d4959 100%); box-shadow:0 2px 4px rgba(0,0,0,.65),inset 0 1px 1px #fff; }
+  .rack-control input[type=range]::-moz-range-thumb { width:15px; height:15px; border:1px solid #d8e1eb; border-radius:50%; background:radial-gradient(circle at 35% 28%,#fff 0,#c9d5e1 42%,#718195 78%,#3d4959 100%); box-shadow:0 2px 4px rgba(0,0,0,.65),inset 0 1px 1px #fff; }
+  .rack-control select, .rack-control-lever select {
+    min-height:42px; padding:9px 35px 9px 11px; border:1px solid #718196; border-radius:8px;
+    color:#f1f6fc; background:linear-gradient(180deg,#485666 0%,#2b3745 52%,#202a35 100%);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.18),0 2px 0 #111820;
+    appearance:none;
+    background-image:linear-gradient(45deg,transparent 50%,#dbe4ef 50%),linear-gradient(135deg,#dbe4ef 50%,transparent 50%),linear-gradient(180deg,#485666 0%,#2b3745 52%,#202a35 100%);
+    background-position:calc(100% - 17px) 18px,calc(100% - 12px) 18px,0 0;
+    background-size:5px 5px,5px 5px,100% 100%; background-repeat:no-repeat;
+  }
+  .rack-enable { gap:9px; }
+  .rack-enable input[type=checkbox], .rack-custom-toggle input[type=checkbox] {
+    appearance:none; -webkit-appearance:none; position:relative; flex:0 0 40px; width:40px; height:23px; margin:0;
+    border:1px solid #64758a; border-radius:999px; background:linear-gradient(180deg,#111821,#344151);
+    box-shadow:inset 0 2px 4px rgba(0,0,0,.72),0 1px 0 rgba(255,255,255,.08); cursor:pointer; transition:background .16s,border-color .16s;
+  }
+  .rack-enable input[type=checkbox]::after, .rack-custom-toggle input[type=checkbox]::after {
+    content:""; position:absolute; top:2px; left:2px; width:17px; height:17px; border:1px solid #dae2ec; border-radius:50%;
+    background:radial-gradient(circle at 35% 28%,#fff 0,#d8e0e8 43%,#8d9bab 82%,#667486 100%);
+    box-shadow:0 2px 4px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.9); transition:transform .16s;
+  }
+  .rack-enable input[type=checkbox]:checked, .rack-custom-toggle input[type=checkbox]:checked { border-color:#65dfb0; background:linear-gradient(180deg,#0d6a53,#23a77c); box-shadow:inset 0 2px 4px rgba(0,0,0,.24),0 0 0 1px rgba(92,228,178,.13); }
+  .rack-enable input[type=checkbox]:checked::after, .rack-custom-toggle input[type=checkbox]:checked::after { transform:translateX(17px); }
+  .rack-custom-toggle { min-height:47px; padding:10px 12px; border:1px solid #435366; border-radius:10px; background:linear-gradient(180deg,#2e3a48,#1c252f); box-shadow:inset 0 1px 0 rgba(255,255,255,.1),0 2px 4px rgba(0,0,0,.18); }
+  .rack-push { min-height:48px; border:1px solid #75869b; border-bottom:3px solid #111820; border-radius:9px; background:linear-gradient(180deg,#66768a 0%,#435365 44%,#293542 100%); color:#f7fbff; box-shadow:inset 0 1px 0 rgba(255,255,255,.32),0 3px 6px rgba(0,0,0,.32); letter-spacing:.1em; text-shadow:0 1px 2px rgba(0,0,0,.7); }
+  .rack-push:hover { filter:brightness(1.08); }
+  .rack-push.pressed { transform:translateY(2px); border-bottom-width:1px; box-shadow:inset 0 3px 6px rgba(0,0,0,.5); }
+  .rack-display { min-height:62px; border:1px solid #52677a; border-radius:8px; background:repeating-linear-gradient(0deg,rgba(136,255,194,.025) 0 1px,transparent 1px 3px),linear-gradient(180deg,#07100f,#172b29); box-shadow:inset 0 3px 9px rgba(0,0,0,.75),inset 0 1px 0 rgba(255,255,255,.08),0 1px 0 rgba(255,255,255,.06); color:#97eabb; }
+  .rack-rotary { position:relative; width:88px; height:88px; border:1px solid #617286; border-radius:50%; background:radial-gradient(circle at 50% 45%,#455264 0%,#222c38 62%,#10161e 68%,#354251 72%,#131a22 100%); box-shadow:inset 0 2px 3px rgba(255,255,255,.12),inset 0 -5px 9px rgba(0,0,0,.7),0 4px 7px rgba(0,0,0,.45); }
+  .rack-rotary::before { content:""; position:absolute; inset:3px; border-radius:50%; background:repeating-conic-gradient(from -135deg,rgba(220,232,244,.78) 0deg 1deg,transparent 1deg 10deg); -webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 5px),#000 calc(100% - 4px)); mask:radial-gradient(farthest-side,transparent calc(100% - 5px),#000 calc(100% - 4px)); pointer-events:none; }
+  .rack-rotary-dial { border:1px solid #8c9bad; background:radial-gradient(circle at 32% 24%,#718095 0%,#465366 30%,#2b3543 58%,#151c25 82%); box-shadow:0 5px 8px rgba(0,0,0,.58),inset 0 1px 2px rgba(255,255,255,.3),inset 0 -5px 9px rgba(0,0,0,.6); }
+  .rack-rotary-pointer { width:3px; height:22px; background:linear-gradient(90deg,#5fe9ae,#dcfff0); box-shadow:0 0 7px rgba(88,230,155,.75); }
+  .rack-control-rotary { padding-bottom:14px; }
+  .effect-playlist-dock .rack-module { box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 5px 14px rgba(0,0,0,.28); }
+  @media (max-width:700px) {
+    #mainModal .main-modal-panels { padding:18px 14px calc(36px + env(safe-area-inset-bottom)); }
+    .rack-module-body { padding:11px; gap:9px; }
+    .rack-control { padding:10px; }
+    .rack-module-head { padding:11px 12px; }
+  }
+</style>
+
+</body></html>`);doc.close();
     const bind=()=>{doc.getElementById('prev')?.addEventListener('click',()=>$('#prevBtn').click());doc.getElementById('next')?.addEventListener('click',()=>$('#nextBtn').click());doc.getElementById('play')?.addEventListener('click',()=>els.playBtn.click());};bind();
     const update=()=>{try{if(doc.defaultView?.closed)return;doc.getElementById('track').textContent=els.nowPlaying.textContent||'NO DISC';doc.getElementById('state').textContent=isPlaying?tr('playing'):tr('paused');doc.getElementById('play').textContent=isPlaying?'Ⅱ':'▶';}catch(_){}};
     els.audio.addEventListener('play',update);els.audio.addEventListener('pause',update);els.audio.addEventListener('ended',update);document.addEventListener('motan-track-change',update);update();
@@ -4769,18 +5002,483 @@
   // Expose small extension hooks for future playback queue/effect modules without coupling them to DOM details.
   window.MotanExtensions = window.MotanExtensions || {};
   Object.assign(window.MotanExtensions,{
-    registerPanel({id,title,render}) {
+    registerPanel({id,title,render,icon=null}) {
       if(!id||!title||typeof render!=='function'||document.getElementById(id))return false;
       const panel=document.createElement('section');panel.id=id;panel.className='main-panel';panel.setAttribute('role','region');render(panel);$('#mainModalPanels').appendChild(panel);
-      const btn=document.createElement('button');btn.type='button';btn.className='main-nav-item';btn.dataset.panel=id;btn.setAttribute('role','tab');btn.setAttribute('aria-controls',id);btn.setAttribute('aria-selected','false');btn.textContent=title;btn.addEventListener('click',()=>openMainModal(id));$('#mainModalNav').appendChild(btn);return true;
+      const btn=document.createElement('button');btn.type='button';btn.className='main-nav-item';btn.dataset.panel=id;btn.setAttribute('role','tab');btn.setAttribute('aria-controls',id);btn.setAttribute('aria-selected','false');
+      if(typeof icon==='string'&&/^icon-[a-z0-9-]+$/.test(icon)){
+        const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');svg.setAttribute('class','main-nav-icon');svg.setAttribute('viewBox','0 0 24 24');svg.setAttribute('aria-hidden','true');
+        const use=document.createElementNS('http://www.w3.org/2000/svg','use');use.setAttribute('href',`#${icon}`);svg.appendChild(use);
+        const label=document.createElement('span');label.textContent=title;btn.append(svg,label);
+      }else btn.textContent=title;
+      btn.title=title;btn.setAttribute('aria-label',title);btn.addEventListener('click',()=>openMainModal(id));$('#mainModalNav').appendChild(btn);return true;
     },
     getCurrentTrack:()=>currentTrackList.find(t=>t.id===currentTrackId)||null,
     getAudioContext:()=>audioCtx,
     getEqualizerFilters:()=>eqFilters.slice(),
+    getAnalyserNode:()=>analyserNode,
+    isAudioInitialized:()=>audioInit,
+    getPlaylists:()=>playlists,
+    getCurrentPlaylistId:()=>currentPlaylistId,
+    applyThemeCss:applyUserThemeCss,
+    resetThemeCss:()=>{const node=document.getElementById(themeStyleId);if(node)node.remove();try{localStorage.removeItem('motan_lastThemeCSS');}catch(_){};return true;},
     toast:showToast,
     haptic
   });
 })();
 </script>
+
+<script id="motan-v10-feature-layer">
+/* Motan v10: theme library, declarative effect rack, custom shortcuts, sidebar menus, artwork viewer. */
+(() => {
+  'use strict';
+  const $ = (s, root=document) => root.querySelector(s);
+  const $$ = (s, root=document) => Array.from(root.querySelectorAll(s));
+  const EN = {
+    cssInvalid:'This CSS does not match the supported Motan theme format.',cssLibrary:'Theme library',cssLibraryNote:'Imported themes are stored locally. Preview uses the basic palette; only approved CSS variables are applied.',themeName:'Theme name',saveApplyCss:'Apply and save theme',resetTheme:'Initialize / reset current theme',deleteProfile:'Delete',applyProfile:'Apply',noProfiles:'No custom themes saved yet.',themeSaved:'Theme saved.',themeReset:'Current custom theme was reset.',themeDeleteConfirm:'Delete this saved theme?',
+    shortcuts:'Header shortcuts',shortcutsNote:'Configure up to three compact buttons beside the menu. No scripts are run; each button invokes a built-in Motan action.',shortcutCount:'Number of buttons',shortcutLabel:'Button label',shortcutAction:'Action',shortcutShowText:'Show button text',saveShortcuts:'Save shortcuts',shortcutsSaved:'Header shortcuts saved.',
+    actionTheme:'Open appearance',actionFiles:'Open file operations',actionPlaylist:'Open playlists',actionEQ:'Open equalizer',actionEffects:'Open effects rack',actionLanguage:'Open language',actionPlayPause:'Play / pause',actionPrevious:'Previous track',actionNext:'Next track',actionLoop:'Toggle repeat',actionShuffle:'Toggle shuffle',actionEQBypass:'Toggle EQ bypass',actionLight:'Use light mode',actionDark:'Use dark mode',actionAuto:'Use system theme',
+    effects:'Effects',effectsNote:'Effects use a declarative JSON format with a strict allowlist of built-in processors. Imported JavaScript is never executed.',effectType:'Built-in effect',addEffect:'Add effect',importJson:'Import JSON',loadFile:'Load effect file',copyExample:'Copy example JSON',effectJsonLabel:'Paste effect JSON',emptyEffects:'No effects installed. Add a built-in effect or import a Motan Effect JSON file.',effectEnabled:'Enabled',removeEffect:'Remove',moveUp:'Move up',moveDown:'Move down',effectSaved:'Effect rack saved.',effectInvalid:'Invalid effect file. Use the Motan Effect JSON schema and supported built-in types only.',effectLimit:'The rack can contain up to 12 effects.',effectRemoved:'Effect removed.',effectAdded:'Effect added.',effectName:'Effect name',effectDrive:'Drive',effectLevel:'Output level',effectBass:'Bass',effectMid:'Mid',effectTreble:'Treble',effectThreshold:'Threshold',effectRatio:'Ratio',effectMode:'Filter mode',effectCutoff:'Cutoff',effectResonance:'Resonance',effectTime:'Delay time',effectFeedback:'Feedback',effectMix:'Wet mix',effectGain:'Gain',effectTone:'3-band tone',effectCompressor:'Compressor',effectFilter:'Filter',effectDelay:'Delay',effectOverdrive:'Overdrive',effectInfo:'Effect settings',effectDock:'Show effects in lower playlist area',artworkWindow:'Show album artwork window (PC)',artworkEnabled:'Album artwork window enabled',hideArtwork:'Hide artwork window',showArtwork:'Show artwork window',showDock:'Show effects area',hideDock:'Hide effects area',openEffects:'Open effects tab',addPlaylist:'Add playlist',sortPlaylists:'Sort playlists',reorderPlaylists:'Reorder playlists',renamePlaylist:'Rename playlist',clearPlaylist:'Clear playlist',deletePlaylist:'Delete playlist',cancel:'Cancel',close:'Close',noArt:'No artwork available',noTrack:'No track selected',loadAudioFiles:'Load audio files',
+  };
+  const JA = {
+    cssInvalid:'CSS の形式が正しくありません。Motan の対応変数を確認してください。',cssLibrary:'テーマライブラリ',cssLibraryNote:'読み込んだテーマは端末内に保存されます。配色プレビューを表示し、許可された CSS 変数のみ適用します。',themeName:'テーマ名',saveApplyCss:'適用して保存',resetTheme:'現在のテーマを初期化',deleteProfile:'削除',applyProfile:'適用',noProfiles:'保存されたカスタムテーマはありません。',themeSaved:'テーマを保存しました。',themeReset:'現在のカスタムテーマを初期化しました。',themeDeleteConfirm:'この保存済みテーマを削除しますか？',
+    shortcuts:'ヘッダーショートカット',shortcutsNote:'メニュー横のボタンを最大3個まで設定できます。任意のスクリプトは実行せず、Motan の組み込み操作だけを呼び出します。',shortcutCount:'ボタン数',shortcutLabel:'ボタン名',shortcutAction:'操作',shortcutShowText:'ボタンの文字を表示',saveShortcuts:'ショートカットを保存',shortcutsSaved:'ショートカットを保存しました。',
+    actionTheme:'外観を開く',actionFiles:'ファイル操作を開く',actionPlaylist:'プレイリストを開く',actionEQ:'イコライザーを開く',actionEffects:'エフェクターを開く',actionLanguage:'言語設定を開く',actionPlayPause:'再生／一時停止',actionPrevious:'前の曲',actionNext:'次の曲',actionLoop:'リピート切替',actionShuffle:'シャッフル切替',actionEQBypass:'EQ のオン／オフ',actionLight:'ライトモード',actionDark:'ダークモード',actionAuto:'システム設定に合わせる',
+    effects:'エフェクター',effectsNote:'宣言型 JSON と、許可リストにある組み込みプロセッサーを使用します。読み込んだ JavaScript は実行されません。',effectType:'組み込みエフェクト',addEffect:'追加',importJson:'JSON を読み込む',loadFile:'エフェクターファイル',copyExample:'JSON サンプルをコピー',effectJsonLabel:'エフェクター JSON を貼り付け',emptyEffects:'エフェクターはありません。組み込みエフェクトを追加するか、Motan Effect JSON を読み込んでください。',effectEnabled:'有効',removeEffect:'削除',moveUp:'上へ',moveDown:'下へ',effectSaved:'エフェクター設定を保存しました。',effectInvalid:'形式が正しくありません。Motan Effect JSON と対応する組み込みタイプを使用してください。',effectLimit:'エフェクターは最大12個です。',effectRemoved:'エフェクターを削除しました。',effectAdded:'エフェクターを追加しました。',effectName:'エフェクター名',effectDrive:'ドライブ',effectLevel:'出力レベル',effectBass:'低音',effectMid:'中音',effectTreble:'高音',effectThreshold:'しきい値',effectRatio:'比率',effectMode:'フィルター方式',effectCutoff:'カットオフ',effectResonance:'共振',effectTime:'ディレイ時間',effectFeedback:'フィードバック',effectMix:'ウェット量',effectGain:'ゲイン',effectTone:'3バンドトーン',effectCompressor:'コンプレッサー',effectFilter:'フィルター',effectDelay:'ディレイ',effectOverdrive:'オーバードライブ',effectInfo:'エフェクト設定',effectDock:'プレイリスト下部にエフェクターを表示',artworkWindow:'アルバムアートワーク窓を表示（PC）',artworkEnabled:'アートワーク窓を有効化しました',hideArtwork:'アートワーク窓を隠す',showArtwork:'アートワーク窓を表示',showDock:'エフェクター領域を表示',hideDock:'エフェクター領域を隠す',openEffects:'エフェクタータブを開く',addPlaylist:'プレイリストを追加',sortPlaylists:'プレイリストをソート',reorderPlaylists:'プレイリストの順序を変更',renamePlaylist:'プレイリスト名を変更',clearPlaylist:'プレイリストを空にする',deletePlaylist:'プレイリストを削除',cancel:'キャンセル',close:'閉じる',noArt:'アートワークがありません',noTrack:'トラックが選択されていません',loadAudioFiles:'音声ファイルを読み込む',
+  };
+  const language = () => { const forced=localStorage.getItem('motan_language')||'auto'; if(forced==='ja'||forced==='en')return forced; return /^ja/i.test(navigator.language||'')?'ja':'en'; };
+  const t = k => (language()==='ja'?JA:EN)[k] || EN[k] || k;
+  const esc = s => String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const toast = msg => window.MotanExtensions?.toast?.(msg);
+  const haptic = n => window.MotanExtensions?.haptic?.(n||5);
+  const safeStore = (key,value) => { try { localStorage.setItem(key,JSON.stringify(value)); return true; } catch(e){console.warn('Motan setting could not be saved',key,e);toast(language()==='ja'?'設定を保存できませんでした。保存容量を確認してください。':'Could not save this setting. Check browser storage.');return false;} };
+  const readStore = (key,fallback) => { try { const v=JSON.parse(localStorage.getItem(key)||'null'); return v==null?fallback:v; } catch(_){ return fallback; } };
+  function openPanel(id){ const b=$(`#mainModalNav [data-panel="${id}"]`); if(b)b.click(); else if(id==='themeModal')$('#themeBtn')?.click(); }
+
+  // -- Theme CSS library ----------------------------------------------------
+  const cssProfilesKey='motan_theme_css_profiles_v1';
+  const getProfiles=()=>{const v=readStore(cssProfilesKey,[]);return Array.isArray(v)?v.filter(p=>p&&typeof p.css==='string'&&p.css.length<80000):[];};
+  function previewVars(css){
+    const result={}; const allowed=['--motan-bg','--motan-surface','--motan-sidebar','--motan-text','--motan-muted','--motan-accent','--motan-border','--motan-list','--motan-list-item','--motan-list-hover','--motan-list-active','--motan-button-bg'];
+    const clean=String(css||'').replace(/\/\*[\s\S]*?\*\//g,'');
+    for(const name of allowed){const rx=new RegExp(name.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'\\s*:\\s*([^;{}]+)','i');const m=rx.exec(clean);if(m)result[name]=m[1].trim();}
+    return result;
+  }
+  function renderThemeProfiles(){
+    const root=$('#themeCssProfilesList');if(!root)return;root.replaceChildren();const profiles=getProfiles();
+    if(!profiles.length){const empty=document.createElement('div');empty.className='rack-empty';empty.textContent=t('noProfiles');root.appendChild(empty);return;}
+    profiles.slice().reverse().forEach(profile=>{
+      const card=document.createElement('article');card.className='theme-profile-card';
+      const main=document.createElement('div');main.className='theme-profile-main';
+      const name=document.createElement('div');name.className='theme-profile-name';name.textContent=profile.name||'Custom theme';main.appendChild(name);
+      const swatches=document.createElement('div');swatches.className='theme-profile-swatches';const vars=previewVars(profile.css);
+      ['--motan-bg','--motan-surface','--motan-text','--motan-accent','--motan-list-active','--motan-button-bg'].forEach(k=>{const v=vars[k];if(!v)return;const sw=document.createElement('span');sw.className='theme-swatch';sw.title=`${k}: ${v}`;if(CSS.supports('background',v)&&!/(url\s*\(|expression|javascript:)/i.test(v))sw.style.background=v;swatches.appendChild(sw);});main.appendChild(swatches);
+      const actions=document.createElement('div');actions.className='theme-profile-actions';const apply=document.createElement('button');apply.type='button';apply.textContent=t('applyProfile');apply.addEventListener('click',()=>{if(window.MotanExtensions?.applyThemeCss?.(profile.css)){const area=$('#themeCssTemplate');if(area)area.value=profile.css;const n=$('#themeCssNameInput');if(n)n.value=profile.name||'';toast(t('themeSaved'));haptic();}else toast(t('cssInvalid'));});
+      const del=document.createElement('button');del.type='button';del.className='danger';del.textContent=t('deleteProfile');del.addEventListener('click',async()=>{if(!await confirmInline(t('themeDeleteConfirm')))return;const next=getProfiles().filter(x=>x.id!==profile.id);safeStore(cssProfilesKey,next);if(localStorage.getItem('motan_lastThemeCSS')===profile.css)resetCurrentTheme();renderThemeProfiles();});actions.append(apply,del);card.append(main,actions);root.appendChild(card);
+    });
+  }
+  function confirmInline(message){
+    return new Promise(resolve=>{
+      const root=$('#motanDialogRoot');if(!root){resolve(window.confirm(message));return;}root.replaceChildren();const scrim=document.createElement('div');scrim.className='motan-dialog-scrim';const box=document.createElement('section');box.className='motan-dialog';box.setAttribute('role','dialog');box.setAttribute('aria-modal','true');const p=document.createElement('p');p.textContent=message;const actions=document.createElement('div');actions.className='motan-dialog-actions';const no=document.createElement('button');no.textContent=t('cancel');const yes=document.createElement('button');yes.className='panel-button primary';yes.textContent=language()==='ja'?'削除':'Delete';actions.append(no,yes);box.append(p,actions);scrim.append(box);root.append(scrim);let done=false;const finish=v=>{if(done)return;done=true;root.replaceChildren();resolve(v)};no.onclick=()=>finish(false);yes.onclick=()=>finish(true);scrim.onclick=e=>{if(e.target===scrim)finish(false)};
+    });
+  }
+  function saveThemeProfile(name,css){
+    const trimmed=String(name||'').trim().slice(0,64)||`Custom theme ${new Date().toLocaleDateString()}`;
+    const profiles=getProfiles();const existing=profiles.find(p=>p.name.toLowerCase()===trimmed.toLowerCase());
+    const profile={id:existing?.id||`theme_${Date.now().toString(36)}_${Math.random().toString(36).slice(2,7)}`,name:trimmed,css:String(css),updatedAt:Date.now()};
+    const next=existing?profiles.map(p=>p.id===existing.id?profile:p):[...profiles,profile].slice(-30);if(!safeStore(cssProfilesKey,next))return false;renderThemeProfiles();return true;
+  }
+  function resetCurrentTheme(){
+    window.MotanExtensions?.resetThemeCss?.();
+    const area=$('#themeCssTemplate');if(area)area.value=window.motanDefaultThemeCssTemplate||'';
+    const name=$('#themeCssNameInput');if(name)name.value='';
+    toast(t('themeReset'));haptic(8);
+  }
+  function initThemeManager(){
+    const panel=$('#colorModal');if(!panel||$('#themeCssManager'))return;
+    const section=document.createElement('section');section.className='panel-section';section.id='themeCssManager';
+    section.innerHTML=`<h4>${esc(t('cssLibrary'))}</h4><p class="panel-note">${esc(t('cssLibraryNote'))}</p><label for="themeCssNameInput">${esc(t('themeName'))}</label><input id="themeCssNameInput" type="text" maxlength="64" placeholder="${esc(language()==='ja'?'例：Midnight Cyan':'e.g. Midnight Cyan')}" style="display:block;width:100%;margin:6px 0 10px"><div class="theme-css-reset-row"><button type="button" class="panel-button primary" id="applyThemeCssEditorBtn">${esc(t('saveApplyCss'))}</button><button type="button" class="panel-button" id="resetThemeCssBtn">${esc(t('resetTheme'))}</button></div><div id="themeCssProfilesList" class="theme-profile-list" aria-live="polite"></div>`;
+    panel.appendChild(section);
+    const input=$('#themeCssInput');
+    // Capture phase prevents the legacy handler from applying the file twice.
+    input?.addEventListener('change',async e=>{
+      e.stopImmediatePropagation();const file=input.files?.[0];if(!file)return;
+      try{if(file.size>80000)throw new Error('theme-too-large');const css=await file.text();if(!window.MotanExtensions?.applyThemeCss?.(css)){toast(t('cssInvalid'));return;}$('#themeCssTemplate').value=css;$('#themeCssNameInput').value=file.name.replace(/\.css$/i,'').slice(0,64);saveThemeProfile($('#themeCssNameInput').value,css);toast(t('themeSaved'));haptic();}
+      catch(err){console.warn('Theme CSS import failed',err);toast(t('cssInvalid'));}
+      finally{input.value='';}
+    },true);
+    $('#applyThemeCssEditorBtn').addEventListener('click',()=>{const css=$('#themeCssTemplate').value||'';if(!window.MotanExtensions?.applyThemeCss?.(css)){toast(t('cssInvalid'));return;}if(saveThemeProfile($('#themeCssNameInput').value,css))toast(t('themeSaved'));haptic();});
+    $('#resetThemeCssBtn').addEventListener('click',resetCurrentTheme);
+    renderThemeProfiles();
+  }
+
+  // -- Audio effect rack: declarative JSON only, no eval / function imports. --
+  const FX_KEY='motan_effect_rack_v1';
+  const FX_SCHEMA='motan-effect-v1';
+  const FX_DEFS={
+    gain:{label:'effectGain',controls:{level:{min:-24,max:12,step:.5,default:0,unit:' dB'}}},
+    tone:{label:'effectTone',controls:{bass:{min:-12,max:12,step:.5,default:0,unit:' dB'},mid:{min:-12,max:12,step:.5,default:0,unit:' dB'},treble:{min:-12,max:12,step:.5,default:0,unit:' dB'}}},
+    drive:{label:'effectOverdrive',controls:{drive:{min:0,max:100,step:1,default:24,unit:'%'},level:{min:-12,max:6,step:.5,default:0,unit:' dB'}}},
+    compressor:{label:'effectCompressor',controls:{threshold:{min:-60,max:0,step:1,default:-24,unit:' dB'},ratio:{min:1,max:20,step:.5,default:3,unit:':1'}}},
+    filter:{label:'effectFilter',controls:{mode:{kind:'select',default:'lowpass',options:['lowpass','highpass','bandpass']},cutoff:{min:80,max:18000,step:10,default:12000,unit:' Hz'},resonance:{min:.1,max:18,step:.1,default:.7,unit:' Q'}}},
+    delay:{label:'effectDelay',controls:{time:{min:0,max:.7,step:.01,default:.24,unit:' s'},feedback:{min:0,max:.65,step:.01,default:.18,unit:''},mix:{min:0,max:.8,step:.01,default:.15,unit:''}}}
+  };
+  let effects=readStore(FX_KEY,[]);if(!Array.isArray(effects))effects=[];effects=effects.map(e=>normalizeEffect(e)).filter(Boolean).slice(0,12);try{localStorage.setItem(FX_KEY,JSON.stringify(effects.map(e=>({schema:FX_SCHEMA,...e}))));}catch(_){}
+  let activeEffectNodes=new Map();
+  function defaultsFor(type){const def=FX_DEFS[type];const out={};Object.entries(def.controls).forEach(([k,v])=>out[k]=v.default);return out;}
+  const FX_UI_WIDGETS = new Set(['toggle','lever','slide','push','rotary','select','display']);
+  function normalizeEffectUi(ui, type){
+    if(!Array.isArray(ui))return null;
+    const rules=FX_DEFS[type].controls;
+    return ui.slice(0,16).map(item=>{
+      if(!item||typeof item!=='object'||Array.isArray(item)||!FX_UI_WIDGETS.has(item.widget))return null;
+      const widget=item.widget, label=String(item.label||item.control||widget).slice(0,36);
+      if(widget==='display')return {widget,label,text:String(item.text||'').slice(0,64)};
+      if(widget==='toggle')return item.target==='enabled'?{widget,label,target:'enabled'}:null;
+      if(widget==='push')return ['momentary-bypass','momentary-enable','reset'].includes(item.action)?{widget,label,action:item.action}:null;
+      const control=String(item.control||'');const rule=rules[control];if(!rule)return null;
+      if(rule.kind==='select'&&!['lever','select'].includes(widget))return null;
+      if(rule.kind!=='select'&&!['slide','rotary'].includes(widget))return null;
+      return {widget,label,control};
+    }).filter(Boolean);
+  }
+  function normalizeEffect(value){
+    if(!value||typeof value!=='object'||Array.isArray(value)||!FX_DEFS[value.type])return null;
+    const name=String(value.name||FX_DEFS[value.type].label).slice(0,48);const defaults=defaultsFor(value.type);const source=value.controls&&typeof value.controls==='object'&&!Array.isArray(value.controls)?value.controls:{};const controls={...defaults};
+    for(const [key,rule] of Object.entries(FX_DEFS[value.type].controls)){
+      if(rule.kind==='select'){if(rule.options.includes(source[key]))controls[key]=source[key];}
+      else if(source[key]!==undefined){const n=Number(source[key]);if(Number.isFinite(n))controls[key]=Math.max(rule.min,Math.min(rule.max,n));}
+    }
+    return {id:String(value.id||`fx_${Date.now().toString(36)}_${Math.random().toString(36).slice(2,7)}`).slice(0,100),name,type:value.type,enabled:value.enabled!==false,controls,ui:normalizeEffectUi(value.ui,value.type)};
+  }
+  function saveEffects(){safeStore(FX_KEY,effects.map(e=>({schema:FX_SCHEMA,...e})));renderEffectRack();updateEffectDock();}
+  function createDriveCurve(amount){const n=2048,curve=new Float32Array(n),drive=1+(Math.max(0,Math.min(100,amount))/100)*20,norm=Math.tanh(drive);for(let i=0;i<n;i++){const x=i*2/(n-1)-1;curve[i]=Math.tanh(drive*x)/norm;}return curve;}
+  function createEffectUnit(ctx,effect){
+    const p=effect.controls;let nodes=[];let input,output;const add=n=>{nodes.push(n);return n;};const connectSeries=list=>{for(let i=0;i<list.length-1;i++)list[i].connect(list[i+1]);input=list[0];output=list[list.length-1];};
+    const set=(key,value)=>{p[key]=value;try{
+      if(effect.type==='gain'&&key==='level')nodes[0].gain.setTargetAtTime(Math.pow(10,value/20),ctx.currentTime,.025);
+      if(effect.type==='tone'){const ix={bass:0,mid:1,treble:2}[key];if(ix!=null)nodes[ix].gain.setTargetAtTime(value,ctx.currentTime,.025);}
+      if(effect.type==='drive'){if(key==='drive')nodes[0].curve=createDriveCurve(value);if(key==='level')nodes[1].gain.setTargetAtTime(Math.pow(10,value/20),ctx.currentTime,.025);}
+      if(effect.type==='compressor'){const node=nodes[0];if(key==='threshold')node.threshold.setTargetAtTime(value,ctx.currentTime,.025);if(key==='ratio')node.ratio.setTargetAtTime(value,ctx.currentTime,.025);}
+      if(effect.type==='filter'){const node=nodes[0];if(key==='mode')node.type=value;if(key==='cutoff')node.frequency.setTargetAtTime(value,ctx.currentTime,.025);if(key==='resonance')node.Q.setTargetAtTime(value,ctx.currentTime,.025);}
+      if(effect.type==='delay'){if(key==='time')nodes[2].delayTime.setTargetAtTime(value,ctx.currentTime,.025);if(key==='feedback')nodes[3].gain.setTargetAtTime(value,ctx.currentTime,.025);if(key==='mix'){nodes[1].gain.setTargetAtTime(1-value,ctx.currentTime,.025);nodes[4].gain.setTargetAtTime(value,ctx.currentTime,.025);}}
+    }catch(err){console.debug('Effect control update skipped',err);}};
+    if(effect.type==='gain'){const n=add(ctx.createGain());n.gain.value=Math.pow(10,p.level/20);input=output=n;}
+    else if(effect.type==='tone'){const low=add(ctx.createBiquadFilter()),mid=add(ctx.createBiquadFilter()),high=add(ctx.createBiquadFilter());low.type='lowshelf';low.frequency.value=180;mid.type='peaking';mid.frequency.value=1000;mid.Q.value=1;high.type='highshelf';high.frequency.value=6500;low.gain.value=p.bass;mid.gain.value=p.mid;high.gain.value=p.treble;connectSeries(nodes);}
+    else if(effect.type==='drive'){const shaper=add(ctx.createWaveShaper()),gain=add(ctx.createGain());shaper.curve=createDriveCurve(p.drive);try{shaper.oversample='2x';}catch(_){}gain.gain.value=Math.pow(10,p.level/20);connectSeries(nodes);}
+    else if(effect.type==='compressor'){const n=add(ctx.createDynamicsCompressor());n.threshold.value=p.threshold;n.ratio.value=p.ratio;n.attack.value=.008;n.release.value=.18;input=output=n;}
+    else if(effect.type==='filter'){const n=add(ctx.createBiquadFilter());n.type=p.mode;n.frequency.value=p.cutoff;n.Q.value=p.resonance;input=output=n;}
+    else if(effect.type==='delay'){const inp=add(ctx.createGain()),dry=add(ctx.createGain()),delay=add(ctx.createDelay(1)),feedback=add(ctx.createGain()),wet=add(ctx.createGain()),out=add(ctx.createGain());inp.connect(dry);dry.connect(out);inp.connect(delay);delay.connect(wet);wet.connect(out);delay.connect(feedback);feedback.connect(delay);delay.delayTime.value=p.time;feedback.gain.value=p.feedback;dry.gain.value=1-p.mix;wet.gain.value=p.mix;input=inp;output=out;}
+    return {input,output,nodes,set,dispose(){nodes.forEach(n=>{try{n.disconnect();}catch(_){};if(window.OscillatorNode&&n instanceof window.OscillatorNode){try{n.stop();}catch(_){}};});}};
+  }
+  function rebuildEffectChain(){
+    try{
+      const ext=window.MotanExtensions;const ctx=ext?.getAudioContext?.();const filters=ext?.getEqualizerFilters?.()||[];const analyser=ext?.getAnalyserNode?.();
+      if(!ctx||ctx.state==='closed'||!filters.length||!analyser)return false;
+      const tail=filters[filters.length-1];activeEffectNodes.forEach(unit=>unit.dispose());activeEffectNodes.clear();try{tail.disconnect();}catch(_){}
+      let cursor=tail;
+      for(const fx of effects){if(!fx.enabled)continue;try{const unit=createEffectUnit(ctx,fx);cursor.connect(unit.input);cursor=unit.output;activeEffectNodes.set(fx.id,unit);}catch(error){console.warn('Skipping invalid effect unit',fx.name,error);}}
+      cursor.connect(analyser);return true;
+    }catch(error){console.warn('Effect chain rebuild failed; attempting dry playback',error);try{const filters=window.MotanExtensions?.getEqualizerFilters?.()||[];const analyser=window.MotanExtensions?.getAnalyserNode?.();if(filters.length&&analyser)filters[filters.length-1].connect(analyser);}catch(_){}return false;}
+  }
+  function syncEffectsFromUi(){
+    effects.forEach(fx=>{const unit=activeEffectNodes.get(fx.id);if(unit)Object.entries(fx.controls).forEach(([k,v])=>unit.set(k,v));});
+  }
+  function syncEffectControls(fx,key,value,rule){
+    document.querySelectorAll('[data-fx-id]').forEach(el=>{
+      if(el.dataset.fxId!==fx.id||el.dataset.fxControl!==key)return;
+      if(el.matches('input,select'))el.value=String(value);
+      if(el.dataset.fxWidget==='rotary'){
+        const min=Number(el.dataset.min),max=Number(el.dataset.max),pct=max>min?(Number(value)-min)/(max-min):0;
+        el.style.setProperty('--rotary-angle',`${-135+Math.max(0,Math.min(1,pct))*270}deg`);
+        el.setAttribute('aria-valuenow',String(value));
+      }
+      const out=el.closest('.rack-control')?.querySelector('output');
+      if(out)out.textContent=rule.kind==='select'?String(value):`${Number(value).toFixed(rule.step<1?2:0)}${rule.unit||''}`;
+    });
+  }
+  function effectControlMarkup(fx,key,rule){
+    const label=t(({level:'effectLevel',drive:'effectDrive',bass:'effectBass',mid:'effectMid',treble:'effectTreble',threshold:'effectThreshold',ratio:'effectRatio',mode:'effectMode',cutoff:'effectCutoff',resonance:'effectResonance',time:'effectTime',feedback:'effectFeedback',mix:'effectMix'})[key]||key);
+    if(rule.kind==='select')return `<label class="rack-control"><span>${esc(label)}</span><select data-fx-id="${esc(fx.id)}" data-fx-control="${key}">${rule.options.map(o=>`<option value="${o}" ${fx.controls[key]===o?'selected':''}>${esc(o)}</option>`).join('')}</select></label>`;
+    const val=fx.controls[key];return `<label class="rack-control"><span>${esc(label)} <output data-fx-value="${esc(fx.id)}:${key}">${Number(val).toFixed(rule.step<1?2:0)}${rule.unit||''}</output></span><input type="range" min="${rule.min}" max="${rule.max}" step="${rule.step}" value="${val}" data-fx-id="${esc(fx.id)}" data-fx-control="${key}" aria-label="${esc(label)}"></label>`;
+  }
+  function customEffectControlMarkup(fx,item){
+    const id=esc(fx.id),label=esc(item.label||item.widget),widget=item.widget;
+    if(widget==='display')return `<div class="rack-display"><span>${label}</span><output>${esc(item.text||'')}</output></div>`;
+    if(widget==='toggle')return `<label class="rack-enable rack-custom-toggle"><span>${label}</span><input type="checkbox" data-fx-id="${id}" data-fx-action="toggle-enabled" ${fx.enabled?'checked':''} aria-label="${label}"></label>`;
+    if(widget==='push')return `<button type="button" class="rack-push" data-fx-id="${id}" data-fx-action="${esc(item.action)}" title="${label}">${label}</button>`;
+    const key=item.control,rule=FX_DEFS[fx.type].controls[key],val=fx.controls[key];
+    if(!rule)return '';
+    if(widget==='lever'||widget==='select')return `<label class="rack-control rack-control-lever"><span>${label}</span><select data-fx-id="${id}" data-fx-control="${key}" aria-label="${label}" data-fx-widget="lever">${rule.options.map(o=>`<option value="${esc(o)}" ${val===o?'selected':''}>${esc(o)}</option>`).join('')}</select></label>`;
+    if(widget==='rotary'){
+      const pct=rule.max>rule.min?(Number(val)-rule.min)/(rule.max-rule.min):0,angle=-135+Math.max(0,Math.min(1,pct))*270;
+      return `<div class="rack-control rack-control-rotary"><span>${label} <output>${Number(val).toFixed(rule.step<1?2:0)}${esc(rule.unit||'')}</output></span><div class="rack-rotary" role="slider" tabindex="0" aria-label="${label}" aria-valuemin="${rule.min}" aria-valuemax="${rule.max}" aria-valuenow="${val}" data-fx-id="${id}" data-fx-control="${key}" data-fx-widget="rotary" data-min="${rule.min}" data-max="${rule.max}" data-step="${rule.step}" style="--rotary-angle:${angle}deg"><span class="rack-rotary-dial"><i class="rack-rotary-pointer"></i></span></div></div>`;
+    }
+    return `<label class="rack-control"><span>${label} <output>${Number(val).toFixed(rule.step<1?2:0)}${esc(rule.unit||'')}</output></span><input type="range" min="${rule.min}" max="${rule.max}" step="${rule.step}" value="${val}" data-fx-id="${id}" data-fx-control="${key}" data-fx-widget="slide" aria-label="${label}"></label>`;
+  }
+  function applyEffectParameter(control){
+    const fx=effects.find(x=>x.id===control.dataset.fxId);if(!fx)return;
+    const key=control.dataset.fxControl,rule=FX_DEFS[fx.type]?.controls?.[key];if(!rule)return;
+    let v=control.value;
+    if(rule.kind!=='select'){v=Number(v);if(!Number.isFinite(v))return;v=Math.max(rule.min,Math.min(rule.max,v));}
+    fx.controls[key]=v;
+    safeStore(FX_KEY,effects.map(e=>({schema:FX_SCHEMA,...e})));
+    activeEffectNodes.get(fx.id)?.set(key,v);
+    syncEffectControls(fx,key,v,rule);
+  }
+  function setEffectEnabled(fx,enabled,{persist=true,render=true}={}){
+    fx.enabled=!!enabled;
+    if(persist){safeStore(FX_KEY,effects.map(e=>({schema:FX_SCHEMA,...e})));}
+    document.querySelectorAll(`[data-effect-id="${CSS.escape(fx.id)}"]`).forEach(card=>card.classList.toggle('enabled',fx.enabled));
+    document.querySelectorAll(`[data-fx-id="${CSS.escape(fx.id)}"][data-fx-action="toggle-enabled"]`).forEach(el=>{if(el.matches('input'))el.checked=fx.enabled;});
+    rebuildEffectChain();
+    if(render){renderEffectRack();updateEffectDock();}
+  }
+  function resetEffectControls(fx){fx.controls=defaultsFor(fx.type);safeStore(FX_KEY,effects.map(e=>({schema:FX_SCHEMA,...e})));renderEffectRack();updateEffectDock();rebuildEffectChain();}
+  function bindEffectControls(root){
+    root.querySelectorAll('[data-fx-control]').forEach(control=>{
+      if(control.dataset.fxWidget==='rotary'){
+        let pointerStart=null;
+        const rule=()=>FX_DEFS[effects.find(x=>x.id===control.dataset.fxId)?.type]?.controls?.[control.dataset.fxControl];
+        const setFromPoint=e=>{if(!pointerStart)return;const r=control.getBoundingClientRect();const dy=pointerStart.y-e.clientY,dx=e.clientX-pointerStart.x;const delta=(dy+dx*.15)/80;const rr=rule();if(!rr)return;const value=Math.max(rr.min,Math.min(rr.max,Number(pointerStart.value)+delta*(rr.max-rr.min)));const stepped=Math.round(value/rr.step)*rr.step;const fx=effects.find(x=>x.id===control.dataset.fxId);if(!fx)return;fx.controls[control.dataset.fxControl]=Math.max(rr.min,Math.min(rr.max,stepped));activeEffectNodes.get(fx.id)?.set(control.dataset.fxControl,fx.controls[control.dataset.fxControl]);const pct=(fx.controls[control.dataset.fxControl]-rr.min)/(rr.max-rr.min);control.style.setProperty('--rotary-angle',`${-135+pct*270}deg`);control.setAttribute('aria-valuenow',String(fx.controls[control.dataset.fxControl]));const output=control.closest('.rack-control')?.querySelector('output');if(output)output.textContent=`${Number(fx.controls[control.dataset.fxControl]).toFixed(rr.step<1?2:0)}${rr.unit||''}`;}
+        control.addEventListener('pointerdown',e=>{const fx=effects.find(x=>x.id===control.dataset.fxId);if(!fx)return;pointerStart={x:e.clientX,y:e.clientY,value:Number(fx.controls[control.dataset.fxControl])};try{control.setPointerCapture(e.pointerId)}catch(_){}e.preventDefault();});
+        control.addEventListener('pointermove',e=>{if(pointerStart)setFromPoint(e);});
+        const finish=()=>{if(!pointerStart)return;pointerStart=null;applyEffectParameter({dataset:control.dataset,value:control.getAttribute('aria-valuenow')});};
+        control.addEventListener('pointerup',finish);control.addEventListener('pointercancel',finish);
+        control.addEventListener('keydown',e=>{if(!['ArrowUp','ArrowRight','ArrowDown','ArrowLeft','Home','End'].includes(e.key))return;e.preventDefault();const fx=effects.find(x=>x.id===control.dataset.fxId),rr=rule();if(!fx||!rr)return;let value=Number(fx.controls[control.dataset.fxControl]);if(e.key==='Home')value=rr.min;else if(e.key==='End')value=rr.max;else value+=(['ArrowUp','ArrowRight'].includes(e.key)?1:-1)*rr.step;value=Math.max(rr.min,Math.min(rr.max,value));fx.controls[control.dataset.fxControl]=value;const pct=(value-rr.min)/(rr.max-rr.min);control.style.setProperty('--rotary-angle',`${-135+pct*270}deg`);control.setAttribute('aria-valuenow',String(value));const output=control.closest('.rack-control')?.querySelector('output');if(output)output.textContent=`${Number(value).toFixed(rr.step<1?2:0)}${rr.unit||''}`;applyEffectParameter({dataset:control.dataset,value:String(value)});});
+        return;
+      }
+      if(control.dataset.fxAction==='toggle-enabled'){
+        control.addEventListener('change',()=>{const fx=effects.find(x=>x.id===control.dataset.fxId);if(fx)setEffectEnabled(fx,control.checked,{persist:true,render:true});});
+        return;
+      }
+      const rule=FX_DEFS[effects.find(x=>x.id===control.dataset.fxId)?.type]?.controls?.[control.dataset.fxControl];if(!rule)return;
+      control.addEventListener(control.tagName==='SELECT'?'change':'input',()=>applyEffectParameter(control));
+    });
+    root.querySelectorAll('[data-fx-action]:not([data-fx-control])').forEach(button=>{
+      const fx=effects.find(x=>x.id===button.dataset.fxId);if(!fx)return;
+      const action=button.dataset.fxAction;
+      if(action==='toggle-enabled'){button.addEventListener('change',()=>setEffectEnabled(fx,button.checked,{persist:true,render:true}));return;}
+      if(action==='reset'){button.addEventListener('click',()=>resetEffectControls(fx));return;}
+      if(!['momentary-bypass','momentary-enable'].includes(action))return;
+      let before=null;
+      const start=e=>{if(before!==null)return;before=fx.enabled;setEffectEnabled(fx,action==='momentary-enable'?true:false,{persist:false,render:false});button.classList.add('pressed');e?.preventDefault?.();};
+      const end=()=>{if(before===null)return;const restore=before;before=null;setEffectEnabled(fx,restore,{persist:false,render:false});button.classList.remove('pressed');};
+      button.addEventListener('pointerdown',start);button.addEventListener('pointerup',end);button.addEventListener('pointercancel',end);button.addEventListener('pointerleave',end);
+      button.addEventListener('keydown',e=>{if((e.key===' '||e.key==='Enter')&&!e.repeat)start(e);});button.addEventListener('keyup',e=>{if(e.key===' '||e.key==='Enter')end();});
+    });
+  }
+  function renderEffectRack(){
+    const root=$('#effectRackList');if(!root)return;root.replaceChildren();
+    if(!effects.length){const empty=document.createElement('div');empty.className='rack-empty';empty.textContent=t('emptyEffects');root.appendChild(empty);return;}
+    effects.forEach((fx,index)=>{
+      const def=FX_DEFS[fx.type],card=document.createElement('article');card.className=`rack-module${fx.enabled?' enabled':''}`;card.dataset.effectId=fx.id;
+      const head=document.createElement('header');head.className='rack-module-head';head.innerHTML=`<span class="rack-led" aria-hidden="true"></span><div><div class="rack-module-name">${esc(fx.name)}</div><div class="rack-module-type">${esc(def.label)} · ${index+1}</div></div>`;
+      const actions=document.createElement('div');actions.className='rack-module-actions';
+      const up=document.createElement('button');up.type='button';up.textContent='↑';up.title=t('moveUp');up.disabled=index===0;up.onclick=()=>moveEffect(index,-1);
+      const down=document.createElement('button');down.type='button';down.textContent='↓';down.title=t('moveDown');down.disabled=index===effects.length-1;down.onclick=()=>moveEffect(index,1);
+      const remove=document.createElement('button');remove.type='button';remove.textContent='×';remove.title=t('removeEffect');remove.onclick=()=>removeEffect(fx.id);
+      actions.append(up,down,remove);head.appendChild(actions);
+      const body=document.createElement('div');body.className='rack-module-body';
+      if(!(Array.isArray(fx.ui)&&fx.ui.some(item=>item.widget==='toggle'&&item.target==='enabled'))){
+        const toggleLabel=document.createElement('label');toggleLabel.className='rack-enable';const toggle=document.createElement('input');toggle.type='checkbox';toggle.checked=fx.enabled;toggle.dataset.fxId=fx.id;toggle.dataset.fxAction='toggle-enabled';toggle.setAttribute('aria-label',`${t('effectEnabled')}: ${fx.name}`);toggleLabel.append(toggle,document.createTextNode(t('effectEnabled')));body.appendChild(toggleLabel);
+      }
+      if(Array.isArray(fx.ui)&&fx.ui.length){fx.ui.forEach(item=>{const wrap=document.createElement('div');wrap.innerHTML=customEffectControlMarkup(fx,item);if(wrap.firstElementChild)body.appendChild(wrap.firstElementChild);});}
+      else Object.entries(def.controls).forEach(([key,rule])=>{const wrap=document.createElement('div');wrap.innerHTML=effectControlMarkup(fx,key,rule);body.appendChild(wrap.firstElementChild);});
+      card.append(head,body);root.appendChild(card);
+    });
+    bindEffectControls(root);
+  }
+  function updateEffectDock(){
+    const root=$('#effectDockContent');if(!root)return;root.replaceChildren();
+    const enabled=effects.filter(e=>e.enabled).slice(0,4);
+    if(!enabled.length){const msg=document.createElement('div');msg.className='rack-empty';msg.textContent=t('emptyEffects');root.appendChild(msg);return;}
+    enabled.forEach(fx=>{const def=FX_DEFS[fx.type],card=document.createElement('div');card.className='rack-module enabled';card.dataset.effectId=fx.id;const head=document.createElement('div');head.className='rack-module-head';head.innerHTML=`<span class="rack-led"></span><div><div class="rack-module-name">${esc(fx.name)}</div><div class="rack-module-type">${esc(def.label)}</div></div>`;const body=document.createElement('div');body.className='rack-module-body';
+      if(Array.isArray(fx.ui)&&fx.ui.length){fx.ui.forEach(item=>{const holder=document.createElement('div');holder.innerHTML=customEffectControlMarkup(fx,item);if(holder.firstElementChild)body.appendChild(holder.firstElementChild);});}
+      else Object.entries(def.controls).forEach(([key,rule])=>{const holder=document.createElement('div');holder.innerHTML=effectControlMarkup(fx,key,rule);body.appendChild(holder.firstElementChild);});
+      card.append(head,body);root.appendChild(card);});
+    bindEffectControls(root);
+  }
+  function makeEffect(type,name){if(!FX_DEFS[type])return null;return normalizeEffect({schema:FX_SCHEMA,id:`fx_${Date.now().toString(36)}_${Math.random().toString(36).slice(2,7)}`,name:name||t(FX_DEFS[type].label),type,enabled:true,controls:defaultsFor(type)});}
+  function addEffect(fx){if(!fx)return false;if(effects.length>=12){toast(t('effectLimit'));return false;}effects.push(fx);saveEffects();rebuildEffectChain();toast(t('effectAdded'));haptic(6);return true;}
+  function moveEffect(index,delta){const dest=index+delta;if(dest<0||dest>=effects.length)return;const [fx]=effects.splice(index,1);effects.splice(dest,0,fx);saveEffects();rebuildEffectChain();haptic(5);}
+  function removeEffect(id){effects=effects.filter(e=>e.id!==id);saveEffects();rebuildEffectChain();toast(t('effectRemoved'));haptic(8);}
+  function importEffectJson(text){
+    if(typeof text!=='string'||text.length>20000)throw new Error('effect-file-size');const parsed=JSON.parse(text);const input=Array.isArray(parsed)?parsed:[parsed];if(!input.length||input.length>12)throw new Error('effect-count');
+    const normalized=input.map(item=>{if(!item||item.schema!==FX_SCHEMA)throw new Error('effect-schema');const fx=normalizeEffect(item);if(!fx)throw new Error('effect-type');return fx;});
+    if(effects.length+normalized.length>12)throw new Error('effect-limit');normalized.forEach(f=>{f.id=`fx_${Date.now().toString(36)}_${Math.random().toString(36).slice(2,7)}`;effects.push(f);});saveEffects();rebuildEffectChain();toast(t('effectAdded'));haptic(7);
+  }
+  function exampleEffectJson(){return JSON.stringify({schema:FX_SCHEMA,name:'Warm Drive',type:'drive',enabled:true,controls:{drive:35,level:-1},ui:[{widget:'toggle',target:'enabled',label:'ON / BYPASS'},{widget:'rotary',control:'drive',label:'Drive'},{widget:'slide',control:'level',label:'Output'},{widget:'push',action:'momentary-bypass',label:'KILL'},{widget:'display',label:'STATUS',text:'WARM DRIVE'}]},null,2);}
+  function initEffectPanel(){
+    if($('#effectRackPanel'))return;const ext=window.MotanExtensions;if(!ext?.registerPanel)return;
+    const sample=makeEffect('drive','Warm Drive');
+    const ok=ext.registerPanel({id:'effectRackPanel',title:'Effects',icon:'icon-effects',render(panel){
+      panel.innerHTML=`<section class="panel-section"><h4>${esc(t('effects'))}</h4><p class="panel-note">${esc(t('effectsNote'))}</p><div class="rack-toolbar"><select id="effectTypeSelect" aria-label="${esc(t('effectType'))}">${Object.entries(FX_DEFS).map(([type,def])=>`<option value="${type}">${esc(t(def.label))}</option>`).join('')}</select><button class="panel-button primary" id="addBuiltInEffectBtn">${esc(t('addEffect'))}</button></div><div class="rack-list" id="effectRackList"></div></section><section class="panel-section"><h4>${esc(t('effectJsonLabel'))}</h4><textarea class="rack-json-editor" id="effectJsonEditor" spellcheck="false" aria-label="${esc(t('effectJsonLabel'))}" placeholder="${esc(exampleEffectJson())}"></textarea><input type="file" id="effectJsonFile" accept=".json,.motaneffect,application/json" hidden><div class="rack-preset-row"><button class="panel-button primary" id="importEffectJsonBtn">${esc(t('importJson'))}</button><button class="panel-button" id="loadEffectJsonBtn">${esc(t('loadFile'))}</button><button class="panel-button" id="copyEffectExampleBtn">${esc(t('copyExample'))}</button></div><p class="panel-note">schema: <code>${FX_SCHEMA}</code> · allowed DSP types: ${Object.keys(FX_DEFS).join(', ')} · UI widgets: toggle, lever, slide, push, rotary, select, display · no executable code</p></section><section class="panel-section"><label class="panel-note"><input type="checkbox" id="effectDockEnabled"> ${esc(t('effectDock'))}</label></section>`;
+    }});
+    if(!ok)return;
+    $('#addBuiltInEffectBtn').addEventListener('click',()=>{const type=$('#effectTypeSelect').value;addEffect(makeEffect(type,t(FX_DEFS[type].label)));renderEffectRack();updateEffectDock();});
+    $('#importEffectJsonBtn').addEventListener('click',()=>{try{importEffectJson($('#effectJsonEditor').value.trim());$('#effectJsonEditor').value='';}catch(error){console.warn('Effect JSON rejected',error);toast(t('effectInvalid'));}});
+    $('#loadEffectJsonBtn').addEventListener('click',()=>$('#effectJsonFile').click());
+    $('#effectJsonFile').addEventListener('change',async()=>{const file=$('#effectJsonFile').files?.[0];try{if(!file)return;if(file.size>20000)throw new Error('effect-too-large');importEffectJson(await file.text());}catch(error){console.warn('Effect file rejected',error);toast(t('effectInvalid'));}finally{$('#effectJsonFile').value='';}});
+    $('#copyEffectExampleBtn').addEventListener('click',async()=>{const text=exampleEffectJson();$('#effectJsonEditor').value=text;try{await navigator.clipboard.writeText(text);toast(language()==='ja'?'サンプル JSON をコピーしました。':'Example JSON copied.');}catch(_){$('#effectJsonEditor').focus();$('#effectJsonEditor').select();try{document.execCommand('copy');}catch(__){}}});
+    const dockCheck=$('#effectDockEnabled');dockCheck.checked=localStorage.getItem('motan_effect_dock')==='1';dockCheck.addEventListener('change',()=>setEffectDock(dockCheck.checked));
+    renderEffectRack();updateEffectDock();
+    const audio=$('#audioPlayer');audio?.addEventListener('playing',()=>setTimeout(rebuildEffectChain,0));audio?.addEventListener('loadedmetadata',()=>{if(window.MotanExtensions?.isAudioInitialized?.())rebuildEffectChain();});
+    // Audio may already be initialized before panel setup. Rebuild only after the existing graph exists.
+    if(ext.isAudioInitialized?.())rebuildEffectChain();
+  }
+  function setEffectDock(enabled){
+    enabled=!!enabled;try{localStorage.setItem('motan_effect_dock',enabled?'1':'0');}catch(_){}
+    const wrap=$('.playlist-container');if(wrap){wrap.classList.toggle('has-effect-dock',enabled);}
+    const check=$('#effectDockEnabled');if(check)check.checked=enabled;
+    const dock=$('#effectPlaylistDock');if(dock)dock.hidden=!enabled;haptic(5);
+  }
+
+  // -- Header quick buttons -------------------------------------------------
+  const ACTIONS=[
+    ['panel-theme','actionTheme','icon-palette'],['panel-files','actionFiles','icon-files'],['panel-playlist','actionPlaylist','icon-playlist'],['panel-eq','actionEQ','icon-eq'],['panel-effects','actionEffects','icon-effects'],['panel-language','actionLanguage','icon-language'],['play-pause','actionPlayPause','icon-play'],['previous','actionPrevious','icon-prev'],['next','actionNext','icon-next'],['toggle-loop','actionLoop','icon-loop'],['toggle-shuffle','actionShuffle','icon-shuffle'],['toggle-eq','actionEQBypass','icon-eq'],['color-light','actionLight','icon-sun'],['color-dark','actionDark','icon-dark'],['color-auto','actionAuto','icon-sun']
+  ];
+  const DEFAULT_SHORTCUTS=[{label:'Theme',showLabel:true,action:'panel-theme'}];
+  function getShortcutConfig(){
+    const x=readStore('motan_header_shortcuts_v1',DEFAULT_SHORTCUTS);
+    if(!Array.isArray(x))return DEFAULT_SHORTCUTS.map(v=>({...v}));
+    return x.filter(v=>v&&typeof v==='object').slice(0,3).map(v=>({
+      action: ACTIONS.some(a=>a[0]===v.action)?v.action:'panel-theme',
+      // Keep an explicitly empty label empty; older preferences without the field get a useful default.
+      label: typeof v.label==='string' ? v.label.slice(0,20) : t(ACTIONS.find(a=>a[0]===v.action)?.[1]||'actionTheme'),
+      showLabel: v.showLabel!==false
+    }));
+  }
+  function applyAction(action){
+    const map={'panel-theme':'colorModal','panel-files':'fileOperationsPanel','panel-playlist':'mobilePlModal','panel-eq':'eqModal','panel-effects':'effectRackPanel','panel-language':'languagePanel'};
+    if(map[action]){openPanel(map[action]);return;}
+    if(action==='play-pause')$('#playPauseBtn')?.click();else if(action==='previous')$('#prevBtn')?.click();else if(action==='next')$('#nextBtn')?.click();else if(action==='toggle-loop')$('#loopBtn')?.click();else if(action==='toggle-shuffle')$('#shuffleBtn')?.click();else if(action==='toggle-eq')toggleEqBypass();else if(action==='color-light')window.applyColorMode?.('light');else if(action==='color-dark')window.applyColorMode?.('dark');else if(action==='color-auto')window.applyColorMode?.('auto');
+  }
+  function iconForAction(action){const entry=ACTIONS.find(a=>a[0]===action);return entry?.[2]||'icon-cmd';}
+  function renderHeaderShortcuts(){
+    const theme=$('#themeBtn');if(!theme)return;let container=$('#customHeaderButtons');if(!container){container=document.createElement('div');container.id='customHeaderButtons';container.className='header-custom-buttons';theme.insertAdjacentElement('afterend',container);}
+    const config=getShortcutConfig();theme.hidden=config.length===0;
+    const draw=(btn,item,index)=>{
+      const actionLabel=t(ACTIONS.find(a=>a[0]===item.action)?.[1]||'actionTheme');
+      const label=String(item.label??'').trim().slice(0,20);
+      const showText=item.showLabel!==false&&label.length>0;
+      btn.className=`divbutton header-custom-button ${index===0?'theme-shortcut ':''}${showText?'with-label':'icon-only'}`.trim();
+      btn.type='button';btn.dataset.shortcutIndex=String(index);btn.title=label||actionLabel;btn.setAttribute('aria-label',label?`${actionLabel}: ${label}`:actionLabel);
+      btn.innerHTML=`<svg class="shortcut-icon" aria-hidden="true"><use href="#${iconForAction(item.action)}"></use></svg><span${showText?'':' hidden'}></span>`;
+      if(showText)btn.querySelector('span').textContent=label;
+      btn.hidden=false;btn.onclick=()=>applyAction(item.action);
+    };
+    if(config[0])draw(theme,config[0],0);else theme.hidden=true;container.replaceChildren();config.slice(1).forEach((item,i)=>{const b=document.createElement('button');draw(b,item,i+1);container.appendChild(b);});
+  }
+  function initShortcutSettings(){
+    const panel=$('#settingsModal');if(!panel||$('#shortcutSettingsSection'))return;const section=document.createElement('section');section.className='panel-section';section.id='shortcutSettingsSection';
+    section.innerHTML=`<h4>${esc(t('shortcuts'))}</h4><p class="panel-note">${esc(t('shortcutsNote'))}</p><label for="shortcutCount">${esc(t('shortcutCount'))}</label><select id="shortcutCount" style="display:block;width:100%;margin:6px 0 12px"><option value="1">1</option><option value="2">2</option><option value="3">3</option></select><div id="shortcutConfigRows" class="shortcut-config-list"></div><button class="panel-button primary" type="button" id="saveHeaderShortcutsBtn">${esc(t('saveShortcuts'))}</button>`;panel.appendChild(section);
+    const rows=$('#shortcutConfigRows'),count=$('#shortcutCount');
+    function drawRows(){
+      const current=getShortcutConfig();const n=Math.max(1,Math.min(3,Number(count.value)||1));rows.replaceChildren();
+      for(let i=0;i<n;i++){
+        const c=current[i]||{...DEFAULT_SHORTCUTS[0]};const row=document.createElement('div');row.className='shortcut-config-row';
+        const l1=document.createElement('label');l1.textContent=`${t('shortcutLabel')} ${i+1}`;const name=document.createElement('input');name.type='text';name.maxLength=20;name.value=typeof c.label==='string'?c.label:'';name.placeholder=language()==='ja'?'空欄ならアイコンのみ':'Leave blank for icon only';name.dataset.slotLabel='';l1.append(name);
+        const l2=document.createElement('label');l2.textContent=t('shortcutAction');const sel=document.createElement('select');sel.dataset.slotAction='';ACTIONS.forEach(([value,key])=>{const op=document.createElement('option');op.value=value;op.textContent=t(key);sel.appendChild(op);});sel.value=ACTIONS.some(a=>a[0]===c.action)?c.action:'panel-theme';l2.append(sel);
+        const l3=document.createElement('label');l3.className='shortcut-show-label';const check=document.createElement('input');check.type='checkbox';check.checked=c.showLabel!==false;check.dataset.slotShowLabel='';l3.append(check,document.createTextNode(t('shortcutShowText')));
+        row.append(l1,l2,l3);rows.appendChild(row);
+      }
+    }
+    count.value=String(Math.max(1,Math.min(3,getShortcutConfig().length)));count.addEventListener('change',drawRows);drawRows();
+    $('#saveHeaderShortcutsBtn').addEventListener('click',()=>{
+      const next=$$('.shortcut-config-row',rows).map(row=>({label:row.querySelector('[data-slot-label]').value.trim().slice(0,20),showLabel:row.querySelector('[data-slot-show-label]').checked,action:row.querySelector('[data-slot-action]').value})).filter(x=>x.action);
+      safeStore('motan_header_shortcuts_v1',next.slice(0,3));renderHeaderShortcuts();toast(t('shortcutsSaved'));haptic();
+    });
+  }
+  let eqBypassed=localStorage.getItem('motan_eq_bypass')==='1';
+  function toggleEqBypass(){
+    eqBypassed=!eqBypassed;localStorage.setItem('motan_eq_bypass',eqBypassed?'1':'0');const filters=window.MotanExtensions?.getEqualizerFilters?.()||[];const ranges=$$('#eqModal .eq-range');
+    filters.forEach((filter,i)=>{try{filter.gain.value=eqBypassed?0:Number(ranges[i]?.value??0);}catch(_){}});
+    toast(language()==='ja'?(eqBypassed?'イコライザーをバイパスしました。':'イコライザーを有効にしました。'):(eqBypassed?'Equalizer bypassed.':'Equalizer enabled.'));haptic(7);
+  }
+  function syncEqBypass(){if(!eqBypassed)return;const fs=window.MotanExtensions?.getEqualizerFilters?.()||[];fs.forEach(f=>{try{f.gain.value=0}catch(_){}});}
+
+  // -- Desktop sidebar art window and context actions ----------------------
+  function currentTrack(){return window.MotanExtensions?.getCurrentTrack?.()||null;}
+  function updateArtworkPreview(){
+    const root=$('#desktopArtworkPreview');if(!root)return;const t0=currentTrack();const title=$('[data-art-title]',root),artist=$('[data-art-artist]',root),img=$('[data-art-image]',root),placeholder=$('[data-art-placeholder]',root);
+    const titleText=t0?.customName||t0?.title||t0?.name||$('#nowPlaying')?.textContent||t('noTrack');const artistText=t0?.artist||'';
+    if(title)title.textContent=titleText;if(artist)artist.textContent=artistText;
+    if(img&&t0?.artwork){img.src=t0.artwork;img.hidden=false;if(placeholder)placeholder.hidden=true;}else{if(img){img.removeAttribute('src');img.hidden=true;}if(placeholder){placeholder.hidden=false;placeholder.textContent=t('noArt');}}
+  }
+  function setArtworkWindow(enabled){const root=$('#desktopArtworkPreview');if(!root)return;const preference=!!enabled;const visible=preference&&window.matchMedia('(min-width: 701px)').matches;root.classList.toggle('visible',visible);try{localStorage.setItem('motan_artwork_window',preference?'1':'0');}catch(_){}const check=$('#artworkWindowToggle');if(check)check.checked=preference;updateArtworkPreview();}
+  function refreshArtworkWindowForViewport(){const root=$('#desktopArtworkPreview');if(!root)return;const preference=localStorage.getItem('motan_artwork_window')==='1';root.classList.toggle('visible',preference&&window.matchMedia('(min-width: 701px)').matches);updateArtworkPreview();}
+  function ensurePlaylistOptions(){
+    const section=$('.playlist-management-section');if(!section||$('#artworkWindowToggle'))return;
+    const opts=document.createElement('div');opts.className='panel-section';opts.style.marginTop='12px';opts.innerHTML=`<label class="panel-note"><input type="checkbox" id="artworkWindowToggle"> ${esc(t('artworkWindow'))}</label><p class="panel-note">${esc(language()==='ja'?'PC のプレイリスト欄下部に再生中のアートワークと曲情報を表示します。':'Show the current artwork and track details at the bottom of the desktop playlist sidebar.')}</p>`;section.appendChild(opts);
+    const check=$('#artworkWindowToggle');check.checked=localStorage.getItem('motan_artwork_window')==='1';check.addEventListener('change',()=>setArtworkWindow(check.checked));setArtworkWindow(check.checked);
+  }
+  function createSidebarContext(){let menu=$('#sidebarContextMenu');if(menu)return menu;menu=document.createElement('div');menu.id='sidebarContextMenu';menu.className='sidebar-context-menu';menu.setAttribute('role','menu');menu.hidden=true;document.body.appendChild(menu);return menu;}
+  function hideSidebarContext(){const m=$('#sidebarContextMenu');if(m)m.hidden=true;}
+  function showSidebarContext(event,playlistId=null,area='sidebar'){
+    const menu=createSidebarContext();menu.replaceChildren();const currentId=window.MotanExtensions?.getCurrentPlaylistId?.()??'default';const p=playlistsSafe().find(x=>String(x.id)===String(playlistId||currentId));
+    const add=(label,fn,cls='')=>{const b=document.createElement('button');b.type='button';b.textContent=label;b.className=cls;b.setAttribute('role','menuitem');b.onclick=()=>{hideSidebarContext();fn();};menu.appendChild(b);};
+    const divider=()=>{const d=document.createElement('div');d.className='menu-divider';menu.appendChild(d);};
+    add(t('addPlaylist'),()=>window.createPlaylist?.());add(t('sortPlaylists'),()=>window.sortPlaylistsAlphabetically?.());add(t('reorderPlaylists'),()=>window.sortListsModal?.());
+    if(p){divider();add(t('renamePlaylist'),()=>window.renamePlaylist?.(p.id));add(t('clearPlaylist'),()=>{if(String(p.id)===String(currentId))window.clearCurrentPlaylist?.();else toast(language()==='ja'?'別のプレイリストのクリアは、そのプレイリストを開いてから実行してください。':'Open that playlist to clear it.');});if(p.id!=='default')add(t('deletePlaylist'),()=>window.deletePlaylist?.(p.id), 'danger');}
+    divider();const artOn=localStorage.getItem('motan_artwork_window')==='1';add(artOn?t('hideArtwork'):t('showArtwork'),()=>setArtworkWindow(!artOn));const dockOn=localStorage.getItem('motan_effect_dock')==='1';add(dockOn?t('hideDock'):t('showDock'),()=>setEffectDock(!dockOn));if(dockOn)add(t('openEffects'),()=>openPanel('effectRackPanel'));
+    const x=Math.max(8,Math.min(event.clientX,innerWidth-310)),y=Math.max(8,Math.min(event.clientY,innerHeight-430));menu.style.left=x+'px';menu.style.top=y+'px';menu.hidden=false;
+  }
+  function playlistsSafe(){try{return window.MotanExtensions?.getPlaylists?.()||[];}catch(_){return [];}}
+  function installContextMenus(){
+    document.addEventListener('contextmenu',e=>{
+      if(e.__motanV10Handled||e.target.closest('#trackList li')||e.target.closest('#trackContextMenu'))return;
+      const item=e.target.closest('#sidebarList .playlist-item');const side=e.target.closest('.sidebar');const dock=e.target.closest('#effectPlaylistDock');
+      if(item||side||dock){e.preventDefault();e.__motanV10Handled=true;showSidebarContext(e,item?.dataset?.id||null,dock?'effects':'sidebar');}
+    });
+    document.addEventListener('pointerdown',e=>{if(!e.target.closest('#sidebarContextMenu'))hideSidebarContext();},{passive:true});
+    document.addEventListener('keydown',e=>{if(e.key==='Escape')hideSidebarContext();});
+    $('#sidebarContextMenu')?.addEventListener('contextmenu',e=>e.preventDefault());
+    const playlistContainer=$('.playlist-container');playlistContainer?.addEventListener('contextmenu',e=>{if(e.__motanV10Handled||e.target.closest('#trackList li'))return;if(localStorage.getItem('motan_effect_dock')==='1'){e.preventDefault();e.__motanV10Handled=true;showSidebarContext(e,window.MotanExtensions?.getCurrentPlaylistId?.()||'default','effects');}});
+  }
+  function initEffectDockDom(){
+    const wrap=$('.playlist-container'),list=$('#trackList');if(!wrap||!list)return;let dock=$('#effectPlaylistDock');if(!dock){dock=document.createElement('section');dock.id='effectPlaylistDock';dock.className='effect-playlist-dock';dock.innerHTML=`<div class="effect-dock-title"><span>${esc(t('effects'))}</span><button type="button" id="openEffectPanelFromDock" class="panel-button">${esc(t('openEffects'))}</button></div><div id="effectDockContent" class="effect-dock-content"></div>`;wrap.insertBefore(dock,$('#playlistSummary'));$('#openEffectPanelFromDock').addEventListener('click',()=>openPanel('effectRackPanel'));}setEffectDock(localStorage.getItem('motan_effect_dock')==='1');
+  }
+
+  function installRobustness(){
+    const audio=$('#audioPlayer');audio?.addEventListener('playing',syncEqBypass);audio?.addEventListener('loadedmetadata',()=>{syncEqBypass();updateArtworkPreview();});audio?.addEventListener('play',()=>setTimeout(updateArtworkPreview,0));audio?.addEventListener('ended',()=>setTimeout(updateArtworkPreview,0));
+    const title=$('#nowPlaying');if(title&&window.MutationObserver){new MutationObserver(()=>updateArtworkPreview()).observe(title,{childList:true,characterData:true,subtree:true});}
+    window.addEventListener('resize',refreshArtworkWindowForViewport);
+    // Keep settings localized even if this extension layer initializes after the app's normal language pass.
+    const langSel=$('#languageSelect');langSel?.addEventListener('change',()=>setTimeout(()=>{initThemeManager();renderThemeProfiles();renderEffectRack();updateEffectDock();renderHeaderShortcuts();},0));
+    $$('#eqModal .eq-range').forEach((range,i)=>range.addEventListener('input',()=>{if(eqBypassed){const f=(window.MotanExtensions?.getEqualizerFilters?.()||[])[i];if(f)f.gain.value=0;}}));
+  }
+  function installFileLoadShortcut(){
+    const button=$('#sidebarFileLoadBtn');if(!button)return;
+    const label=()=>t('loadAudioFiles');button.title=label();button.setAttribute('aria-label',label());
+    button.addEventListener('click',()=>$('#fileInput')?.click());
+    $('#languageSelect')?.addEventListener('change',()=>{button.title=label();button.setAttribute('aria-label',label());});
+  }
+  function bootV10(){
+    try{installFileLoadShortcut();}catch(e){console.warn('File-load shortcut initialization failed',e);}
+    try{initThemeManager();}catch(e){console.warn('Theme library initialization failed',e);}
+    try{initEffectPanel();}catch(e){console.error('Effect rack initialization failed',e);}
+    try{initShortcutSettings();renderHeaderShortcuts();}catch(e){console.error('Header shortcut initialization failed',e);}
+    try{initEffectDockDom();ensurePlaylistOptions();}catch(e){console.warn('Playlist extensions initialization failed',e);}
+    try{installContextMenus();installRobustness();}catch(e){console.warn('Robustness handlers initialization failed',e);}
+    // Persist a bypass state across AudioContext initialization/recreation.
+    syncEqBypass();
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bootV10,{once:true});else bootV10();
+
+  // Public, intentionally narrow API for internal controls only.
+  window.MotanEffects={
+    schema:FX_SCHEMA,
+    getEffects:()=>effects.map(e=>JSON.parse(JSON.stringify(e))),
+    add:spec=>{try{const item=normalizeEffect(spec);if(!item||spec.schema!==FX_SCHEMA)throw new Error('invalid-spec');return addEffect(item);}catch(e){toast(t('effectInvalid'));return false;}},
+    remove:removeEffect,
+    move:moveEffect,
+    setEnabled:(id,enabled)=>{const fx=effects.find(x=>x.id===id);if(!fx)return false;fx.enabled=!!enabled;saveEffects();rebuildEffectChain();return true;},
+    setDock:setEffectDock,
+    rebuild:rebuildEffectChain
+  };
+})();
+</script>
+
   </body>
 </html>
