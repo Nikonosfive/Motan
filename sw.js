@@ -1,6 +1,6 @@
-/* Motan Player v10 — offline shell cache. Audio blobs stay in IndexedDB. */
+/* Motan Player v10.3 — tab spacing and effect rack spacing polish. Audio blobs stay in IndexedDB. */
 'use strict';
-const CACHE_NAME = 'motan-player-v10-quality-shell';
+const CACHE_NAME = 'motan-player-v10.3-tab-effects-spacing-shell';
 const SHELL_ASSETS = [
   './', './index.html', './manifest.json', './theme-template.css',
   './img/icon-192.png', './img/icon-512.png'
