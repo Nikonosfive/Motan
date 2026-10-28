@@ -1366,7 +1366,7 @@
         <symbol id="icon-sort" viewBox="0 0 24 24"><path d="M3 5h12v2H3zm0 6h9v2H3zm0 6h6v2H3zm14-11 4 4h-3v9h-2V10h-3z"/></symbol>
         <symbol id="icon-plus" viewBox="0 0 24 24"><path d="M11 4h2v7h7v2h-7v7h-2v-7H4v-2h7z"/></symbol>
         <symbol id="icon-files" viewBox="0 0 24 24"><path d="M4 4h10l3 3v4h-2V8h-2V6H6v12h6v2H4zm7 8h9v8h-9zm2 2v4h5v-4z"/></symbol>
-        <symbol id="icon-effects" viewBox="0 0 24 24"><path d="M4 3h16v18H4zM7 6h10v3H7zm0 5h10v2H7zm0 4h6v3H7z"/></symbol>
+        <symbol id="icon-effects" viewBox="0 0 24 24"><path d="M3 5.5A2.5 2.5 0 1 1 8 5.5a2.5 2.5 0 0 1-5 0Zm0 13A2.5 2.5 0 1 1 8 18.5a2.5 2.5 0 0 1-5 0ZM16 5.5A2.5 2.5 0 1 1 21 5.5a2.5 2.5 0 0 1-5 0Zm0 13a2.5 2.5 0 1 1 5 0 2.5 2.5 0 0 1-5 0ZM7.5 4.5h9v2h-9zm0 13h9v2h-9ZM11 6.5h2v11h-2Z"/></symbol>
       </defs>
     </svg>
 
@@ -1735,6 +1735,7 @@
 
       <audio
         id="audioPlayer"
+        preload="auto"
         crossorigin="anonymous"
         playsinline
         webkit-playsinline
@@ -4408,9 +4409,32 @@
   }
   function eqFreqLabel(i){return ['31','62','125','250','500','1k','2k','4k','8k','16k'][i]||'';}
 
+  // A bounded recovery helper for mobile browsers that abort play() during Blob-source handovers.
+  // It never loops continuously and preserves browser autoplay restrictions.
+  async function resilientAudioPlay(audio) {
+    try { await audio.play(); return true; }
+    catch (firstError) {
+      const retryable = ['AbortError', 'InvalidStateError', 'NotAllowedError'].includes(firstError?.name);
+      if (!retryable) throw firstError;
+      if (firstError?.name === 'NotAllowedError' && !document.hidden) throw firstError;
+      await new Promise(resolve => {
+        let finished = false;
+        const finish = () => {
+          if (finished) return; finished = true;
+          audio.removeEventListener('canplay', finish); audio.removeEventListener('loadeddata', finish);
+          resolve();
+        };
+        audio.addEventListener('canplay', finish, { once: true });
+        audio.addEventListener('loadeddata', finish, { once: true });
+        setTimeout(finish, 220);
+      });
+      try { await audio.play(); return true; } catch (secondError) { throw secondError; }
+    }
+  }
   // Override playback to retrieve an individual audio record only when required.
   window.playCurrent = async function() {
     if(!currentTrackList[currentIndex]) return;
+    window.__motanPlaybackIntent = true;
     const requestSerial=++playRequestSerial;
     const t=currentTrackList[currentIndex]; currentTrackId=t.id;
     try {
@@ -4421,7 +4445,7 @@
       const savedSpeed=parseFloat(localStorage.getItem('motan_speed')||'1');els.audio.playbackRate=Number.isFinite(savedSpeed)?savedSpeed:1;
       if(!audioInit) { try { initAudio(); } catch (audioError) { console.warn("Web Audio initialization failed; attempting native audio playback.", audioError); } }
       if(audioCtx&&audioCtx.state==='suspended') { try{await audioCtx.resume();}catch(resumeError){console.debug("AudioContext resume deferred:",resumeError);} }
-      await els.audio.play();
+      await resilientAudioPlay(els.audio);
       isPlaying=true;
       window.motanSetMediaPlaybackState?.("playing");
       localStorage.setItem('motan_lastTrackId',String(t.id));
@@ -4437,8 +4461,9 @@
   };
   window.nextTrack = function() {
     if(!currentTrackList.length)return;
+    window.__motanPlaybackIntent = true;
     if(shuffle) currentIndex=Math.floor(Math.random()*currentTrackList.length);
-    else {currentIndex++;if(currentIndex>=currentTrackList.length){if(loopMode===2)currentIndex=0;else{currentIndex--;isPlaying=false;els.audio.pause();updatePlayBtn();return;}}}
+    else {currentIndex++;if(currentIndex>=currentTrackList.length){if(loopMode===2)currentIndex=0;else{currentIndex--;isPlaying=false;window.__motanPlaybackIntent=false;els.audio.pause();updatePlayBtn();return;}}}
     playCurrent();
   };
   let lastContextResumeAttempt = 0;
@@ -4702,153 +4727,66 @@
   async function openMiniPlayer(){
     try {
       if(window.documentPictureInPicture?.requestWindow){
-        pipWindow=await window.documentPictureInPicture.requestWindow({width:320,height:190});
+        pipWindow=await window.documentPictureInPicture.requestWindow({width:360,height:340});
         renderMiniPlayer(pipWindow.document);pipWindow.addEventListener('pagehide',()=>{pipWindow=null;});
       } else {
         showToast(tr('pipUnsupported'));
-        const win=window.open('','motan-mini-player','popup=yes,width=340,height=220,resizable=yes');if(!win)return;pipWindow=win;renderMiniPlayer(win.document);win.addEventListener('pagehide',()=>{pipWindow=null;});
+        const win=window.open('','motan-mini-player','popup=yes,width=360,height=340,resizable=yes');if(!win)return;pipWindow=win;renderMiniPlayer(win.document);win.addEventListener('pagehide',()=>{pipWindow=null;});
       }
     }catch(err){showToast(tr('miniPlayerOpenFailed'));}
   }
   function renderMiniPlayer(doc){
-    doc.open();doc.write(`<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Motan Mini Player</title><style>body{margin:0;padding:18px;background:#222;color:#eee;font:14px system-ui,sans-serif;display:flex;flex-direction:column;gap:12px}small{color:#aaa;letter-spacing:.14em}#track{font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}nav{display:flex;gap:10px;justify-content:center}button{width:48px;height:40px;border:1px solid #555;border-radius:12px;background:#333;color:#fff;font-size:18px}button:focus-visible{outline:2px solid #00b7ff}button#play{background:#00b7ff;color:#111}</style></head><body><small>MOTAN PLAYER</small><div id="track">${esc(els.nowPlaying.textContent||'NO DISC')}</div><nav><button id="prev" title="${esc(tr('previous'))}" aria-label="${esc(tr('previous'))}">Ⅱ◀</button><button id="play" title="${esc(tr('playPause'))}" aria-label="${esc(tr('playPause'))}">▶</button><button id="next" title="${esc(tr('next'))}" aria-label="${esc(tr('next'))}">▶Ⅱ</button></nav><small id="state">${isPlaying?esc(tr('playing')):esc(tr('paused'))}</small>
-<style id="motan-v10-quality-polish">
-  /* Give every Control Center panel a little more breathing room vertically. */
-  #mainModal .main-modal-panels {
-    padding: clamp(24px, 2.6vw, 32px) clamp(20px, 2.5vw, 30px) clamp(34px, 4vh, 44px);
-  }
-  #mainModal .main-panel > .panel-section {
-    margin-bottom: 25px;
-    padding-bottom: 24px;
-  }
-  #mainModal .main-panel > .panel-section:last-child {
-    margin-bottom: 10px;
-    padding-bottom: 12px;
-  }
-  #mainModal .main-panel .panel-section h4 {
-    margin-top: 2px;
-    margin-bottom: 13px;
-    line-height: 1.48;
-  }
-  #mainModal .main-panel .panel-note {
-    line-height: 1.68;
-    margin-block: 9px 14px;
-  }
-  #mainModal .panel-actions { row-gap: 11px; }
-
-  /* The first shortcut used to inherit a forced 36px flex-basis, clipping its label. */
-  #hamburgerBtn { flex: 0 0 36px; width:36px; height:36px; padding:0; }
-  #themeBtn.header-custom-button.theme-shortcut.with-label { flex: 0 1 auto; width:auto !important; min-width:36px; padding-inline:11px; }
-  .header-custom-buttons { flex:0 1 auto; gap:7px; align-items:center; }
-  .header-custom-button {
-    box-sizing:border-box; flex:0 1 auto; min-width:36px; max-width:160px;
-    padding:0 10px; gap:7px; justify-content:center; white-space:nowrap;
-    line-height:1; vertical-align:middle;
-  }
-  .header-custom-button .shortcut-icon { display:block; width:18px; height:18px; flex:0 0 18px; margin:0; fill:currentColor; }
-  .header-custom-button span { display:block; min-width:0; max-width:86px; line-height:1.2; text-align:left; }
-  .header-custom-button span[hidden] { display:none !important; }
-  .header-custom-button.icon-only { flex:0 0 36px; width:36px !important; min-width:36px; padding:0; gap:0; justify-content:center; }
-  .header-custom-button.icon-only .shortcut-icon { width:18px; height:18px; margin:0; }
-  .shortcut-config-row .shortcut-show-label { grid-column:1 / -1; display:flex; align-items:center; justify-content:flex-start; gap:9px; padding-top:1px; }
-  .shortcut-config-row .shortcut-show-label input[type=checkbox] { width:17px; height:17px; margin:0; flex:0 0 17px; accent-color:var(--motan-accent,var(--highlight)); }
-  @media (max-width:700px) {
-    #mainModal .main-modal-panels { padding:20px 16px calc(34px + env(safe-area-inset-bottom)); }
-    #mainModal .main-panel > .panel-section { margin-bottom:22px; padding-bottom:21px; }
-    .header-custom-buttons { gap:5px; }
-    .header-custom-button.with-label { max-width:112px; padding-inline:8px; }
-    .header-custom-button.with-label span { max-width:55px; font-size:10px; }
-    .header-custom-button.icon-only { flex-basis:34px; width:34px !important; min-width:34px; }
-    #themeBtn.header-custom-button.theme-shortcut.with-label { max-width:112px; padding-inline:8px; }
-  }
-
-  /* Tactile, material-like rack hardware — scoped to effect modules only. */
-  .rack-module {
-    position:relative;
-    border:1px solid #637286;
-    border-radius:14px;
-    background:linear-gradient(155deg,#303c4b 0%,#202a35 42%,#121820 100%);
-    box-shadow:inset 0 1px 0 rgba(255,255,255,.16), inset 0 -2px 0 rgba(0,0,0,.42), 0 10px 24px rgba(0,0,0,.28);
-  }
-  .rack-module-head {
-    padding:14px 15px;
-    background:repeating-linear-gradient(180deg,rgba(255,255,255,.022) 0 1px,transparent 1px 3px),linear-gradient(180deg,#566575 0%,#3b4858 38%,#283340 100%);
-    border-bottom:1px solid #718195;
-    box-shadow:inset 0 1px 0 rgba(255,255,255,.24),inset 0 -1px 0 rgba(0,0,0,.3);
-  }
-  .rack-module-name { letter-spacing:.015em; text-shadow:0 1px 2px rgba(0,0,0,.8); }
-  .rack-module-type { margin-top:3px; color:#c0ccda; letter-spacing:.13em; }
-  .rack-module-actions { align-items:center; }
-  .rack-module-actions button {
-    min-width:32px; min-height:32px; border:1px solid #78899d;
-    border-bottom-color:#131a22; border-radius:8px;
-    background:linear-gradient(180deg,#77869a 0%,#4d5c6e 48%,#2a3542 100%);
-    box-shadow:inset 0 1px 0 rgba(255,255,255,.3),0 2px 0 #0c1117,0 3px 5px rgba(0,0,0,.25);
-    color:#f7fbff; font-weight:750;
-  }
-  .rack-module-actions button:active { transform:translateY(1px); box-shadow:inset 0 2px 4px rgba(0,0,0,.35),0 1px 0 #0c1117; }
-  .rack-module-body {
-    padding:15px;
-    background:linear-gradient(180deg,rgba(255,255,255,.028),transparent 45%),linear-gradient(135deg,#202a35,#151c24);
-  }
-  .rack-control {
-    padding:11px 12px 12px;
-    border:1px solid #3e4c5d; border-radius:10px;
-    background:linear-gradient(180deg,rgba(255,255,255,.055),rgba(255,255,255,.012)),linear-gradient(145deg,#26313e,#1a222c);
-    box-shadow:inset 0 1px 0 rgba(255,255,255,.08),inset 0 -1px 0 rgba(0,0,0,.22),0 2px 4px rgba(0,0,0,.13);
-  }
-  .rack-control > span:first-child { display:flex; align-items:center; justify-content:space-between; gap:8px; min-height:18px; color:#dbe4ef; letter-spacing:.025em; }
-  .rack-control output { padding:3px 6px; border:1px solid #354454; border-radius:5px; background:linear-gradient(180deg,#0d141b,#202b36); box-shadow:inset 0 1px 4px rgba(0,0,0,.62); color:#baffd8; white-space:nowrap; }
-  .rack-control input[type=range] { appearance:none; -webkit-appearance:none; width:100%; height:24px; margin:2px 0 0; padding:0; background:transparent; cursor:pointer; accent-color:#4fd1a1; }
-  .rack-control input[type=range]::-webkit-slider-runnable-track { height:7px; border:1px solid #4b5b6d; border-radius:99px; background:linear-gradient(180deg,#0b1016,#303b49); box-shadow:inset 0 2px 3px rgba(0,0,0,.7),0 1px 0 rgba(255,255,255,.08); }
-  .rack-control input[type=range]::-moz-range-track { height:7px; border:1px solid #4b5b6d; border-radius:99px; background:linear-gradient(180deg,#0b1016,#303b49); box-shadow:inset 0 2px 3px rgba(0,0,0,.7); }
-  .rack-control input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:17px; height:17px; margin-top:-6px; border:1px solid #d8e1eb; border-radius:50%; background:radial-gradient(circle at 35% 28%,#ffffff 0,#c9d5e1 42%,#718195 78%,#3d4959 100%); box-shadow:0 2px 4px rgba(0,0,0,.65),inset 0 1px 1px #fff; }
-  .rack-control input[type=range]::-moz-range-thumb { width:15px; height:15px; border:1px solid #d8e1eb; border-radius:50%; background:radial-gradient(circle at 35% 28%,#fff 0,#c9d5e1 42%,#718195 78%,#3d4959 100%); box-shadow:0 2px 4px rgba(0,0,0,.65),inset 0 1px 1px #fff; }
-  .rack-control select, .rack-control-lever select {
-    min-height:42px; padding:9px 35px 9px 11px; border:1px solid #718196; border-radius:8px;
-    color:#f1f6fc; background:linear-gradient(180deg,#485666 0%,#2b3745 52%,#202a35 100%);
-    box-shadow:inset 0 1px 0 rgba(255,255,255,.18),0 2px 0 #111820;
-    appearance:none;
-    background-image:linear-gradient(45deg,transparent 50%,#dbe4ef 50%),linear-gradient(135deg,#dbe4ef 50%,transparent 50%),linear-gradient(180deg,#485666 0%,#2b3745 52%,#202a35 100%);
-    background-position:calc(100% - 17px) 18px,calc(100% - 12px) 18px,0 0;
-    background-size:5px 5px,5px 5px,100% 100%; background-repeat:no-repeat;
-  }
-  .rack-enable { gap:9px; }
-  .rack-enable input[type=checkbox], .rack-custom-toggle input[type=checkbox] {
-    appearance:none; -webkit-appearance:none; position:relative; flex:0 0 40px; width:40px; height:23px; margin:0;
-    border:1px solid #64758a; border-radius:999px; background:linear-gradient(180deg,#111821,#344151);
-    box-shadow:inset 0 2px 4px rgba(0,0,0,.72),0 1px 0 rgba(255,255,255,.08); cursor:pointer; transition:background .16s,border-color .16s;
-  }
-  .rack-enable input[type=checkbox]::after, .rack-custom-toggle input[type=checkbox]::after {
-    content:""; position:absolute; top:2px; left:2px; width:17px; height:17px; border:1px solid #dae2ec; border-radius:50%;
-    background:radial-gradient(circle at 35% 28%,#fff 0,#d8e0e8 43%,#8d9bab 82%,#667486 100%);
-    box-shadow:0 2px 4px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.9); transition:transform .16s;
-  }
-  .rack-enable input[type=checkbox]:checked, .rack-custom-toggle input[type=checkbox]:checked { border-color:#65dfb0; background:linear-gradient(180deg,#0d6a53,#23a77c); box-shadow:inset 0 2px 4px rgba(0,0,0,.24),0 0 0 1px rgba(92,228,178,.13); }
-  .rack-enable input[type=checkbox]:checked::after, .rack-custom-toggle input[type=checkbox]:checked::after { transform:translateX(17px); }
-  .rack-custom-toggle { min-height:47px; padding:10px 12px; border:1px solid #435366; border-radius:10px; background:linear-gradient(180deg,#2e3a48,#1c252f); box-shadow:inset 0 1px 0 rgba(255,255,255,.1),0 2px 4px rgba(0,0,0,.18); }
-  .rack-push { min-height:48px; border:1px solid #75869b; border-bottom:3px solid #111820; border-radius:9px; background:linear-gradient(180deg,#66768a 0%,#435365 44%,#293542 100%); color:#f7fbff; box-shadow:inset 0 1px 0 rgba(255,255,255,.32),0 3px 6px rgba(0,0,0,.32); letter-spacing:.1em; text-shadow:0 1px 2px rgba(0,0,0,.7); }
-  .rack-push:hover { filter:brightness(1.08); }
-  .rack-push.pressed { transform:translateY(2px); border-bottom-width:1px; box-shadow:inset 0 3px 6px rgba(0,0,0,.5); }
-  .rack-display { min-height:62px; border:1px solid #52677a; border-radius:8px; background:repeating-linear-gradient(0deg,rgba(136,255,194,.025) 0 1px,transparent 1px 3px),linear-gradient(180deg,#07100f,#172b29); box-shadow:inset 0 3px 9px rgba(0,0,0,.75),inset 0 1px 0 rgba(255,255,255,.08),0 1px 0 rgba(255,255,255,.06); color:#97eabb; }
-  .rack-rotary { position:relative; width:88px; height:88px; border:1px solid #617286; border-radius:50%; background:radial-gradient(circle at 50% 45%,#455264 0%,#222c38 62%,#10161e 68%,#354251 72%,#131a22 100%); box-shadow:inset 0 2px 3px rgba(255,255,255,.12),inset 0 -5px 9px rgba(0,0,0,.7),0 4px 7px rgba(0,0,0,.45); }
-  .rack-rotary::before { content:""; position:absolute; inset:3px; border-radius:50%; background:repeating-conic-gradient(from -135deg,rgba(220,232,244,.78) 0deg 1deg,transparent 1deg 10deg); -webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 5px),#000 calc(100% - 4px)); mask:radial-gradient(farthest-side,transparent calc(100% - 5px),#000 calc(100% - 4px)); pointer-events:none; }
-  .rack-rotary-dial { border:1px solid #8c9bad; background:radial-gradient(circle at 32% 24%,#718095 0%,#465366 30%,#2b3543 58%,#151c25 82%); box-shadow:0 5px 8px rgba(0,0,0,.58),inset 0 1px 2px rgba(255,255,255,.3),inset 0 -5px 9px rgba(0,0,0,.6); }
-  .rack-rotary-pointer { width:3px; height:22px; background:linear-gradient(90deg,#5fe9ae,#dcfff0); box-shadow:0 0 7px rgba(88,230,155,.75); }
-  .rack-control-rotary { padding-bottom:14px; }
-  .effect-playlist-dock .rack-module { box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 5px 14px rgba(0,0,0,.28); }
-  @media (max-width:700px) {
-    #mainModal .main-modal-panels { padding:18px 14px calc(36px + env(safe-area-inset-bottom)); }
-    .rack-module-body { padding:11px; gap:9px; }
-    .rack-control { padding:10px; }
-    .rack-module-head { padding:11px 12px; }
-  }
-</style>
-
-</body></html>`);doc.close();
-    const bind=()=>{doc.getElementById('prev')?.addEventListener('click',()=>$('#prevBtn').click());doc.getElementById('next')?.addEventListener('click',()=>$('#nextBtn').click());doc.getElementById('play')?.addEventListener('click',()=>els.playBtn.click());};bind();
-    const update=()=>{try{if(doc.defaultView?.closed)return;doc.getElementById('track').textContent=els.nowPlaying.textContent||'NO DISC';doc.getElementById('state').textContent=isPlaying?tr('playing'):tr('paused');doc.getElementById('play').textContent=isPlaying?'Ⅱ':'▶';}catch(_){}};
-    els.audio.addEventListener('play',update);els.audio.addEventListener('pause',update);els.audio.addEventListener('ended',update);document.addEventListener('motan-track-change',update);update();
+    const safeText = value => String(value ?? '');
+    doc.open();
+    doc.write(`<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Motan Mini Player</title><style>
+      :root{color-scheme:dark}*{box-sizing:border-box}body{margin:0;padding:12px;background:rgba(27,31,38,.97);color:#edf1f6;font:13px/1.4 system-ui,-apple-system,sans-serif;display:flex;flex-direction:column;gap:8px;min-width:0;min-height:0;height:100vh;height:100dvh;overflow:hidden}
+      .mini-brand{display:flex;align-items:center;justify-content:space-between;gap:8px;color:#aab6c5;font-size:10px;letter-spacing:.12em;font-weight:700;flex:0 0 auto;min-height:14px}
+      #state{letter-spacing:normal;font-weight:500}.mini-track{font-size:15px;font-weight:650;line-height:1.35;min-width:0;min-height:2.7em;max-height:2.7em;flex:0 0 auto;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;white-space:normal;overflow:hidden;overflow-wrap:anywhere}
+      nav{display:flex;gap:8px;justify-content:center;align-items:center;flex:0 0 auto;min-height:36px}button{min-width:42px;min-height:36px;border:1px solid rgba(180,193,211,.28);border-radius:10px;background:linear-gradient(180deg,rgba(255,255,255,.1),rgba(255,255,255,.035));color:#f4f7fb;font-size:17px;cursor:pointer;box-shadow:0 2px 4px rgba(0,0,0,.14)}button:focus-visible{outline:2px solid #79bfff;outline-offset:2px}button#play{min-width:50px;background:#b8dbff;color:#152331;border-color:transparent;font-weight:800}
+      #playlistWrap{display:flex;flex-direction:column;min-height:0;flex:1 1 0;border-top:1px solid rgba(180,193,211,.18);padding-top:7px;gap:5px;overflow:hidden}#playlistHeading{font-size:10px;color:#aab6c5;letter-spacing:.1em;text-transform:uppercase;flex:0 0 auto}
+      #playlist{flex:1 1 0;min-height:0;overflow:auto;list-style:none;padding:0;margin:0;display:grid;align-content:start;gap:3px;overscroll-behavior:contain}#playlist button{width:100%;min-width:0;min-height:30px;padding:5px 8px;text-align:left;display:block;border-color:transparent;border-radius:7px;background:transparent;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;box-shadow:none}
+      #playlist button[aria-current="true"]{background:rgba(125,184,245,.17);border-color:rgba(125,184,245,.32);color:#d7eaff}#playlist button:hover{background:rgba(255,255,255,.08)}#empty{padding:8px;color:#94a2b4;font-size:11px;flex:0 0 auto}
+      body.compact{padding:10px;gap:7px}body.compact #playlistWrap{display:none}body.compact .mini-track{font-size:14px;min-height:2.7em;max-height:2.7em}
+    </style></head><body><div class="mini-brand"><span>MOTAN PLAYER</span><span id="state">${isPlaying?esc(tr('playing')):esc(tr('paused'))}</span></div><div id="track" class="mini-track">${esc(els.nowPlaying.textContent||'NO DISC')}</div><nav><button id="prev" title="${esc(tr('previous'))}" aria-label="${esc(tr('previous'))}">Ⅱ◀</button><button id="play" title="${esc(tr('playPause'))}" aria-label="${esc(tr('playPause'))}">▶</button><button id="next" title="${esc(tr('next'))}" aria-label="${esc(tr('next'))}">▶Ⅱ</button></nav><section id="playlistWrap"><div id="playlistHeading">PLAYLIST</div><ul id="playlist"></ul><div id="empty" hidden>No tracks</div></section></body></html>`);
+    doc.close();
+    const get=(id)=>doc.getElementById(id);
+    const bind=()=>{get('prev')?.addEventListener('click',()=>$('#prevBtn')?.click());get('next')?.addEventListener('click',()=>$('#nextBtn')?.click());get('play')?.addEventListener('click',()=>els.playBtn?.click());};bind();
+    let listSignature='';
+    const renderList=()=>{
+      const list=get('playlist'),empty=get('empty');if(!list)return;
+      const tracks=Array.isArray(currentTrackList)?currentTrackList:[];
+      const sig=tracks.map(t=>`${String(t.id)}:${safeText(t.customName||t.title||t.name||'')}`).join('|');
+      if(sig!==listSignature){
+        listSignature=sig;list.replaceChildren();
+        tracks.forEach((track,index)=>{
+          const li=doc.createElement('li');const button=doc.createElement('button');button.type='button';button.dataset.index=String(index);button.textContent=safeText(track.customName||track.title||track.name||`Track ${index+1}`);button.title=button.textContent;button.addEventListener('click',()=>{if(index<currentTrackList.length){currentIndex=index;window.__motanPlaybackIntent=true;window.playCurrent?.();}});li.appendChild(button);list.appendChild(li);
+        });
+      }
+      Array.from(list.querySelectorAll('button[data-index]')).forEach(button=>{const active=Number(button.dataset.index)===Number(currentIndex);button.setAttribute('aria-current',String(active));});
+      if(empty)empty.hidden=tracks.length>0;
+      const heading=get('playlistHeading');if(heading)heading.textContent=`PLAYLIST · ${tracks.length}`;
+    };
+    const update=()=>{
+      try{
+        if(doc.defaultView?.closed)return;
+        get('track').textContent=els.nowPlaying.textContent||'NO DISC';get('state').textContent=isPlaying?tr('playing'):tr('paused');get('play').textContent=isPlaying?'Ⅱ':'▶';
+        renderList();applyLayout();
+      }catch(_){}
+    };
+    const applyLayout=()=>{
+      try{
+        const view=doc.defaultView;const width=Number(view?.innerWidth||doc.documentElement.clientWidth||0);const height=Number(view?.innerHeight||doc.documentElement.clientHeight||0);
+        // Keep the playlist only when the floating window has enough room for controls and useful rows.
+        doc.body.classList.toggle('compact',width<300||height<285);
+        const list=get('playlist');if(list)list.style.maxHeight=height>=390?'none':`${Math.max(58,Math.min(118,height-222))}px`;
+        const track=get('track');if(track)track.style.display='-webkit-box';
+      }catch(_){}
+    };
+    ['play','playing','pause','ended','loadedmetadata','durationchange'].forEach(type=>els.audio.addEventListener(type,update));
+    const title=$('#nowPlaying');if(title&&window.MutationObserver)new MutationObserver(update).observe(title,{childList:true,characterData:true,subtree:true});
+    const sourceList=$('#trackList');if(sourceList&&window.MutationObserver)new MutationObserver(()=>{listSignature='';update();}).observe(sourceList,{childList:true,subtree:true,characterData:true});
+    doc.defaultView?.addEventListener('resize',applyLayout);doc.defaultView?.addEventListener('pagehide',()=>{try{doc.defaultView.close?.();}catch(_){}});
+    update();
   }
   // PWA shortcuts: recent item, last played track, and last used playlist.
   async function handleLaunchShortcut(){
@@ -5029,20 +4967,20 @@
 </script>
 
 <script id="motan-v10-feature-layer">
-/* Motan v10: theme library, declarative effect rack, custom shortcuts, sidebar menus, artwork viewer. */
+/* Motan v10.1: theme library, declarative effect rack, custom shortcuts, sidebar menus, artwork viewer. */
 (() => {
   'use strict';
   const $ = (s, root=document) => root.querySelector(s);
   const $$ = (s, root=document) => Array.from(root.querySelectorAll(s));
   const EN = {
     cssInvalid:'This CSS does not match the supported Motan theme format.',cssLibrary:'Theme library',cssLibraryNote:'Imported themes are stored locally. Preview uses the basic palette; only approved CSS variables are applied.',themeName:'Theme name',saveApplyCss:'Apply and save theme',resetTheme:'Initialize / reset current theme',deleteProfile:'Delete',applyProfile:'Apply',noProfiles:'No custom themes saved yet.',themeSaved:'Theme saved.',themeReset:'Current custom theme was reset.',themeDeleteConfirm:'Delete this saved theme?',
-    shortcuts:'Header shortcuts',shortcutsNote:'Configure up to three compact buttons beside the menu. No scripts are run; each button invokes a built-in Motan action.',shortcutCount:'Number of buttons',shortcutLabel:'Button label',shortcutAction:'Action',shortcutShowText:'Show button text',saveShortcuts:'Save shortcuts',shortcutsSaved:'Header shortcuts saved.',
+    shortcuts:'Header shortcuts',shortcutsNote:'Configure up to three icon-only buttons beside the menu. Each button invokes a built-in Motan action.',shortcutCount:'Number of buttons',shortcutLabel:'Button label',shortcutAction:'Action',shortcutShowText:'Show button text',saveShortcuts:'Save shortcuts',shortcutsSaved:'Header shortcuts saved.',
     actionTheme:'Open appearance',actionFiles:'Open file operations',actionPlaylist:'Open playlists',actionEQ:'Open equalizer',actionEffects:'Open effects rack',actionLanguage:'Open language',actionPlayPause:'Play / pause',actionPrevious:'Previous track',actionNext:'Next track',actionLoop:'Toggle repeat',actionShuffle:'Toggle shuffle',actionEQBypass:'Toggle EQ bypass',actionLight:'Use light mode',actionDark:'Use dark mode',actionAuto:'Use system theme',
     effects:'Effects',effectsNote:'Effects use a declarative JSON format with a strict allowlist of built-in processors. Imported JavaScript is never executed.',effectType:'Built-in effect',addEffect:'Add effect',importJson:'Import JSON',loadFile:'Load effect file',copyExample:'Copy example JSON',effectJsonLabel:'Paste effect JSON',emptyEffects:'No effects installed. Add a built-in effect or import a Motan Effect JSON file.',effectEnabled:'Enabled',removeEffect:'Remove',moveUp:'Move up',moveDown:'Move down',effectSaved:'Effect rack saved.',effectInvalid:'Invalid effect file. Use the Motan Effect JSON schema and supported built-in types only.',effectLimit:'The rack can contain up to 12 effects.',effectRemoved:'Effect removed.',effectAdded:'Effect added.',effectName:'Effect name',effectDrive:'Drive',effectLevel:'Output level',effectBass:'Bass',effectMid:'Mid',effectTreble:'Treble',effectThreshold:'Threshold',effectRatio:'Ratio',effectMode:'Filter mode',effectCutoff:'Cutoff',effectResonance:'Resonance',effectTime:'Delay time',effectFeedback:'Feedback',effectMix:'Wet mix',effectGain:'Gain',effectTone:'3-band tone',effectCompressor:'Compressor',effectFilter:'Filter',effectDelay:'Delay',effectOverdrive:'Overdrive',effectInfo:'Effect settings',effectDock:'Show effects in lower playlist area',artworkWindow:'Show album artwork window (PC)',artworkEnabled:'Album artwork window enabled',hideArtwork:'Hide artwork window',showArtwork:'Show artwork window',showDock:'Show effects area',hideDock:'Hide effects area',openEffects:'Open effects tab',addPlaylist:'Add playlist',sortPlaylists:'Sort playlists',reorderPlaylists:'Reorder playlists',renamePlaylist:'Rename playlist',clearPlaylist:'Clear playlist',deletePlaylist:'Delete playlist',cancel:'Cancel',close:'Close',noArt:'No artwork available',noTrack:'No track selected',loadAudioFiles:'Load audio files',
   };
   const JA = {
     cssInvalid:'CSS の形式が正しくありません。Motan の対応変数を確認してください。',cssLibrary:'テーマライブラリ',cssLibraryNote:'読み込んだテーマは端末内に保存されます。配色プレビューを表示し、許可された CSS 変数のみ適用します。',themeName:'テーマ名',saveApplyCss:'適用して保存',resetTheme:'現在のテーマを初期化',deleteProfile:'削除',applyProfile:'適用',noProfiles:'保存されたカスタムテーマはありません。',themeSaved:'テーマを保存しました。',themeReset:'現在のカスタムテーマを初期化しました。',themeDeleteConfirm:'この保存済みテーマを削除しますか？',
-    shortcuts:'ヘッダーショートカット',shortcutsNote:'メニュー横のボタンを最大3個まで設定できます。任意のスクリプトは実行せず、Motan の組み込み操作だけを呼び出します。',shortcutCount:'ボタン数',shortcutLabel:'ボタン名',shortcutAction:'操作',shortcutShowText:'ボタンの文字を表示',saveShortcuts:'ショートカットを保存',shortcutsSaved:'ショートカットを保存しました。',
+    shortcuts:'ヘッダーショートカット',shortcutsNote:'メニュー横に最大3個のアイコン専用ボタンを設定できます。Motan の組み込み操作だけを呼び出します。',shortcutCount:'ボタン数',shortcutLabel:'ボタン名',shortcutAction:'操作',shortcutShowText:'ボタンの文字を表示',saveShortcuts:'ショートカットを保存',shortcutsSaved:'ショートカットを保存しました。',
     actionTheme:'外観を開く',actionFiles:'ファイル操作を開く',actionPlaylist:'プレイリストを開く',actionEQ:'イコライザーを開く',actionEffects:'エフェクターを開く',actionLanguage:'言語設定を開く',actionPlayPause:'再生／一時停止',actionPrevious:'前の曲',actionNext:'次の曲',actionLoop:'リピート切替',actionShuffle:'シャッフル切替',actionEQBypass:'EQ のオン／オフ',actionLight:'ライトモード',actionDark:'ダークモード',actionAuto:'システム設定に合わせる',
     effects:'エフェクター',effectsNote:'宣言型 JSON と、許可リストにある組み込みプロセッサーを使用します。読み込んだ JavaScript は実行されません。',effectType:'組み込みエフェクト',addEffect:'追加',importJson:'JSON を読み込む',loadFile:'エフェクターファイル',copyExample:'JSON サンプルをコピー',effectJsonLabel:'エフェクター JSON を貼り付け',emptyEffects:'エフェクターはありません。組み込みエフェクトを追加するか、Motan Effect JSON を読み込んでください。',effectEnabled:'有効',removeEffect:'削除',moveUp:'上へ',moveDown:'下へ',effectSaved:'エフェクター設定を保存しました。',effectInvalid:'形式が正しくありません。Motan Effect JSON と対応する組み込みタイプを使用してください。',effectLimit:'エフェクターは最大12個です。',effectRemoved:'エフェクターを削除しました。',effectAdded:'エフェクターを追加しました。',effectName:'エフェクター名',effectDrive:'ドライブ',effectLevel:'出力レベル',effectBass:'低音',effectMid:'中音',effectTreble:'高音',effectThreshold:'しきい値',effectRatio:'比率',effectMode:'フィルター方式',effectCutoff:'カットオフ',effectResonance:'共振',effectTime:'ディレイ時間',effectFeedback:'フィードバック',effectMix:'ウェット量',effectGain:'ゲイン',effectTone:'3バンドトーン',effectCompressor:'コンプレッサー',effectFilter:'フィルター',effectDelay:'ディレイ',effectOverdrive:'オーバードライブ',effectInfo:'エフェクト設定',effectDock:'プレイリスト下部にエフェクターを表示',artworkWindow:'アルバムアートワーク窓を表示（PC）',artworkEnabled:'アートワーク窓を有効化しました',hideArtwork:'アートワーク窓を隠す',showArtwork:'アートワーク窓を表示',showDock:'エフェクター領域を表示',hideDock:'エフェクター領域を隠す',openEffects:'エフェクタータブを開く',addPlaylist:'プレイリストを追加',sortPlaylists:'プレイリストをソート',reorderPlaylists:'プレイリストの順序を変更',renamePlaylist:'プレイリスト名を変更',clearPlaylist:'プレイリストを空にする',deletePlaylist:'プレイリストを削除',cancel:'キャンセル',close:'閉じる',noArt:'アートワークがありません',noTrack:'トラックが選択されていません',loadAudioFiles:'音声ファイルを読み込む',
   };
@@ -5331,22 +5269,19 @@
     enabled=!!enabled;try{localStorage.setItem('motan_effect_dock',enabled?'1':'0');}catch(_){}
     const wrap=$('.playlist-container');if(wrap){wrap.classList.toggle('has-effect-dock',enabled);}
     const check=$('#effectDockEnabled');if(check)check.checked=enabled;
-    const dock=$('#effectPlaylistDock');if(dock)dock.hidden=!enabled;haptic(5);
+    const dock=$('#effectPlaylistDock');if(dock)dock.hidden=!enabled;if(enabled){requestAnimationFrame(()=>{try{renderEffectRack();updateEffectDock();}catch(err){console.warn('Motan effect rack refresh failed:',err);}});}haptic(5);
   }
 
   // -- Header quick buttons -------------------------------------------------
   const ACTIONS=[
     ['panel-theme','actionTheme','icon-palette'],['panel-files','actionFiles','icon-files'],['panel-playlist','actionPlaylist','icon-playlist'],['panel-eq','actionEQ','icon-eq'],['panel-effects','actionEffects','icon-effects'],['panel-language','actionLanguage','icon-language'],['play-pause','actionPlayPause','icon-play'],['previous','actionPrevious','icon-prev'],['next','actionNext','icon-next'],['toggle-loop','actionLoop','icon-loop'],['toggle-shuffle','actionShuffle','icon-shuffle'],['toggle-eq','actionEQBypass','icon-eq'],['color-light','actionLight','icon-sun'],['color-dark','actionDark','icon-dark'],['color-auto','actionAuto','icon-sun']
   ];
-  const DEFAULT_SHORTCUTS=[{label:'Theme',showLabel:true,action:'panel-theme'}];
+  const DEFAULT_SHORTCUTS=[{action:'panel-theme'}];
   function getShortcutConfig(){
     const x=readStore('motan_header_shortcuts_v1',DEFAULT_SHORTCUTS);
     if(!Array.isArray(x))return DEFAULT_SHORTCUTS.map(v=>({...v}));
     return x.filter(v=>v&&typeof v==='object').slice(0,3).map(v=>({
-      action: ACTIONS.some(a=>a[0]===v.action)?v.action:'panel-theme',
-      // Keep an explicitly empty label empty; older preferences without the field get a useful default.
-      label: typeof v.label==='string' ? v.label.slice(0,20) : t(ACTIONS.find(a=>a[0]===v.action)?.[1]||'actionTheme'),
-      showLabel: v.showLabel!==false
+      action:ACTIONS.some(a=>a[0]===v.action)?v.action:'panel-theme'
     }));
   }
   function applyAction(action){
@@ -5356,37 +5291,39 @@
   }
   function iconForAction(action){const entry=ACTIONS.find(a=>a[0]===action);return entry?.[2]||'icon-cmd';}
   function renderHeaderShortcuts(){
-    const theme=$('#themeBtn');if(!theme)return;let container=$('#customHeaderButtons');if(!container){container=document.createElement('div');container.id='customHeaderButtons';container.className='header-custom-buttons';theme.insertAdjacentElement('afterend',container);}
+    const theme=$('#themeBtn');if(!theme)return;
+    let container=$('#customHeaderButtons');
+    if(!container){container=document.createElement('div');container.id='customHeaderButtons';container.className='header-custom-buttons';theme.insertAdjacentElement('afterend',container);}
     const config=getShortcutConfig();theme.hidden=config.length===0;
     const draw=(btn,item,index)=>{
       const actionLabel=t(ACTIONS.find(a=>a[0]===item.action)?.[1]||'actionTheme');
-      const label=String(item.label??'').trim().slice(0,20);
-      const showText=item.showLabel!==false&&label.length>0;
-      btn.className=`divbutton header-custom-button ${index===0?'theme-shortcut ':''}${showText?'with-label':'icon-only'}`.trim();
-      btn.type='button';btn.dataset.shortcutIndex=String(index);btn.title=label||actionLabel;btn.setAttribute('aria-label',label?`${actionLabel}: ${label}`:actionLabel);
-      btn.innerHTML=`<svg class="shortcut-icon" aria-hidden="true"><use href="#${iconForAction(item.action)}"></use></svg><span${showText?'':' hidden'}></span>`;
-      if(showText)btn.querySelector('span').textContent=label;
+      btn.className=`divbutton header-custom-button ${index===0?'theme-shortcut':''} icon-only`.trim();
+      btn.type='button';btn.dataset.shortcutIndex=String(index);btn.title=actionLabel;btn.setAttribute('aria-label',actionLabel);
+      btn.innerHTML=`<svg class="shortcut-icon" aria-hidden="true" viewBox="0 0 24 24"><use href="#${iconForAction(item.action)}"></use></svg>`;
       btn.hidden=false;btn.onclick=()=>applyAction(item.action);
     };
-    if(config[0])draw(theme,config[0],0);else theme.hidden=true;container.replaceChildren();config.slice(1).forEach((item,i)=>{const b=document.createElement('button');draw(b,item,i+1);container.appendChild(b);});
+    if(config[0])draw(theme,config[0],0);else theme.hidden=true;
+    container.replaceChildren();config.slice(1).forEach((item,i)=>{const b=document.createElement('button');draw(b,item,i+1);container.appendChild(b);});
   }
   function initShortcutSettings(){
-    const panel=$('#settingsModal');if(!panel||$('#shortcutSettingsSection'))return;const section=document.createElement('section');section.className='panel-section';section.id='shortcutSettingsSection';
-    section.innerHTML=`<h4>${esc(t('shortcuts'))}</h4><p class="panel-note">${esc(t('shortcutsNote'))}</p><label for="shortcutCount">${esc(t('shortcutCount'))}</label><select id="shortcutCount" style="display:block;width:100%;margin:6px 0 12px"><option value="1">1</option><option value="2">2</option><option value="3">3</option></select><div id="shortcutConfigRows" class="shortcut-config-list"></div><button class="panel-button primary" type="button" id="saveHeaderShortcutsBtn">${esc(t('saveShortcuts'))}</button>`;panel.appendChild(section);
+    const panel=$('#settingsModal');if(!panel||$('#shortcutSettingsSection'))return;
+    const section=document.createElement('section');section.className='panel-section';section.id='shortcutSettingsSection';
+    section.innerHTML=`<h4>${esc(t('shortcuts'))}</h4><p class="panel-note">${esc(t('shortcutsNote'))}</p><label for="shortcutCount">${esc(t('shortcutCount'))}</label><select id="shortcutCount" style="display:block;width:100%;margin:6px 0 12px"><option value="1">1</option><option value="2">2</option><option value="3">3</option></select><div id="shortcutConfigRows" class="shortcut-config-list"></div><button class="panel-button primary" type="button" id="saveHeaderShortcutsBtn">${esc(t('saveShortcuts'))}</button>`;
+    panel.appendChild(section);
     const rows=$('#shortcutConfigRows'),count=$('#shortcutCount');
     function drawRows(){
       const current=getShortcutConfig();const n=Math.max(1,Math.min(3,Number(count.value)||1));rows.replaceChildren();
       for(let i=0;i<n;i++){
         const c=current[i]||{...DEFAULT_SHORTCUTS[0]};const row=document.createElement('div');row.className='shortcut-config-row';
-        const l1=document.createElement('label');l1.textContent=`${t('shortcutLabel')} ${i+1}`;const name=document.createElement('input');name.type='text';name.maxLength=20;name.value=typeof c.label==='string'?c.label:'';name.placeholder=language()==='ja'?'空欄ならアイコンのみ':'Leave blank for icon only';name.dataset.slotLabel='';l1.append(name);
-        const l2=document.createElement('label');l2.textContent=t('shortcutAction');const sel=document.createElement('select');sel.dataset.slotAction='';ACTIONS.forEach(([value,key])=>{const op=document.createElement('option');op.value=value;op.textContent=t(key);sel.appendChild(op);});sel.value=ACTIONS.some(a=>a[0]===c.action)?c.action:'panel-theme';l2.append(sel);
-        const l3=document.createElement('label');l3.className='shortcut-show-label';const check=document.createElement('input');check.type='checkbox';check.checked=c.showLabel!==false;check.dataset.slotShowLabel='';l3.append(check,document.createTextNode(t('shortcutShowText')));
-        row.append(l1,l2,l3);rows.appendChild(row);
+        const label=document.createElement('label');label.textContent=`${t('shortcutAction')} ${i+1}`;
+        const sel=document.createElement('select');sel.dataset.slotAction='';sel.setAttribute('aria-label',label.textContent);
+        ACTIONS.forEach(([value,key])=>{const op=document.createElement('option');op.value=value;op.textContent=t(key);sel.appendChild(op);});
+        sel.value=ACTIONS.some(a=>a[0]===c.action)?c.action:'panel-theme';label.append(sel);row.append(label);rows.appendChild(row);
       }
     }
     count.value=String(Math.max(1,Math.min(3,getShortcutConfig().length)));count.addEventListener('change',drawRows);drawRows();
     $('#saveHeaderShortcutsBtn').addEventListener('click',()=>{
-      const next=$$('.shortcut-config-row',rows).map(row=>({label:row.querySelector('[data-slot-label]').value.trim().slice(0,20),showLabel:row.querySelector('[data-slot-show-label]').checked,action:row.querySelector('[data-slot-action]').value})).filter(x=>x.action);
+      const next=$$('.shortcut-config-row',rows).map(row=>({action:row.querySelector('[data-slot-action]').value})).filter(x=>x.action);
       safeStore('motan_header_shortcuts_v1',next.slice(0,3));renderHeaderShortcuts();toast(t('shortcutsSaved'));haptic();
     });
   }
@@ -5475,10 +5412,487 @@
     move:moveEffect,
     setEnabled:(id,enabled)=>{const fx=effects.find(x=>x.id===id);if(!fx)return false;fx.enabled=!!enabled;saveEffects();rebuildEffectChain();return true;},
     setDock:setEffectDock,
+    refresh:()=>{renderEffectRack();updateEffectDock();},
     rebuild:rebuildEffectChain
   };
 })();
 </script>
 
-  </body>
+  
+<style id="motan-v11-stability-styles">
+  /* EQ: preserve vertical slider gestures while enabling horizontal scrolling on touch devices. */
+  #mainModal #eqModal .eq-sliders { touch-action:pan-x; -webkit-overflow-scrolling:touch; overscroll-behavior-x:contain; scrollbar-width:thin; cursor:grab; }
+  #mainModal #eqModal .eq-sliders:active { cursor:grabbing; }
+  #mainModal #eqModal .eq-band { flex-shrink:0; }
+  /* Fixed geometry keeps mobile tabs from jumping when selected/bold. */
+  @media (max-width:700px) {
+    #mainModal .main-modal-nav { align-items:stretch; }
+    #mainModal .main-nav-item { box-sizing:border-box; height:42px; min-height:42px; max-height:42px; padding-block:7px; line-height:1.15; display:inline-flex; align-items:center; justify-content:center; border-width:1px; }
+    #mainModal .main-nav-item .main-nav-icon { flex:0 0 18px; width:18px; height:18px; }
+  }
+  /* Shortcut controls: icon and text are separate, explicitly sized flex items. */
+  .header-custom-buttons { display:flex; align-items:center; justify-content:flex-start; gap:8px; min-width:0; }
+  #themeBtn.header-custom-button { box-sizing:border-box; display:inline-flex !important; flex-direction:row; align-items:center; justify-content:center; gap:7px; flex:0 1 auto; width:auto !important; min-width:36px; max-width:160px; padding:0 10px; line-height:1; vertical-align:middle; }
+  .header-custom-button .shortcut-icon { display:block !important; position:static !important; inset:auto !important; width:18px !important; height:18px !important; min-width:18px; flex:0 0 18px; margin:0 !important; transform:none !important; align-self:center; }
+  .header-custom-button .shortcut-label { display:inline-block; min-width:0; max-width:100px; margin:0; padding:0; line-height:1.2; text-align:center; vertical-align:middle; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .header-custom-button.with-label .shortcut-label { display:inline-block !important; visibility:visible; }
+  .header-custom-button.icon-only .shortcut-label, .header-custom-button .shortcut-label[hidden] { display:none !important; }
+  #themeBtn.header-custom-button.with-label { width:auto !important; min-width:76px; max-width:160px; padding-inline:11px; }
+  #themeBtn.header-custom-button.icon-only { width:36px !important; min-width:36px; padding-inline:0; }
+  @media(max-width:700px) {
+    #themeBtn.header-custom-button.with-label { max-width:112px; min-width:64px; padding-inline:8px; }
+    #themeBtn.header-custom-button .shortcut-label { max-width:72px; font-size:10px; }
+    .header-custom-button .shortcut-label { max-width:62px; }
+  }
+  /* Effects retain tactile rack hardware, but adapt their palette to Motan's current theme. */
+  .rack-module { color:var(--text-main); border-color:color-mix(in srgb,var(--border-color) 72%,#53677c); background:linear-gradient(145deg,color-mix(in srgb,var(--bg-sidebar) 78%,#253241),color-mix(in srgb,var(--bg-player) 72%,#151d27)); }
+  .rack-module-head { background:linear-gradient(180deg,color-mix(in srgb,var(--bg-sidebar) 76%,#48586b),color-mix(in srgb,var(--bg-player) 72%,#202a35)); border-bottom-color:var(--border-color); }
+  .rack-module-name { color:var(--text-main); }
+  .rack-module-type,.rack-control,.rack-enable,.effect-dock-title { color:var(--text-sub); }
+  .rack-control { border-color:var(--border-color); background:linear-gradient(180deg,rgba(255,255,255,.065),rgba(0,0,0,.025)),color-mix(in srgb,var(--bg-sidebar) 78%,#334252); }
+  .rack-control > span:first-child { color:var(--text-main); }
+  .rack-module-actions button { border-color:var(--border-color); color:var(--text-main); }
+  .rack-control output { color:var(--motan-accent,var(--highlight)); border-color:var(--border-color); }
+  .rack-led { background:var(--text-sub); }
+  .rack-module.enabled .rack-led { background:var(--motan-accent,var(--highlight)); box-shadow:0 0 8px color-mix(in srgb,var(--motan-accent,var(--highlight)) 48%,transparent); }
+  .rack-rotary-pointer { background:var(--motan-accent,var(--highlight)); box-shadow:0 0 7px color-mix(in srgb,var(--motan-accent,var(--highlight)) 58%,transparent); }
+  .rack-push.pressed { border-color:var(--motan-accent,var(--highlight)); }
+  .rack-display { color:var(--motan-accent,var(--highlight)); border-color:var(--border-color); }
+  .rack-display output { color:var(--motan-accent,var(--highlight)); }
+  .effect-playlist-dock { background:color-mix(in srgb,var(--bg-player) 82%,#29333e); color:var(--text-main); }
+  .effect-playlist-dock[hidden] { display:none !important; }
+  .playlist-container.has-effect-dock .effect-playlist-dock:not([hidden]) { display:block !important; }
+  /* Graphical mode: reduce the glossy/AI-like glow in favor of a restrained translucent player surface. */
+  [data-design="graphical"] .screen-area { background-color:color-mix(in srgb,var(--screen-bg) 90%,transparent); border:1px solid color-mix(in srgb,var(--border-color) 64%,transparent); box-shadow:none; }
+  [data-design="graphical"] .screen-area::after { opacity:.18; }
+  [data-design="graphical"] .controls-wrapper { background:color-mix(in srgb,var(--bg-player) 88%,transparent); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); border-top:1px solid color-mix(in srgb,var(--border-color) 80%,transparent); }
+  [data-design="graphical"] .controls-sub button { background:transparent; border-color:color-mix(in srgb,var(--border-color) 75%,transparent); }
+  [data-design="graphical"] .controls-sub button:hover { background:color-mix(in srgb,var(--motan-accent,var(--highlight)) 9%,transparent); }
+  [data-design="graphical"] .playlist-container { background:color-mix(in srgb,var(--bg-player) 94%,transparent); }
+  [data-design="graphical"] #trackList li:not(.track-list-empty) { background:transparent; box-shadow:none; }
+  [data-design="graphical"] #trackList li.playing { background:color-mix(in srgb,var(--motan-accent,var(--highlight)) 12%,transparent); }
+  /* A visible drop target while importing audio from Finder/File Explorer. */
+  #motanDropOverlay { position:fixed; inset:14px; z-index:2500; display:none; align-items:center; justify-content:center; border:2px dashed var(--motan-accent,var(--highlight)); border-radius:22px; background:color-mix(in srgb,var(--bg-player) 84%,transparent); backdrop-filter:blur(8px); color:var(--text-main); font-weight:700; font-size:clamp(16px,2.4vw,24px); text-align:center; pointer-events:none; }
+  #motanDropOverlay.visible { display:flex; }
+  @media(max-width:700px) { #motanDropOverlay { inset:8px; border-radius:16px; } }
+</style>
+
+
+
+<style id="motan-v10-2-refinements">
+  /* PiP: keep the current track row fixed; only the playlist area may shrink or scroll. */
+  .header-custom-buttons { display:flex; align-items:center; gap:8px; flex-wrap:nowrap; min-width:0; }
+  .header-custom-button, #themeBtn.header-custom-button, #customHeaderButtons .header-custom-button {
+    box-sizing:border-box !important; width:40px !important; min-width:40px !important; max-width:40px !important;
+    height:40px !important; min-height:40px !important; max-height:40px !important; flex:0 0 40px !important;
+    padding:0 !important; display:inline-flex !important; align-items:center !important; justify-content:center !important;
+    gap:0 !important; border-radius:50% !important; line-height:1 !important; overflow:hidden;
+  }
+  .header-custom-button .shortcut-icon { display:block !important; position:static !important; inset:auto !important;
+    width:19px !important; height:19px !important; min-width:19px !important; max-width:19px !important;
+    flex:0 0 19px !important; margin:0 !important; transform:none !important; align-self:center !important; }
+  .header-custom-button .shortcut-label { display:none !important; }
+  .shortcut-config-row { grid-template-columns:minmax(0,1fr) !important; }
+  .shortcut-config-row label { display:grid; grid-template-columns:minmax(0,1fr); gap:7px; }
+
+  /* Tabs have a deliberate shared height in every state, including wrapped Japanese labels. */
+  #mainModal .main-modal-nav [data-panel] {
+    box-sizing:border-box; height:48px; min-height:48px; max-height:48px; flex:0 0 48px;
+    display:flex; align-items:center; line-height:1.2; padding-block:8px; border-width:1px;
+    overflow:hidden; transition:background-color .18s ease,color .18s ease,border-color .18s ease;
+  }
+  #mainModal .main-modal-nav [data-panel] .main-nav-icon { flex:0 0 18px; width:18px; height:18px; }
+  @media (max-width:700px) {
+    #mainModal .main-modal-nav { align-items:stretch; }
+    #mainModal .main-modal-nav [data-panel] {
+      height:56px; min-height:56px; max-height:56px; flex:0 0 auto; min-width:106px; max-width:164px;
+      padding:7px 10px; white-space:normal; justify-content:flex-start; gap:8px; line-height:1.15;
+    }
+    #mainModal .main-modal-nav [data-panel] .main-nav-icon { flex:0 0 18px; width:18px; height:18px; }
+  }
+  /* Smooth panel entrance + native smooth scroll; respects reduced-motion preference below. */
+  #mainModalPanels { scroll-behavior:smooth; }
+  #mainModalPanels > .main-panel.open { animation:motanPanelSoftEnter 260ms cubic-bezier(.2,.72,.2,1) both; }
+  @keyframes motanPanelSoftEnter { from { opacity:.55; transform:translateY(7px); } to { opacity:1; transform:translateY(0); } }
+  @media (prefers-reduced-motion:reduce) { #mainModalPanels > .main-panel.open { animation:none; } }
+
+  /* Effects keep tactile hardware details, while using Motan's actual palette tokens. */
+  :root { --motan-rack-led:var(--motan-accent,var(--highlight)); }
+  .rack-module {
+    color:var(--text-main) !important;
+    background:linear-gradient(145deg,color-mix(in srgb,var(--bg-player) 96%,var(--bg-sidebar)),var(--bg-sidebar)) !important;
+    border:1px solid var(--border-color) !important;
+    box-shadow:inset 0 1px 0 color-mix(in srgb,var(--border-highlight) 65%,transparent),0 5px 14px rgba(0,0,0,.13) !important;
+  }
+  .rack-module-head {
+    color:var(--text-main) !important;
+    background:linear-gradient(180deg,color-mix(in srgb,var(--bg-sidebar) 97%,var(--highlight) 3%),var(--bg-sidebar)) !important;
+    border-bottom:1px solid var(--border-color) !important;
+  }
+  .rack-module-name { color:var(--text-main) !important; }
+  .rack-module-type,.rack-control,.rack-enable,.effect-dock-title { color:var(--text-sub) !important; }
+  .rack-module-actions button {
+    border-color:var(--border-color) !important; color:var(--text-main) !important;
+    background:linear-gradient(180deg,color-mix(in srgb,var(--btn-bg) 92%,var(--bg-player)),var(--bg-sidebar)) !important;
+    box-shadow:inset 0 1px 0 var(--border-highlight),0 1px 2px rgba(0,0,0,.12) !important;
+  }
+  .rack-control {
+    color:var(--text-main) !important; border:1px solid var(--border-color) !important;
+    border-radius:var(--motan-control-radius,9px);
+    background:linear-gradient(180deg,color-mix(in srgb,var(--bg-player) 94%,var(--border-color)),var(--bg-sidebar)) !important;
+    box-shadow:inset 0 1px 0 var(--border-highlight),0 1px 2px rgba(0,0,0,.06);
+  }
+  .rack-control > span:first-child { color:var(--text-main) !important; }
+  .rack-control output,.rack-display,.rack-display output { color:var(--motan-accent,var(--highlight)) !important; }
+  .rack-control select { background:var(--bg-body) !important; color:var(--text-main) !important; border-color:var(--border-color) !important; }
+  .rack-control input[type=range],.rack-enable input { accent-color:var(--motan-accent,var(--highlight)) !important; }
+  .rack-led { background:var(--border-color) !important; box-shadow:inset 0 1px 2px rgba(0,0,0,.18); }
+  .rack-module.enabled .rack-led { background:var(--motan-accent,var(--highlight)) !important; box-shadow:0 0 7px color-mix(in srgb,var(--motan-accent,var(--highlight)) 34%,transparent); }
+  .rack-rotary-pointer { background:var(--motan-accent,var(--highlight)) !important; box-shadow:0 0 4px color-mix(in srgb,var(--motan-accent,var(--highlight)) 38%,transparent) !important; }
+  .rack-push.pressed { border-color:var(--motan-accent,var(--highlight)) !important; }
+  .rack-display { background:var(--bg-body) !important; border-color:var(--border-color) !important; }
+  .effect-playlist-dock { background:var(--bg-sidebar) !important; color:var(--text-main) !important; border-top-color:var(--border-color) !important; }
+  .effect-dock-title { color:var(--text-sub) !important; }
+</style>
+
+<script id="motan-v11-stability-patch">
+(() => {
+  'use strict';
+  const $ = (s,root=document) => root.querySelector(s);
+  const $$ = (s,root=document) => Array.from(root.querySelectorAll(s));
+  const safeToast = message => { try { window.motanShowToast?.(message); } catch (_) {} };
+  const audio = $('#audioPlayer');
+
+  // A drag-and-drop path that shares the very same import transaction as the file picker.
+  function installAudioDrop() {
+    if (window.__motanAudioDropInstalled) return;
+    window.__motanAudioDropInstalled = true;
+    const overlay = document.createElement('div');
+    overlay.id = 'motanDropOverlay';
+    overlay.textContent = (document.documentElement.lang === 'ja') ? '音声ファイルをドロップしてプレイリストに追加' : 'Drop audio files to add them to the playlist';
+    overlay.setAttribute('role','status'); overlay.setAttribute('aria-live','polite'); document.body.appendChild(overlay);
+    let depth = 0;
+    const hasFiles = e => Array.from(e.dataTransfer?.types || []).includes('Files');
+    document.addEventListener('dragenter', e => {
+      if (!hasFiles(e)) return; e.preventDefault(); depth++; overlay.classList.add('visible');
+      if (e.dataTransfer) e.dataTransfer.dropEffect = 'copy';
+    }, true);
+    document.addEventListener('dragover', e => {
+      if (!hasFiles(e)) return; e.preventDefault();
+      if (e.dataTransfer) e.dataTransfer.dropEffect = 'copy';
+    }, true);
+    document.addEventListener('dragleave', e => {
+      if (!hasFiles(e)) return; depth=Math.max(0,depth-1);
+      if (depth===0 && (!e.relatedTarget || !document.documentElement.contains(e.relatedTarget))) overlay.classList.remove('visible');
+    }, true);
+    document.addEventListener('drop', async e => {
+      if (!hasFiles(e)) return;
+      e.preventDefault(); e.stopPropagation(); depth=0; overlay.classList.remove('visible');
+      const files=Array.from(e.dataTransfer?.files||[]);
+      if (!files.length) return;
+      if (typeof window.motanImportAudioFiles !== 'function') { safeToast('Audio import is not ready. Reload Motan and try again.'); return; }
+      try { await window.motanImportAudioFiles(files); }
+      catch (err) { console.error('Motan drag-and-drop import failed:',err); safeToast('Import failed. Check the console and try again.'); }
+    }, true);
+    window.addEventListener('blur',()=>{depth=0;overlay.classList.remove('visible');});
+  }
+
+  // Horizontal touch scroll for the EQ bank. A clear horizontal gesture scrolls the bank;
+  // vertical gesture on a slider remains a value adjustment.
+  function installEqTouchScroll() {
+    const viewport=$('#mainModal #eqModal .eq-sliders'); if(!viewport||viewport.dataset.motanTouchScroll==='1') return;
+    viewport.dataset.motanTouchScroll='1'; viewport.style.touchAction='pan-x';
+    let start=null, scrolling=false;
+    viewport.addEventListener('touchstart',e=>{
+      if(!e.touches?.length)return; const touch=e.touches[0];
+      start={x:touch.clientX,y:touch.clientY,left:viewport.scrollLeft};scrolling=false;
+    },{passive:true});
+    viewport.addEventListener('touchmove',e=>{
+      if(!start||!e.touches?.length)return;const touch=e.touches[0];const dx=touch.clientX-start.x,dy=touch.clientY-start.y;
+      if(!scrolling && Math.abs(dx)>10 && Math.abs(dx)>Math.abs(dy)*1.18) scrolling=true;
+      if(scrolling){viewport.scrollLeft=start.left-dx;if(e.cancelable)e.preventDefault();}
+    },{passive:false});
+    ['touchend','touchcancel'].forEach(type=>viewport.addEventListener(type,()=>{start=null;scrolling=false;},{passive:true}));
+  }
+
+  // Browser Back/gesture closes the currently open modal on mobile instead of leaving the app.
+  function installBackToClose() {
+    if (window.__motanBackCloseInstalled) return;
+    window.__motanBackCloseInstalled = true;
+    const shell=$('#mainModal'); if(!shell)return;
+    let wasOpen=shell.classList.contains('open'), closingFromPop=false;
+    const sync=()=>{
+      const nowOpen=shell.classList.contains('open');
+      if(nowOpen&&!wasOpen&&window.matchMedia('(max-width:700px)').matches&&!history.state?.__motanMainModal){
+        try{history.pushState({...history.state,__motanMainModal:true},'',location.href);}catch(_){}
+      } else if(!nowOpen&&wasOpen&&history.state?.__motanMainModal&&!closingFromPop){
+        try{history.back();}catch(_){}
+      }
+      wasOpen=nowOpen;
+    };
+    if(window.MutationObserver)new MutationObserver(sync).observe(shell,{attributes:true,attributeFilter:['class']});
+    window.addEventListener('popstate',()=>{
+      if(shell.classList.contains('open')){
+        closingFromPop=true;
+        // The existing close button uses the app's private modal controller.
+        $('#mainModalClose')?.click();
+        setTimeout(()=>{closingFromPop=false;wasOpen=shell.classList.contains('open');},50);
+      }
+    });
+  }
+
+  // Desktop wheel navigation is only triggered at the scroll edge (or if the panel has no scroll).
+  // That keeps normal scrolling intact while still allowing a continuous wheel gesture between tabs.
+  function installDesktopWheelTabNavigation() {
+    const area=$('#mainModalPanels');if(!area||area.dataset.motanWheelTabs==='1')return;area.dataset.motanWheelTabs='1';
+    let sum=0,last=0,locked=false;
+    area.addEventListener('wheel',e=>{
+      if(!window.matchMedia('(min-width:701px)').matches||Math.abs(e.deltaY)<4||Math.abs(e.deltaX)>Math.abs(e.deltaY))return;
+      if(e.ctrlKey||e.target.closest('input,textarea,select,button,canvas,[role=slider],[data-no-panel-swipe],.rack-control,.rack-display,.rack-push,.rack-json-editor,.rack-module,.eq-sliders')){sum=0;return;}
+      const panel=$('.main-panel.open',area);if(!panel)return;
+      const canScroll=area.scrollHeight>area.clientHeight+2;
+      const atTop=area.scrollTop<=2,atBottom=area.scrollTop+area.clientHeight>=area.scrollHeight-2;
+      const towardTab=(e.deltaY<0&&atTop)||(e.deltaY>0&&atBottom)||!canScroll;
+      if(!towardTab){sum=0;return;}
+      const now=Date.now();if(now-last>450)sum=0;sum+=e.deltaY;last=now;
+      if(locked||Math.abs(sum)<82)return;
+      const buttons=$$('#mainModalNav [data-panel]');const index=buttons.findIndex(b=>b.dataset.panel===panel.id);const next=index+(sum>0?1:-1);
+      if(next<0||next>=buttons.length){sum=0;return;}
+      e.preventDefault();locked=true;sum=0;
+      buttons[next].click();
+      try{navigator.vibrate?.(6);}catch(_){}
+      setTimeout(()=>{locked=false;},340);
+    },{passive:false});
+  }
+
+  // Keep background playback alive when a mobile browser briefly pauses while swapping Blob URLs.
+  // The retry is bounded, never fights an intentional pause, and never claims to override OS policy.
+  function installMobilePlaybackContinuity() {
+    if(!audio||audio.dataset.motanContinuity==='1')return;audio.dataset.motanContinuity='1';audio.preload='auto';
+    if(typeof window.__motanPlaybackIntent!=='boolean')window.__motanPlaybackIntent=false;
+    let retryTimer=0,lastRetry=0;
+    const userPause=()=>{window.__motanPlaybackIntent=false;clearTimeout(retryTimer);};
+    $('#playPauseBtn')?.addEventListener('click',()=>{
+      if(!audio.paused&&!audio.ended)userPause();
+      else window.__motanPlaybackIntent=true;
+    },true);
+    audio.addEventListener('play',()=>{window.__motanPlaybackIntent=true;});
+    audio.addEventListener('pause',()=>{
+      if(!document.hidden||!window.__motanPlaybackIntent||audio.ended)return;
+      clearTimeout(retryTimer);
+      retryTimer=setTimeout(async()=>{
+        if(!document.hidden||!window.__motanPlaybackIntent||!audio.paused||audio.ended)return;
+        if(Date.now()-lastRetry<1800)return;lastRetry=Date.now();
+        try{const ctx=window.MotanExtensions?.getAudioContext?.();if(ctx?.state==='suspended')await ctx.resume();}catch(_){}
+        const tryPlay=async()=>{
+          if(!document.hidden||!window.__motanPlaybackIntent||!audio.paused||audio.ended)return;
+          try{await audio.play();}catch(err){console.debug('Background playback recovery deferred by browser/OS:',err?.name||err);}
+        };
+        if(audio.readyState>=2)await tryPlay();
+        else audio.addEventListener('canplay',tryPlay,{once:true});
+      },520);
+    });
+    // Media Session action handlers reassert intent on play/track changes and clear it on explicit pause.
+    if('mediaSession' in navigator){
+      const ms=navigator.mediaSession;const set=(action,handler)=>{try{ms.setActionHandler(action,handler);}catch(_){}};
+      set('play',async()=>{window.__motanPlaybackIntent=true;try{const ctx=window.MotanExtensions?.getAudioContext?.();if(ctx?.state==='suspended')await ctx.resume();if(audio.paused){if(audio.src&&!audio.ended)await audio.play();else $('#playPauseBtn')?.click();}}catch(err){console.debug('Media Session play was deferred:',err);}});
+      set('pause',()=>{userPause();audio.pause();});
+      set('stop',()=>{userPause();audio.pause();try{audio.currentTime=0;}catch(_){};});
+      set('nexttrack',()=>{window.__motanPlaybackIntent=true;$('#nextBtn')?.click();});
+      set('previoustrack',()=>{window.__motanPlaybackIntent=true;$('#prevBtn')?.click();});
+    }
+  }
+
+  function installEffectRefresh() {
+    const nav=$('#mainModalNav'),shell=$('#mainModal');if(!nav||!shell)return;
+    const refresh=()=>{if($('#effectRackPanel')&&$('#effectRackPanel').classList.contains('open')){try{window.MotanEffects?.refresh?.();}catch(err){console.warn('Effect panel refresh deferred:',err);}}};
+    nav.addEventListener('click',e=>{if(e.target.closest('[data-panel="effectRackPanel"]'))requestAnimationFrame(refresh);});
+    $('#effectDockEnabled')?.addEventListener('change',()=>setTimeout(()=>{try{window.MotanEffects?.refresh?.();}catch(_){}},30));
+    // Repairs stale hidden styles that can occur after responsive layout or a rapid dock toggle.
+    const dock=$('#effectPlaylistDock');if(dock&&window.MutationObserver)new MutationObserver(()=>{
+      if(localStorage.getItem('motan_effect_dock')==='1'){
+        dock.hidden=false;$('.playlist-container')?.classList.add('has-effect-dock');
+        if(!$('#effectDockContent')?.children.length)window.MotanEffects?.refresh?.();
+      }
+    }).observe(dock,{attributes:true,attributeFilter:['hidden','class']});
+  }
+
+  function bootPatch(){
+    installAudioDrop();installEqTouchScroll();installBackToClose();installDesktopWheelTabNavigation();installMobilePlaybackContinuity();installEffectRefresh();
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bootPatch,{once:true});else bootPatch();
+})();
+</script>
+
+
+<style id="motan-v10-3-tab-and-effect-spacing">
+  /* Compact, stable navigation geometry. The label and icon occupy separate flex boxes. */
+  #mainModal #mainModalNav {
+    align-items: stretch;
+    gap: 6px;
+  }
+  #mainModal #mainModalNav > .main-nav-item,
+  #mainModal #mainModalNav > [data-panel] {
+    box-sizing: border-box !important;
+    min-height: 42px !important;
+    height: 42px !important;
+    max-height: 42px !important;
+    flex: 0 0 42px !important;
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    gap: 9px !important;
+    padding: 0 11px !important;
+    line-height: 1 !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    position: relative;
+    transform: none;
+  }
+  #mainModal #mainModalNav > .main-nav-item > .main-nav-icon,
+  #mainModal #mainModalNav > [data-panel] > .main-nav-icon {
+    display: block !important;
+    position: static !important;
+    inset: auto !important;
+    flex: 0 0 18px !important;
+    width: 18px !important;
+    min-width: 18px !important;
+    max-width: 18px !important;
+    height: 18px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    align-self: center !important;
+    transform: none !important;
+    vertical-align: middle;
+  }
+  #mainModal #mainModalNav > .main-nav-item > [data-nav-label],
+  #mainModal #mainModalNav > [data-panel] > [data-nav-label] {
+    display: block !important;
+    position: static !important;
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    line-height: 1.25 !important;
+    font-size: 12px !important;
+    font-weight: inherit;
+    text-align: left;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    overflow-wrap: normal !important;
+    word-break: normal !important;
+  }
+  #mainModal #mainModalNav > [aria-selected="true"] { font-weight: 700; }
+  @media (min-width: 701px) {
+    #mainModal #mainModalNav > .main-nav-item,
+    #mainModal #mainModalNav > [data-panel] {
+      width: 100%;
+      flex-basis: 42px !important;
+    }
+  }
+  @media (max-width: 700px) {
+    #mainModal #mainModalNav {
+      align-items: center !important;
+      gap: 6px !important;
+      padding: 18px 10px !important;
+      margin: 0px;
+      overflow-x: auto !important;
+      overflow-y: hidden !important;
+      scroll-padding-inline: 10px;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+    #mainModal #mainModalNav::-webkit-scrollbar { display: none; }
+    #mainModal #mainModalNav > .main-nav-item,
+    #mainModal #mainModalNav > [data-panel] {
+      width: auto !important;
+      min-width: 104px !important;
+      max-width: 158px !important;
+      flex: 0 0 auto !important;
+      align-self: center !important;
+      padding-inline: 10px !important;
+    }
+    #mainModal #mainModalNav > .main-nav-item > [data-nav-label],
+    #mainModal #mainModalNav > [data-panel] > [data-nav-label] {
+      font-size: 12px !important;
+    }
+  }
+
+  /* More breathing room inside the Control Center without changing the playlist itself. */
+  #mainModal .main-modal-panels {
+    padding: 24px clamp(18px, 2.8vw, 28px) 30px !important;
+    scroll-padding-block: 22px 28px;
+  }
+  #mainModal .main-panel > .panel-section {
+    margin-block: 0 24px !important;
+    padding-block: 4px 24px !important;
+  }
+  #mainModal .main-panel > .panel-section:last-child {
+    margin-bottom: 0 !important;
+    padding-bottom: 10px !important;
+  }
+  #mainModal .main-panel .panel-section h4 { margin-bottom: 10px; }
+  #mainModal .main-panel .panel-section > .panel-note { margin-block: 8px 14px; }
+  #mainModal .main-panel .panel-actions { gap: 10px; margin-block: 10px; }
+
+  /* Effect rack: retain the current theme colors and tactile material, improve spacing only. */
+  #effectRackPanel .rack-toolbar { gap: 10px; margin: 12px 0 16px; }
+  #effectRackPanel .rack-list { gap: 16px; margin: 18px 0 24px; }
+  #effectRackPanel .rack-module { margin: 1px; border-radius: 13px; }
+  #effectRackPanel .rack-module-head { gap: 11px; padding: 13px 15px; min-height: 58px; }
+  #effectRackPanel .rack-module-name { line-height: 1.35; overflow-wrap: anywhere; }
+  #effectRackPanel .rack-module-type { margin-top: 3px; line-height: 1.35; }
+  #effectRackPanel .rack-module-actions { gap: 7px; align-items: center; }
+  #effectRackPanel .rack-module-actions button { min-width: 34px; min-height: 34px; padding: 5px; }
+  #effectRackPanel .rack-module-body {
+    box-sizing: border-box;
+    gap: 14px;
+    padding: 17px !important;
+  }
+  #effectRackPanel .rack-control {
+    box-sizing: border-box;
+    gap: 10px;
+    padding: 12px !important;
+    min-height: 74px;
+    line-height: 1.45;
+  }
+  #effectRackPanel .rack-control > span:first-child { display: flex; flex-wrap: wrap; align-items: baseline; gap: 5px 8px; line-height: 1.4; }
+  #effectRackPanel .rack-control output { margin-left: auto; padding: 2px 5px; border: 1px solid var(--border-color); border-radius: 5px; line-height: 1.35; }
+  #effectRackPanel .rack-control input[type="range"] { display: block; margin: 6px 0 2px; min-height: 22px; }
+  #effectRackPanel .rack-control select { box-sizing: border-box; min-height: 42px; padding: 8px 10px; margin-top: 3px; }
+  #effectRackPanel .rack-enable { display: flex; align-items: center; gap: 9px; padding: 10px 12px; min-height: 42px; border: 1px solid var(--border-color); border-radius: var(--motan-control-radius, 9px); line-height: 1.4; white-space: normal; }
+  #effectRackPanel .rack-enable input { flex: 0 0 auto; width: 18px; height: 18px; margin: 0; }
+  #effectRackPanel .rack-display { box-sizing: border-box; padding: 13px 14px; gap: 9px; min-height: 66px; line-height: 1.5; }
+  #effectRackPanel .rack-push { margin: 3px 0 5px; min-height: 48px; padding: 10px 12px; line-height: 1.35; white-space: normal; }
+  #effectRackPanel .rack-custom-toggle { box-sizing: border-box; min-height: 44px; padding: 10px 12px; gap: 12px; }
+  #effectRackPanel .rack-rotary { margin-block: 7px 5px; }
+  #effectRackPanel .rack-json-editor { display: block; box-sizing: border-box; margin: 12px 0 14px; padding: 12px 13px; line-height: 1.55; }
+  #effectRackPanel .rack-preset-row { gap: 9px; margin-top: 12px; }
+  #effectRackPanel .panel-note code { overflow-wrap: anywhere; }
+
+  /* The compact effects dock uses the same visual rhythm as the full rack. */
+  #effectPlaylistDock { padding: 14px !important; }
+  #effectPlaylistDock .effect-dock-title { gap: 10px; margin-bottom: 12px; line-height: 1.45; }
+  #effectPlaylistDock .effect-dock-content { gap: 12px; padding: 2px; }
+  #effectPlaylistDock .rack-module-head { padding: 10px 12px !important; gap: 9px; }
+  #effectPlaylistDock .rack-module-body { padding: 12px !important; gap: 10px; }
+  #effectPlaylistDock .rack-control { padding: 10px !important; min-height: 66px; }
+  @media (max-width: 700px) {
+    #mainModal .main-modal-panels { padding: 20px 16px 26px !important; height: 100%;}
+    #mainModal .main-panel > .panel-section { margin-bottom: 20px !important; padding-bottom: 20px !important; }
+    #effectRackPanel .rack-module-body { grid-template-columns: minmax(0, 1fr); gap: 12px; padding: 14px !important; }
+    #effectRackPanel .rack-control { min-height: 68px; padding: 11px !important; }
+    #effectRackPanel .rack-module-head { padding: 12px; }
+    #effectPlaylistDock { padding: 10px !important; }
+    #effectPlaylistDock .effect-dock-content { grid-template-columns: minmax(0, 1fr); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    #mainModal #mainModalNav > [data-panel], #mainModal .main-modal-panels { scroll-behavior: auto !important; transition: none !important; }
+  }
+</style>
+
+</body>
 </html>
